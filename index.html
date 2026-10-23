@@ -11,13 +11,273 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Aide">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNlODY5M2EiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNhMTNkMTQiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iciIgY3g9Ii44IiBjeT0iLjIiIHI9Ii42Ij48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmQ2YWEiIHN0b3Atb3BhY2l0eT0iLjYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZmQ2YWEiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSJ1cmwoI2cpIi8+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIGZpbGw9InVybCgjcikiLz48dGV4dCB4PSIyNTYiIHk9IjMzOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkNhYmluZXQgR3JvdGVzaywgSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSIzMDAiIGZpbGw9IiNmZmYiPkE8L3RleHQ+PC9zdmc+Cg==" type="image/svg+xml">
 <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=cabinet-grotesk@500,700,800&display=swap">
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600&display=swap">
-<link rel="stylesheet" href="css/app.css">
+<style>
+/* Aide · Executive Desk — styles
+   Built on Moxen's design rules (moxen.cl/recursos): cream paper, cacao ink,
+   terracotta accent, pastel categories with a side bar, long tinted shadows,
+   30px window radius, springs for movement, only transform/opacity animated,
+   focus-visible rings, text contrast >= 4.5:1, and a "dusk" dark theme.
+   All colours live in the variables below. --hour is the height of one hour. */
+:root {
+  --cream: #fbf3e8;  --paper: #fffaf2;  --canvas: #fffdf8;
+  --ink: #3a2418;    --soft: rgba(58,36,24,.8);  --faint: rgba(58,36,24,.68);
+  --line: rgba(120,76,44,.13); --line-fine: rgba(120,76,44,.075);
+  --accent: #e8693a; --accent-ink: #b84818; --btn-a: #c85428; --btn-b: #b24418;
+  --today-bg: rgba(232,105,58,.075); --weekend: rgba(150,100,60,.045);
+  --shadow: rgba(120,52,18,.38); --shadow-soft: rgba(120,52,18,.2);
+  --rim: rgba(255,255,255,.95);
+  --blob-1: rgba(232,105,58,.2); --blob-2: rgba(255,196,150,.55); --blob-3: rgba(143,190,160,.3);
+  --tip: #2c1a11; --tip-ink: #fff3e4; --danger: #b3261e; --danger-bg: #f8d9d5; --ok: #2f7a4d;
+  /* categories: pastel + bar */
+  --c-meeting: #d1deef; --b-meeting: #5b87c2;
+  --c-visit:   #d3e3d4; --b-visit:   #5f9a74;
+  --c-call:    #dfd9ec; --b-call:    #8672bd;
+  --c-travel:  #efe3bc; --b-travel:  #bf9a2e;
+  --c-personal:#f1d5d8; --b-personal:#cc6b7f;
+  --c-focus:   #f4d9c9; --b-focus:   #d9693f;
+  --c-away:    #e4e0da; --b-away:    #8a8178;
+  --hour: 56px; --radius: 30px; --side: 236px;
+  --ease: cubic-bezier(.22,1,.36,1);
+  --spring: cubic-bezier(.34,1.56,.64,1);   /* core.js swaps in a real spring via linear() */
+  color-scheme: light;
+}
+:root[data-theme="dusk"] {
+  --cream: #1b110d; --paper: #271913; --canvas: #2d1d16;
+  --ink: #fbeee0; --soft: rgba(251,238,224,.82); --faint: rgba(251,238,224,.66);
+  --line: rgba(255,214,180,.14); --line-fine: rgba(255,214,180,.07);
+  --accent: #ff8658; --accent-ink: #ff9a74; --btn-a: #e0663a; --btn-b: #c4522a;
+  --today-bg: rgba(255,134,88,.1); --weekend: rgba(255,214,180,.035);
+  --shadow: rgba(0,0,0,.7); --shadow-soft: rgba(0,0,0,.45); --rim: rgba(255,220,190,.22);
+  --blob-1: rgba(232,105,58,.26); --blob-2: rgba(150,80,40,.35); --blob-3: rgba(60,110,90,.3);
+  --tip: #fff3e4; --tip-ink: #2c1a11; --danger: #ff8d85; --danger-bg: #5a2420; --ok: #7fd3a0;
+  --c-meeting:#243a5c; --b-meeting:#7fb0ff; --c-visit:#28432f; --b-visit:#78d095;
+  --c-call:#3d3166; --b-call:#b09dff; --c-travel:#5a4513; --b-travel:#ffcf4a;
+  --c-personal:#5a2a36; --b-personal:#ff8aa3; --c-focus:#5a2e1e; --b-focus:#ff8658;
+  --c-away:#3a332d; --b-away:#b3a99d; color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--cream); color: var(--ink); }
+body { font-family: "General Sans", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; overflow: hidden; }
+h1,h2,h3,p { margin: 0; }
+h1,h2,h3,.display { font-family: "Cabinet Grotesk", "General Sans", system-ui, sans-serif; letter-spacing: -.01em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+svg { display: block; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+:focus:not(:focus-visible) { outline: none; }
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.num { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001s !important; transition-duration: .001s !important; } }
+
+/* ── backdrop ─────────────────────────────────────────────────────── */
+.backdrop { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: radial-gradient(60% 55% at 8% 0%, var(--blob-1), transparent 70%), radial-gradient(55% 60% at 100% 100%, var(--blob-2), transparent 72%), var(--cream); }
+.blob { position: absolute; border-radius: 50%; aspect-ratio: 1; will-change: transform; }
+.blob.a { left: -8%; top: -14%; width: 44%; background: radial-gradient(closest-side, var(--blob-1), transparent); animation: drift 19s ease-in-out infinite alternate; }
+.blob.b { right: -6%; bottom: -16%; width: 46%; background: radial-gradient(closest-side, var(--blob-2), transparent); animation: drift 23s -7s ease-in-out infinite alternate-reverse; }
+.blob.c { left: 22%; bottom: -26%; width: 36%; background: radial-gradient(closest-side, var(--blob-3), transparent); animation: drift 27s -12s ease-in-out infinite alternate; }
+@keyframes drift { to { transform: translate(6%,-5%) scale(1.12); } }
+.grain { position: absolute; inset: 0; opacity: .45; mix-blend-mode: multiply; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .22  0 0 0 0 .14  0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root[data-theme="dusk"] .grain { mix-blend-mode: screen; opacity: .25; }
+
+/* ── buttons, inputs ──────────────────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 999px; font-weight: 600; font-size: 14px; white-space: nowrap; background: var(--canvas); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 6px 14px -8px var(--shadow-soft); transition: transform .35s var(--spring), background .2s; }
+.btn:hover { background: var(--paper); } .btn:active { transform: scale(.96); }
+.btn.primary { color: #fff; border-color: transparent; background: linear-gradient(180deg, var(--btn-a), var(--btn-b)); box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 10px 20px -10px var(--shadow); }
+.btn.danger { color: var(--danger); } .btn.sm { min-height: 32px; padding: 0 12px; font-size: 13px; }
+.btn[disabled] { opacity: .5; pointer-events: none; }
+.icon-btn { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: var(--soft); flex: none; transition: background .2s, transform .35s var(--spring); }
+.icon-btn:hover { background: var(--line-fine); } .icon-btn:active { transform: scale(.9); }
+.icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.field { display: grid; gap: 6px; } .field > span, .lbl { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
+input[type=text], input[type=search], input[type=password], input[type=date], input[type=time], input[type=number], input[type=tel], input[type=email], select, textarea { width: 100%; min-height: 42px; padding: 9px 13px; border-radius: 14px; border: 1px solid var(--line); background: var(--canvas); outline: none; transition: border-color .2s, box-shadow .2s; }
+textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--today-bg); }
+input::placeholder, textarea::placeholder { color: var(--faint); opacity: .8; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: var(--line-fine); border: 1px solid var(--line-fine); position: relative; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+.seg::-webkit-scrollbar { display: none; }
+.seg button { position: relative; z-index: 1; min-height: 34px; padding: 0 14px; border-radius: 999px; font-weight: 600; font-size: 13.5px; color: var(--soft); white-space: nowrap; transition: color .2s; }
+.seg button[aria-selected=true], .seg button[aria-pressed=true] { color: var(--ink); background: var(--canvas); box-shadow: 0 1px 0 var(--rim) inset, 0 4px 10px -5px var(--shadow-soft); }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 11px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: var(--line-fine); color: var(--soft); }
+.chip i, .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: var(--b, var(--accent)); flex: none; }
+.badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; font-size: 11.5px; font-weight: 700; color: #fff; background: var(--accent-ink); display: inline-grid; place-items: center; }
+.switch { position: relative; width: 46px; height: 28px; border-radius: 14px; background: var(--line); transition: background .25s; flex: none; }
+.switch::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.25); transition: transform .4s var(--spring), width .2s; }
+.switch[aria-checked=true] { background: var(--b-visit); } .switch[aria-checked=true]::after { transform: translateX(18px); } .switch:active::after { width: 28px; } .switch[aria-checked=true]:active::after { transform: translateX(12px); }
+
+/* ── shell ────────────────────────────────────────────────────────── */
+.app { display: grid; grid-template-columns: var(--side) 1fr; height: 100vh; height: 100dvh; padding: 18px; gap: 18px; }
+.side { display: flex; flex-direction: column; gap: 6px; padding: 18px 12px; border-radius: var(--radius); background: color-mix(in srgb, var(--paper) 86%, transparent); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 30px 50px -34px var(--shadow); backdrop-filter: blur(18px); overflow-y: auto; }
+.brand { display: flex; align-items: center; gap: 11px; padding: 4px 10px 16px; }
+.brand-mark { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; color: #fff; font: 800 18px "Cabinet Grotesk", sans-serif; background: linear-gradient(160deg, var(--accent), var(--btn-b)); box-shadow: 0 8px 16px -8px var(--shadow); }
+.brand b { font: 800 19px "Cabinet Grotesk", sans-serif; display: block; line-height: 1; } .brand small { color: var(--faint); font-size: 12px; }
+.nav { display: grid; gap: 3px; position: relative; }
+.nav a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 16px; color: var(--soft); font-weight: 600; text-decoration: none; position: relative; transition: background .2s, color .2s; }
+.nav a:hover { background: var(--line-fine); }
+.nav a[aria-current=page] { color: var(--ink); background: var(--canvas); box-shadow: 0 1px 0 var(--rim) inset, 0 8px 16px -10px var(--shadow-soft); }
+.nav a[aria-current=page] .icon { color: var(--accent-ink); }
+.nav .badge { margin-left: auto; }
+.side-foot { margin-top: auto; display: grid; gap: 8px; padding: 12px 8px 2px; border-top: 1px solid var(--line-fine); }
+.who { display: flex; align-items: center; gap: 10px; font-size: 13.5px; } .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--c-focus); color: var(--ink); flex: none; }
+.main { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; border-radius: var(--radius); background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 40px 70px -44px var(--shadow); overflow: hidden; }
+.topbar { display: flex; align-items: center; gap: 12px; padding: 16px 22px 12px; flex-wrap: wrap; }
+.topbar h1 { font-size: 26px; font-weight: 800; line-height: 1.1; } .topbar .sub { color: var(--faint); font-size: 13.5px; margin-top: 2px; }
+.topbar .grow { flex: 1; min-width: 8px; }
+.page { flex: 1; min-height: 0; overflow: auto; padding: 4px 22px 24px; position: relative; }
+.page.flush { padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+.tabbar { display: none; }
+.view-enter { animation: enter .55s var(--ease) both; } @keyframes enter { from { opacity: 0; transform: translateY(10px); } }
+
+/* ── cards & lists ────────────────────────────────────────────────── */
+.card { padding: 18px; border-radius: 24px; background: var(--canvas); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 18px 30px -24px var(--shadow-soft); min-width: 0; }
+.card h3 { font-size: 16px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; } .card h3 .grow { flex: 1; }
+.grid { display: grid; gap: 14px; } .g2 { grid-template-columns: repeat(2, minmax(0,1fr)); } .g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.row { display: flex; align-items: center; gap: 10px; } .row.wrap { flex-wrap: wrap; } .grow { flex: 1; min-width: 0; } .muted { color: var(--faint); } .small { font-size: 13px; }
+.stack { display: grid; gap: 8px; }
+.empty { display: grid; justify-items: center; gap: 6px; padding: 28px 12px; color: var(--faint); text-align: center; } .empty b { color: var(--soft); font-family: "Cabinet Grotesk"; font-size: 16px; }
+.item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; text-align: left; width: 100%; transition: background .2s; }
+button.item:hover, .item.hov:hover { background: var(--line-fine); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--c, var(--line-fine)); color: var(--ink); }
+.ev-chip { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; border-radius: 14px; background: var(--c); border-left: 4px solid var(--b); text-align: left; width: 100%; font-size: 13.5px; }
+.ev-chip small { color: var(--soft); display: block; font-size: 12px; } .ev-chip .t { font-weight: 700; display: block; }
+.hero { position: relative; padding: 22px; border-radius: 28px; overflow: hidden; color: #fff; background: linear-gradient(135deg, #c85428, #a13d14 60%, #7c2d0d); box-shadow: 0 30px 40px -28px var(--shadow); }
+.hero::after { content: ""; position: absolute; right: -40px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,214,170,.5), transparent); pointer-events: none; }
+.hero > * { position: relative; z-index: 1; }
+.hero h2 { font-size: 28px; font-weight: 800; line-height: 1.1; } .hero p { opacity: .92; } .hero .big { font: 800 44px "Cabinet Grotesk"; line-height: 1; margin: 10px 0 4px; }
+.hero .btn { background: rgba(255,255,255,.18); color: #fff; border-color: rgba(255,255,255,.3); box-shadow: none; }
+.warn { padding: 10px 14px; border-radius: 14px; background: var(--danger-bg); color: var(--danger); font-weight: 600; font-size: 13.5px; display: flex; gap: 8px; align-items: flex-start; }
+
+/* ── calendar ─────────────────────────────────────────────────────── */
+.cal-head { display: flex; align-items: center; gap: 10px; padding: 0 22px 10px; flex-wrap: wrap; }
+.cal-title { font: 800 22px "Cabinet Grotesk"; min-width: 0; } .cal-title small { display: block; font: 500 13px "General Sans"; color: var(--faint); }
+.cal-body { flex: 1; min-height: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--canvas); }
+.tg-head { display: grid; grid-template-columns: 56px repeat(var(--cols), 1fr); border-bottom: 1px solid var(--line); padding-right: var(--sbw, 0px); }
+.tg-day { padding: 8px 4px; text-align: center; border-left: 1px solid var(--line-fine); } .tg-day button { display: grid; justify-items: center; width: 100%; gap: 2px; border-radius: 14px; padding: 2px 0; }
+.tg-day .dn { font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+.tg-day .dd { font: 800 21px "Cabinet Grotesk"; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; } .tg-day .sec { font-size: 10.5px; color: var(--faint); margin-top: -2px; }
+.tg-day.today .dd { background: var(--accent); color: #fff; } .tg-day.today .dn { color: var(--accent-ink); }
+.tg-allday { display: grid; grid-template-columns: 56px repeat(var(--cols), 1fr); border-bottom: 1px solid var(--line); min-height: 6px; padding-right: var(--sbw, 0px); }
+.tg-allday > div { border-left: 1px solid var(--line-fine); padding: 2px; display: grid; gap: 2px; align-content: start; min-width: 0; } .tg-allday .ev-chip { padding: 3px 8px; font-size: 12px; border-radius: 8px; }
+.tg-scroll { flex: 1; min-height: 0; overflow-y: auto; position: relative; overscroll-behavior: contain; }
+.tg { position: relative; display: grid; grid-template-columns: 56px repeat(var(--cols), 1fr); height: calc(var(--hour) * var(--hours)); }
+.tg-hours { position: relative; } .tg-hours span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 11.5px; color: var(--faint); } .tg-hours span:first-child { transform: none; }
+.tg-col { position: relative; border-left: 1px solid var(--line-fine); touch-action: pan-y; background-image: linear-gradient(var(--line-fine) 1px, transparent 1px); background-size: 100% var(--hour); }
+.tg-col.today { background-color: var(--today-bg); } .tg-col.wknd { background-color: var(--weekend); }
+.tg-col .off { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(135deg, var(--line-fine) 0 6px, transparent 6px 12px); pointer-events: none; }
+.now-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--accent); z-index: 4; pointer-events: none; } .now-line::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.ev { position: absolute; z-index: 2; left: calc(var(--l) * 1%); width: calc(var(--w) * 1% - 3px); padding: 5px 8px; border-radius: 12px; background: var(--c); border-left: 4px solid var(--b); text-align: left; overflow: hidden; font-size: 12.5px; line-height: 1.25; touch-action: pan-y; user-select: none; -webkit-user-select: none; box-shadow: 0 1px 0 var(--rim) inset, 0 6px 12px -8px var(--shadow); cursor: grab; }
+.ev .t { font-weight: 700; display: block; overflow: hidden; text-overflow: ellipsis; } .ev .m { color: var(--soft); font-size: 11.5px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev.tent { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.35) 0 5px, transparent 5px 10px); border-left-style: dashed; }
+.ev.conflict { outline: 2px solid var(--danger); outline-offset: -2px; } .ev.conflict::after { content: "!"; position: absolute; right: 6px; top: 4px; width: 16px; height: 16px; border-radius: 50%; font: 800 11px/16px "General Sans"; text-align: center; background: var(--danger); color: var(--canvas); }
+.ev.drag { z-index: 8; cursor: grabbing; box-shadow: 0 20px 30px -12px var(--shadow); will-change: transform; } .ev.done { opacity: .6; }
+.ev .rz { position: absolute; left: 0; right: 0; bottom: 0; height: 12px; cursor: ns-resize; touch-action: none; } .ev .rz::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 22px; height: 3px; margin-left: -11px; border-radius: 2px; background: currentColor; opacity: .3; }
+.bubble { position: fixed; z-index: 60; padding: 5px 10px; border-radius: 10px; background: var(--tip); color: var(--tip-ink); font-size: 12.5px; font-weight: 600; pointer-events: none; transform: translate(-50%,-130%); white-space: nowrap; }
+.drawing { position: absolute; z-index: 3; left: 2px; right: 2px; border-radius: 12px; background: var(--today-bg); border: 2px dashed var(--accent); pointer-events: none; }
+/* month */
+.mo { flex: 1; min-height: 0; display: grid; grid-template-rows: auto 1fr; } .mo-dow { display: grid; grid-template-columns: repeat(7,1fr); border-bottom: 1px solid var(--line); } .mo-dow span { padding: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+.mo-grid { display: grid; grid-template-columns: repeat(7,1fr); grid-auto-rows: minmax(0,1fr); min-height: 0; }
+.mo-cell { position: relative; border-left: 1px solid var(--line-fine); border-bottom: 1px solid var(--line-fine); padding: 4px 5px; text-align: left; min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 2px; transition: background .2s; }
+.mo-cell:hover { background: var(--line-fine); } .mo-cell.out { color: var(--faint); background: var(--weekend); } .mo-cell.sel { background: var(--today-bg); }
+.mo-cell .d { display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; width: 100%; } .mo-cell .d em { font-style: normal; font-weight: 500; font-size: 10.5px; color: var(--faint); margin-left: auto; }
+.mo-cell.today .d b { background: var(--accent); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; }
+.mo-ev { display: block; width: 100%; padding: 1px 6px; border-radius: 6px; font-size: 11.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--c); border-left: 3px solid var(--b); } .mo-more { font-size: 11px; color: var(--faint); font-weight: 600; padding-left: 4px; }
+.mo-dots { display: none; gap: 3px; flex-wrap: wrap; justify-content: center; }
+.mo-side { border-top: 1px solid var(--line); padding: 10px 14px; max-height: 38%; overflow: auto; display: none; }
+/* year */
+.yr { flex: 1; overflow: auto; padding: 18px 22px; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 18px; align-content: start; }
+.mini h4 { margin: 0 0 6px; font: 700 15px "Cabinet Grotesk"; } .mini-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; text-align: center; font-size: 11px; }
+.mini-grid b { font-size: 9.5px; color: var(--faint); font-weight: 600; } .mini-grid button { aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: 11px; background: color-mix(in srgb, var(--accent) calc(var(--heat, 0) * 14%), transparent); } .mini-grid button.today { background: var(--accent); color: #fff; font-weight: 700; } .mini-grid button:hover { outline: 2px solid var(--accent); }
+/* agenda */
+.ag { flex: 1; overflow: auto; padding: 8px 22px 24px; } .ag-day { display: grid; grid-template-columns: 74px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line-fine); } .ag-day .dl { font: 800 28px "Cabinet Grotesk"; line-height: 1; } .ag-day .dl small { display: block; font: 600 11.5px "General Sans"; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); margin-top: 4px; } .ag-day.today .dl { color: var(--accent-ink); }
+.ag-day .list { display: grid; gap: 6px; }
+
+/* ── dialogs / toasts ─────────────────────────────────────────────── */
+dialog { border: 0; padding: 0; background: transparent; max-width: 100vw; max-height: 100dvh; color: var(--ink); overflow: visible; }
+dialog::backdrop { background: rgba(40,20,10,.42); backdrop-filter: blur(5px); animation: fade .25s both; } @keyframes fade { from { opacity: 0; } }
+.sheet { width: min(560px, 100vw - 24px); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; border-radius: 28px; background: var(--paper); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 50px 80px -30px var(--shadow); overflow: hidden; animation: pop .5s var(--spring) both; }
+@keyframes pop { from { opacity: 0; transform: translateY(18px) scale(.96); } }
+.sheet header { display: flex; align-items: center; gap: 10px; padding: 18px 20px 8px; } .sheet header h2 { font-size: 20px; font-weight: 800; flex: 1; }
+.sheet .body { padding: 8px 20px 12px; overflow-y: auto; display: grid; gap: 14px; } .sheet footer { display: flex; gap: 8px; padding: 12px 20px 18px; border-top: 1px solid var(--line-fine); flex-wrap: wrap; } .sheet footer .grow { flex: 1; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .cats { display: flex; gap: 6px; flex-wrap: wrap; } .cats button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px; border-radius: 999px; font-weight: 600; font-size: 13px; background: var(--c); border: 2px solid transparent; transition: transform .3s var(--spring); } .cats button[aria-pressed=true] { border-color: var(--b); transform: scale(1.04); }
+.toasts { position: fixed; z-index: 100; left: 50%; bottom: 22px; transform: translateX(-50%); display: grid; gap: 8px; justify-items: center; pointer-events: none; } .toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-radius: 16px; background: var(--tip); color: var(--tip-ink); font-weight: 600; font-size: 14px; box-shadow: 0 20px 30px -14px rgba(0,0,0,.5); animation: pop .5s var(--spring) both; max-width: min(92vw, 460px); } .toast button { color: var(--accent); font-weight: 700; }
+.toast.out { animation: out .3s ease both; } @keyframes out { to { opacity: 0; transform: translateY(10px) scale(.96); } }
+.palette { width: min(620px, 100vw - 24px); } .palette input { min-height: 52px; font-size: 17px; border-radius: 18px; } .pal-list { max-height: 48dvh; overflow: auto; display: grid; gap: 2px; padding: 8px; } .pal-list .item[aria-selected=true] { background: var(--line-fine); outline: 2px solid var(--accent); }
+
+/* ── login ────────────────────────────────────────────────────────── */
+.login { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; overflow: auto; z-index: 50; }
+.login-card { width: min(980px, 100%); display: grid; grid-template-columns: 1.05fr 1fr; border-radius: 36px; overflow: hidden; background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 60px 90px -40px var(--shadow); backdrop-filter: blur(20px); animation: pop .8s var(--spring) both; }
+.login-art { position: relative; padding: 38px; color: #fff; background: linear-gradient(150deg, #d25f30, #a13d14 62%, #6f280b); display: flex; flex-direction: column; justify-content: space-between; gap: 30px; overflow: hidden; } .login-art::before { content: ""; position: absolute; width: 380px; height: 380px; right: -120px; bottom: -140px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,214,170,.55), transparent); }
+.login-art h2 { font-size: 38px; font-weight: 800; line-height: 1.05; } .login-art p { opacity: .9; max-width: 34ch; margin-top: 10px; } .login-art ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-weight: 500; position: relative; z-index: 1; } .login-art li { display: flex; gap: 10px; align-items: center; } .login-art li::before { content: "✓"; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.2); font-size: 12px; flex: none; }
+.login-art .brand b, .login-art .brand small { color: #fff; } .login-art .brand-mark { background: rgba(255,255,255,.2); box-shadow: none; }
+.login-form { padding: 40px 38px; display: grid; gap: 16px; align-content: center; } .login-form h1 { font-size: 30px; font-weight: 800; } .login-form .btn.primary { min-height: 48px; font-size: 15.5px; }
+.pw { position: relative; } .pw input { padding-right: 46px; } .pw .icon-btn { position: absolute; right: 2px; top: 2px; } .meter { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; } .meter i { display: block; height: 100%; width: 100%; transform-origin: left; transform: scaleX(var(--s, 0)); background: var(--bar, var(--danger)); transition: transform .4s var(--ease), background .3s; }
+.shake { animation: shake .45s; } @keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+.note { font-size: 12.5px; color: var(--faint); line-height: 1.5; }
+
+/* ── misc views ───────────────────────────────────────────────────── */
+.kan { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; align-items: start; } .kan-col { display: grid; gap: 10px; align-content: start; padding: 12px; border-radius: 22px; background: var(--line-fine); min-height: 120px; } .kan-col > h3 { font-size: 14px; display: flex; gap: 8px; align-items: center; }
+.req { display: grid; gap: 8px; padding: 14px; border-radius: 18px; background: var(--canvas); border: 1px solid var(--line); box-shadow: 0 14px 22px -18px var(--shadow-soft); } .req b { font-size: 15px; } .req.high { border-left: 4px solid var(--accent); }
+.av-grid { display: grid; grid-template-columns: 52px repeat(7, 1fr); user-select: none; -webkit-user-select: none; touch-action: none; border-radius: 18px; border: 1px solid var(--line); background: var(--canvas); overflow: hidden; }
+.av-grid .hd { padding: 8px 0; text-align: center; font-size: 12px; font-weight: 700; color: var(--faint); border-bottom: 1px solid var(--line); } .av-grid .hr { font-size: 10.5px; color: var(--faint); text-align: right; padding-right: 6px; height: 22px; }
+.av-cell { height: 22px; border-left: 1px solid var(--line-fine); border-top: 1px solid var(--line-fine); } .av-cell.hour { border-top-color: var(--line); } .av-cell.on { background: color-mix(in srgb, var(--b-visit) 55%, transparent); }
+.slot { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--c-visit); border-left: 4px solid var(--b-visit); }
+.matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .quad { min-height: 150px; padding: 12px; border-radius: 22px; border: 2px dashed var(--line); display: grid; gap: 8px; align-content: start; transition: background .2s, border-color .2s; } .quad.over { background: var(--today-bg); border-color: var(--accent); } .quad h3 { font-size: 14px; } .quad h3 small { display: block; font: 500 12px "General Sans"; color: var(--faint); }
+.task { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 14px; background: var(--canvas); border: 1px solid var(--line); } .task.done .tt { text-decoration: line-through; color: var(--faint); } .task .grip { touch-action: none; cursor: grab; color: var(--faint); } .task.drag { position: fixed; z-index: 70; pointer-events: none; box-shadow: 0 20px 30px -10px var(--shadow); width: 260px; }
+.check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--b-focus); flex: none; display: grid; place-items: center; color: #fff; transition: background .2s, transform .35s var(--spring); } .check[aria-checked=true] { background: var(--b-focus); transform: scale(1.1); } .check svg { width: 14px; height: 14px; stroke-width: 3; opacity: 0; } .check[aria-checked=true] svg { opacity: 1; }
+.notes { display: grid; grid-template-columns: 300px 1fr; gap: 14px; height: 100%; min-height: 0; } .nside { display: grid; grid-template-rows: auto 1fr; gap: 10px; min-height: 0; } .nlist { overflow: auto; display: grid; gap: 6px; align-content: start; } .nitem { padding: 11px 13px; border-radius: 16px; text-align: left; border: 1px solid transparent; background: var(--line-fine); display: grid; gap: 2px; border-left: 4px solid var(--b, var(--line)); } .nitem[aria-current=true] { background: var(--canvas); border-color: var(--line); box-shadow: 0 10px 18px -14px var(--shadow); } .nitem b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .nitem span { color: var(--faint); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.neditor { display: flex; flex-direction: column; gap: 10px; min-height: 0; padding: 16px; border-radius: 24px; background: var(--canvas); border: 1px solid var(--line); } .neditor .ttl { font: 800 24px "Cabinet Grotesk"; border: 0; background: transparent; padding: 0; min-height: 0; box-shadow: none !important; } .neditor textarea { flex: 1; border: 0; background: transparent; resize: none; padding: 0; font-size: 16px; line-height: 1.65; box-shadow: none !important; }
+.dial-wrap { display: grid; place-items: center; padding: 8px; } .dial { width: min(320px, 74vw); aspect-ratio: 1; touch-action: none; user-select: none; -webkit-user-select: none; } .dial .face { fill: var(--canvas); stroke: var(--line); } .dial .arc { fill: none; stroke: var(--accent); stroke-width: 14; stroke-linecap: round; transition: stroke .3s; } .dial .trk { fill: none; stroke: var(--line-fine); stroke-width: 14; } .dial text { font-family: "Cabinet Grotesk"; fill: var(--ink); } .dial .knob { fill: #fff; stroke: var(--accent); stroke-width: 4; cursor: grab; }
+.ring-done { animation: ring .6s ease 3; } @keyframes ring { 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
+.clock { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: var(--line-fine); } .clock .tm { font: 800 24px "Cabinet Grotesk"; margin-left: auto; text-align: right; line-height: 1; } .clock .tm small { display: block; font: 500 12px "General Sans"; color: var(--faint); margin-top: 3px; }
+.alpha { position: sticky; top: 0; z-index: 1; padding: 6px 12px; font: 800 13px "Cabinet Grotesk"; color: var(--accent-ink); background: var(--paper); }
+.sett { display: grid; gap: 14px; max-width: 760px; } .sett .line { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line-fine); flex-wrap: wrap; } .sett .line:first-of-type { border-top: 0; }
+.pbar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; } .pbar i { display: block; height: 100%; background: var(--b-visit); width: 100%; transform-origin: left; transform: scaleX(var(--p,0)); transition: transform .5s var(--ease), background .3s; } .pbar.over i { background: var(--danger); }
+@media print { body { overflow: visible; background: #fff; } .backdrop, .side, .tabbar, .topbar .btn, .cal-head .seg, .toasts, .noprint { display: none !important; } .app { display: block; height: auto; padding: 0; } .main { box-shadow: none; border: 0; overflow: visible; background: #fff; } .page { overflow: visible; } .card { box-shadow: none; break-inside: avoid; } }
+
+/* ── phone & tablet ───────────────────────────────────────────────── */
+@media (max-width: 1100px) { .g3 { grid-template-columns: repeat(2,minmax(0,1fr)); } .kan { grid-template-columns: 1fr; } }
+@media (max-width: 860px) {
+  .hide-sm { display: none; }
+  :root { --hour: 52px; --radius: 26px; }
+  body { font-size: 15.5px; }
+  .app { display: block; padding: 0; height: 100dvh; } .side { display: none; }
+  .main { height: 100dvh; border-radius: 0; border: 0; padding-bottom: calc(72px + env(safe-area-inset-bottom)); box-shadow: none; background: var(--paper); }
+  .topbar { padding: calc(14px + env(safe-area-inset-top)) 16px 8px; } .topbar h1 { font-size: 23px; } .page { padding: 4px 14px 24px; } .cal-head { padding: 0 14px 8px; }
+  .tabbar { position: fixed; z-index: 30; left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5,1fr); padding: 6px; border-radius: 26px; background: color-mix(in srgb, var(--paper) 88%, transparent); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 20px 30px -14px var(--shadow); backdrop-filter: blur(18px); }
+  .tabbar a, .tabbar button { display: grid; justify-items: center; gap: 2px; padding: 7px 0 5px; border-radius: 20px; font-size: 11px; font-weight: 700; color: var(--faint); text-decoration: none; position: relative; transition: background .2s, color .2s; } .tabbar [aria-current=page] { color: var(--ink); background: var(--canvas); } .tabbar [aria-current=page] .icon { color: var(--accent-ink); } .tabbar .badge { position: absolute; top: 2px; right: 22%; min-width: 17px; height: 17px; font-size: 10.5px; }
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .tg-head, .tg-allday, .tg { grid-template-columns: 40px repeat(var(--cols), 1fr); } .tg-hours span { right: 4px; font-size: 10.5px; } .tg-day .dd { width: 32px; height: 32px; font-size: 18px; }
+  .mo-dow span { padding: 6px 2px; text-align: center; font-size: 10.5px; } .mo-cell { align-items: center; padding: 4px 2px; } .mo-cell .d em, .mo-ev, .mo-more { display: none; } .mo-dots { display: flex; } .mo-grid { grid-auto-rows: minmax(0,1fr); } .mo-side { display: block; }
+  .notes { grid-template-columns: 1fr; } .notes .neditor { display: none; } .notes.editing .nside { display: none; } .notes.editing .neditor { display: flex; }
+  .matrix { grid-template-columns: 1fr; } .sheet { width: 100vw; max-height: 94dvh; border-radius: 28px 28px 0 0; } dialog { margin: auto 0 0; width: 100%; } .sheet footer { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+  .login { padding: 0; align-items: stretch; } .login-card { grid-template-columns: 1fr; border-radius: 0; min-height: 100dvh; } .login-art { padding: 28px 24px 24px; gap: 16px; } .login-art h2 { font-size: 30px; } .login-art ul { display: none; } .login-form { padding: 26px 22px calc(26px + env(safe-area-inset-bottom)); }
+  .hero .big { font-size: 38px; } .av-grid { grid-template-columns: 40px repeat(7,1fr); } .toasts { bottom: calc(86px + env(safe-area-inset-bottom)); } .ag-day { grid-template-columns: 58px 1fr; } .ag-day .dl { font-size: 22px; }
+}
+.show-sm { display: none; } .main.notop .cal-head { padding-top: 18px; }
+@media (max-width: 860px) { .show-sm { display: grid; } .main.notop .cal-head { padding-top: calc(14px + env(safe-area-inset-top)); } }
+
+.cal-filter { padding: 0 22px 10px; gap: 6px; } @media (max-width: 860px) { .cal-filter { padding: 0 14px 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .cal-filter::-webkit-scrollbar { display: none; } .cal-filter .chip { flex: none; } .cal-filter .grow { display: none; } .cal-filter input { display: none; } }
+.sheet:focus { outline: none; }
+
+/* ── phone calendar header: one tidy row instead of half the screen ── */
+@media (max-width: 860px) {
+  .row.wrap.cal-filter { flex-wrap: nowrap; }
+  .cal-head { gap: 8px; align-items: center; }
+  .cal-head > .grow { display: none; }
+  .cal-head > .row:first-child { order: 1; }
+  .cal-head > .btn.primary { order: 2; margin-left: auto; min-width: 44px; justify-content: center; }
+  .cal-head > .cal-title { order: 3; flex: 1 0 100%; }
+  .cal-head > .seg { order: 4; flex: 1 0 100%; overflow-x: auto; scrollbar-width: none; }
+  .cal-head > .seg::-webkit-scrollbar { display: none; }
+  .cal-head > .seg button { flex: none; }
+}
+.card h3 { flex-wrap: wrap; } .card > .stack, .card > .av-grid { min-width: 0; } #avgrid > * { min-width: 0; }
+
+</style>
 <script>
   // apply the saved theme before first paint (no flash)
   try { if (matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.dataset.theme = 'dusk'; } catch (e) {}
@@ -28,16 +288,1282 @@
   <noscript><p style="padding:2rem">Aide needs JavaScript to run.</p></noscript>
   <div id="login" class="login" hidden></div>
   <div id="app" class="app" hidden></div>
-  <script src="js/core.js"></script>
-  <script src="js/vault.js"></script>
-  <script src="js/events.js"></script>
-  <script src="js/calendar.js"></script>
-  <script src="js/people.js"></script>
-  <script src="js/tools.js"></script>
-  <script src="js/app.js"></script>
+  <script>
+/* ===== core.js ===== */
+/* Aide · core — helpers shared by every view.
+   No dependencies. Dates are plain integers (days since 1970-01-01, local
+   calendar day) like Moxen's components, so there are no time-zone surprises.
+   User text is only ever inserted with textContent (never innerHTML). */
+(function () {
+  'use strict';
+  const A = window.Aide = { views: {}, ui: {} };
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  A.$ = $; A.$$ = $$;
+
+  /* ── tiny hyperscript ─────────────────────────────────────────────── */
+  const PROPS = new Set(['value', 'checked', 'disabled', 'selected', 'hidden', 'tabIndex', 'textContent', 'htmlFor', 'className']);
+  function h(tag, props, ...kids) {
+    const el = document.createElement(tag);
+    for (const k in props || {}) {
+      const v = props[k];
+      if (k.slice(0, 5) === 'aria-' && typeof v === 'boolean') { el.setAttribute(k, String(v)); continue; }   // aria-pressed="true"/"false"
+      if (v == null || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'style' && typeof v === 'object') for (const s in v) s.startsWith('--') ? el.style.setProperty(s, v[s]) : (el.style[s] = v[s]);
+      else if (k === 'style') el.setAttribute('style', v);
+      else if (k.slice(0, 2) === 'on' && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
+      else if (PROPS.has(k)) el[k] = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    add(el, kids);
+    return el;
+  }
+  function add(el, kids) {
+    for (const k of kids) {
+      if (k == null || k === false) continue;
+      if (Array.isArray(k)) add(el, k);
+      else el.append(k.nodeType ? k : document.createTextNode(String(k)));
+    }
+  }
+  A.h = h;
+  A.put = (el, ...kids) => { add(el, kids); return el; };   // like append(), but skips null/false
+
+  /* ── icons ────────────────────────────────────────────────────────── */
+  const IC = {
+    home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+    calendar: 'M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
+    inbox: 'M4 13l2-8h12l2 8M4 13v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6M4 13h4l1 2h6l1-2h4',
+    clock: 'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z',
+    tasks: 'M9 11l2 2 4-4M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z',
+    notes: 'M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M8 13h8M8 17h6',
+    timer: 'M10 2h4M12 9v4l2.5 1.5M12 6a8 8 0 1 0 0 16 8 8 0 0 0 0-16z',
+    people: 'M16 20v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM20 20v-1a4 4 0 0 0-3-3.9M15 4.2a3.5 3.5 0 0 1 0 6.6',
+    settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+    plus: 'M12 5v14M5 12h14', chevL: 'M15 6l-6 6 6 6', chevR: 'M9 6l6 6-6 6', x: 'M6 6l12 12M18 6 6 18',
+    search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.5-4.5', check: 'M5 12.5l4.5 4.5L19 7',
+    trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3', pin: 'M12 17v5M8 3h8l-1 7 3 3v2H6v-2l3-3z',
+    print: 'M7 8V3h10v5M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v7H7z',
+    download: 'M12 4v11M7 11l5 5 5-5M5 20h14', upload: 'M12 20V9M7 13l5-5 5 5M5 4h14',
+    eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+    lock: 'M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1zM8 11V8a4 4 0 0 1 8 0v3',
+    copy: 'M9 9h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1zM5 15V5a1 1 0 0 1 1-1h10',
+    phone: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z',
+    mail: 'M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM3 7l9 6 9-6',
+    place: 'M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12zM12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+    play: 'M7 4l13 8-13 8z', pause: 'M8 5v14M16 5v14', reset: 'M4 4v6h6M5.5 14a7.5 7.5 0 1 0 2-7.7L4 10',
+    flag: 'M5 21V4M5 4h11l-2 4 2 4H5', bell: 'M6 17v-6a6 6 0 1 1 12 0v6l2 2H4zM10 21h4',
+    globe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18',
+    user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0', grip: 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01',
+    arrow: 'M5 12h14M13 6l6 6-6 6', list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', more: 'M5 12h.01M12 12h.01M19 12h.01',
+    logout: 'M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9', cmd: 'M9 9V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z',
+  };
+  A.ico = (name, cls) => {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('class', 'icon' + (cls ? ' ' + cls : '')); s.setAttribute('aria-hidden', 'true');
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', IC[name] || IC.more); s.appendChild(p);
+    return s;
+  };
+
+  /* ── tiny event bus ───────────────────────────────────────────────── */
+  const bus = {};
+  A.on = (n, f) => { (bus[n] = bus[n] || new Set()).add(f); return () => bus[n].delete(f); };
+  A.emit = (n, ...a) => bus[n] && bus[n].forEach(f => { try { f(...a); } catch (e) { console.error(e); } });
+
+  /* ── springs: a physical spring turned into a CSS linear() curve ──── */
+  A.spring = function (k, c) {
+    if (!(window.CSS && CSS.supports && CSS.supports('animation-timing-function', 'linear(0, 1)'))) return 'cubic-bezier(.34,1.56,.64,1)';
+    const pts = [0]; let x = 0, v = 0, t = 0;
+    while (t < 3) { v += (k * (1 - x) - c * v) / 240; x += v / 240; t += 1 / 240; pts.push(x); if (t > .15 && Math.abs(1 - x) < .001 && Math.abs(v) < .01) break; }
+    const out = []; for (let i = 0; i <= 40; i++) out.push(pts[Math.round(i / 40 * (pts.length - 1))].toFixed(4)); out[40] = '1';
+    return 'linear(' + out.join(', ') + ')';
+  };
+  A.SPRING = A.spring(380, 17);
+  document.documentElement.style.setProperty('--spring', A.SPRING);
+  A.settle = (el, from, ms = 600) => { if (!el.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return; el.animate([{ transform: from }, { transform: 'none' }], { duration: ms, easing: A.SPRING }); };
+
+  /* ── dates (integers) ─────────────────────────────────────────────── */
+  const DOW3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const DOWL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const D = A.date = {
+    DOW3, DOWL, MON, MON3: MON.map(m => m.slice(0, 3)),
+    num: (y, m, d) => Math.round(Date.UTC(y, m - 1, d) / 864e5),
+    today() { const n = new Date(); return D.num(n.getFullYear(), n.getMonth() + 1, n.getDate()); },
+    ymd(n) { const d = new Date(n * 864e5); return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate() }; },
+    dow: n => (((n + 3) % 7) + 7) % 7,                    // Monday = 0
+    iso(n) { const { y, m, d } = D.ymd(n); return y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0'); },
+    parse(s) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? D.num(+m[1], +m[2], +m[3]) : null; },
+    weekStart(n, ws) { return n - ((D.dow(n) - ws + 7) % 7); },
+    addMonths(n, k) { const { y, m, d } = D.ymd(n); const t = (y * 12 + m - 1) + k; const ny = Math.floor(t / 12), nm = t % 12 + 1; const last = D.ymd(D.num(ny, nm + 1, 1) - 1).d; return D.num(ny, nm, Math.min(d, last)); },
+    daysIn: (y, m) => D.ymd(D.num(y, m + 1, 1) - 1).d,
+    nowMin() { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); },
+    long(n) { const { y, m, d } = D.ymd(n); return DOWL[D.dow(n)] + ', ' + d + ' ' + MON[m - 1] + ' ' + y; },
+    mid(n) { const { m, d } = D.ymd(n); return DOW3[D.dow(n)] + ' ' + d + ' ' + MON[m - 1].slice(0, 3); },
+    rel(n) { const t = D.today(); return n === t ? 'Today' : n === t + 1 ? 'Tomorrow' : n === t - 1 ? 'Yesterday' : D.mid(n); },
+    sec(n) {                                              // secondary calendar label
+      const s = A.settings().secondary; if (!s || s === 'none') return '';
+      try {
+        const loc = s === 'persian' ? 'en-u-ca-persian' : 'en-u-ca-islamic-umalqura';
+        const parts = new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'short', timeZone: 'UTC' }).formatToParts(new Date(n * 864e5 + 432e5));
+        const dd = parts.find(p => p.type === 'day').value, mm = parts.find(p => p.type === 'month').value;
+        return dd === '1' ? dd + ' ' + mm : dd;
+      } catch (e) { return ''; }
+    },
+  };
+  A.time = function (min) {                               // minutes -> "09:30" or "9:30 AM"
+    min = ((min % 1440) + 1440) % 1440; const hh = Math.floor(min / 60), mm = String(min % 60).padStart(2, '0');
+    if (A.settings().hour12) return ((hh % 12) || 12) + ':' + mm + ' ' + (hh < 12 ? 'AM' : 'PM');
+    return String(hh).padStart(2, '0') + ':' + mm;
+  };
+  A.hourLabel = hh => A.settings().hour12 ? (((hh % 12) || 12) + (hh < 12 ? ' AM' : ' PM')) : String(hh).padStart(2, '0') + ':00';
+  A.parseTime = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(s || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+  A.hhmm = min => String(Math.floor(min / 60) % 24).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
+  A.dur = m => m < 60 ? m + ' min' : (m % 60 ? Math.floor(m / 60) + ' h ' + (m % 60) + ' min' : Math.floor(m / 60) + ' h');
+  A.pad = n => String(n).padStart(2, '0');
+
+  /* ── categories ───────────────────────────────────────────────────── */
+  A.CATS = { meeting: 'Meeting', visit: 'Visit', call: 'Call', travel: 'Travel', personal: 'Personal', focus: 'Focus', away: 'Out of office' };
+  A.catStyle = c => ({ '--c': 'var(--c-' + (A.CATS[c] ? c : 'meeting') + ')', '--b': 'var(--b-' + (A.CATS[c] ? c : 'meeting') + ')' });
+
+  /* ── store (in memory; vault.js encrypts it to disk) ──────────────── */
+  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 0, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 10, secondary: 'none', clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15 });
+  A.db = { data: null };
+  A.settings = () => (A.db.data && A.db.data.settings) || DEFAULTS();
+  A.uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  A.load = function (data) {
+    data = data || {};
+    A.db.data = Object.assign({ events: [], contacts: [], requests: [], tasks: [], notes: [], avail: {}, away: [] }, data);
+    A.db.data.settings = Object.assign(DEFAULTS(), data.settings || {});
+    A.applyTheme();
+  };
+  let saveT = 0;
+  A.save = function (what) {
+    clearTimeout(saveT); saveT = setTimeout(() => A.vault && A.vault.save(A.db.data).catch(e => A.toast('Could not save: ' + e.message)), 200);
+    A.emit('change', what);
+  };
+  A.flush = () => { clearTimeout(saveT); return A.vault && A.db.data ? A.vault.save(A.db.data) : Promise.resolve(); };
+  const coll = n => A.db.data[n];
+  A.add = (n, o) => { o.id = o.id || A.uid(); coll(n).push(o); A.save(n); return o; };
+  A.get = (n, id) => coll(n).find(x => x.id === id);
+  A.patch = (n, id, p) => { const o = A.get(n, id); if (o) { Object.assign(o, p); A.save(n); } return o; };
+  A.del = (n, id, label) => {
+    const i = coll(n).findIndex(x => x.id === id); if (i < 0) return; const [o] = coll(n).splice(i, 1); A.save(n);
+    A.toast((label || 'Deleted') + '.', { action: ['Undo', () => { coll(n).splice(Math.min(i, coll(n).length), 0, o); A.save(n); }] });
+  };
+  A.applyTheme = function () {
+    const t = A.settings().theme, dark = t === 'dusk' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.theme = dark ? 'dusk' : 'paper';
+    const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = dark ? '#1b110d' : '#fbf3e8';
+  };
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => A.applyTheme());
+
+  /* ── toasts & dialogs ─────────────────────────────────────────────── */
+  A.toast = function (msg, o = {}) {
+    let box = $('.toasts'); if (!box) { box = h('div', { class: 'toasts', role: 'status', 'aria-live': 'polite' }); document.body.append(box); }
+    const t = h('div', { class: 'toast' }, h('span', null, msg));
+    if (o.action) t.append(h('button', { type: 'button', onClick: () => { o.action[1](); kill(); } }, o.action[0]));
+    box.append(t); const kill = () => { t.classList.add('out'); setTimeout(() => t.remove(), 300); };
+    setTimeout(kill, o.ms || (o.action ? 6000 : 3200));
+  };
+  A.modal = function ({ title, body, footer, cls = '', onClose }) {
+    const dlg = h('dialog', { 'aria-label': title });
+    const close = v => { if (!dlg.open) return; dlg.close(); };
+    const sheet = h('div', { class: 'sheet ' + cls },
+      h('header', null, h('h2', null, title), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Close', onClick: close }, A.ico('x'))),
+      h('div', { class: 'body' }, body), footer ? h('footer', null, footer) : null);
+    sheet.setAttribute('tabindex', '-1');
+    dlg.append(sheet); document.body.append(dlg); dlg.showModal();
+    sheet.focus({ preventScroll: true });       // not the ✕ button: a held Enter key would otherwise click it
+    dlg.addEventListener('close', () => { dlg.remove(); onClose && onClose(); });
+    dlg.addEventListener('mousedown', e => { if (e.target === dlg) close(); });
+    return { el: dlg, close, sheet };
+  };
+  A.confirm = (title, msg, ok = 'Delete', danger = true) => new Promise(res => {
+    let done = false; const fin = v => { if (!done) { done = true; res(v); m.close(); } };
+    const m = A.modal({ title, body: h('p', null, msg), footer: [h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => fin(false) }, 'Cancel'), h('button', { class: 'btn ' + (danger ? 'danger' : 'primary'), type: 'button', onClick: () => fin(true) }, ok)], onClose: () => fin(false) });
+  });
+  A.field = (label, input, cls) => h('label', { class: 'field ' + (cls || '') }, h('span', null, label), input);
+  A.copy = async txt => { try { await navigator.clipboard.writeText(txt); A.toast('Copied to clipboard'); } catch (e) { const t = h('textarea', { value: txt, style: { position: 'fixed', opacity: 0 } }); document.body.append(t); t.select(); document.execCommand('copy'); t.remove(); A.toast('Copied to clipboard'); } };
+  A.download = (name, text, type) => { const a = h('a', { href: URL.createObjectURL(new Blob([text], { type: type || 'text/plain' })), download: name }); document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); };
+  A.esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  A.initials = s => (s || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  A.empty = (title, sub, icon = 'calendar') => h('div', { class: 'empty' }, A.ico(icon), h('b', null, title), sub ? h('span', null, sub) : null);
+  A.debounce = (f, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
+
+  /* ── sound & notifications ────────────────────────────────────────── */
+  let actx;
+  A.beep = function (n = 3) {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume();
+      for (let i = 0; i < n; i++) { const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i * .28; o.frequency.value = 880; o.type = 'sine'; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + .22); o.connect(g).connect(actx.destination); o.start(t); o.stop(t + .25); }
+    } catch (e) { /* no audio */ }
+    if (navigator.vibrate) navigator.vibrate([180, 90, 180]);
+  };
+  A.notify = function (title, body) {
+    A.toast(title + (body ? ' — ' + body : ''), { ms: 6000 }); A.beep(2);
+    try { if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body, icon: 'icons/icon-192.png', tag: title + body }); } catch (e) { /* ignore */ }
+  };
+
+  /* ── iCalendar (.ics) ─────────────────────────────────────────────── */
+  A.ics = function (events, name) {
+    const esc = s => String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+    const fold = l => { const out = []; while (l.length > 73) { out.push(l.slice(0, 73)); l = ' ' + l.slice(73); } out.push(l); return out.join('\r\n'); };
+    const dt = (day, min) => { const { y, m, d } = D.ymd(day); return y + A.pad(m) + A.pad(d) + 'T' + A.pad(Math.floor(min / 60) % 24) + A.pad(min % 60) + '00'; };
+    const dd = day => dt(day, 0).slice(0, 8);
+    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Aide Executive Desk//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:' + esc(name || 'Aide')];
+    for (const e of events) {
+      const day = D.parse(e.date); if (day == null) continue;
+      L.push('BEGIN:VEVENT', 'UID:' + e.id + '@aide', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z', 'SUMMARY:' + esc(e.title));
+      if (e.allDay) L.push('DTSTART;VALUE=DATE:' + dd(day), 'DTEND;VALUE=DATE:' + dd(day + 1));
+      else L.push('DTSTART:' + dt(day, e.start), 'DTEND:' + dt(day, e.start + e.dur));
+      const rr = { daily: 'FREQ=DAILY', weekdays: 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR', weekly: 'FREQ=WEEKLY', monthly: 'FREQ=MONTHLY' }[e.rec];
+      if (rr) L.push('RRULE:' + rr + (e.recUntil ? ';UNTIL=' + e.recUntil.replace(/-/g, '') : ''));
+      if (e.loc) L.push('LOCATION:' + esc(e.loc));
+      const desc = [e.people, e.notes].filter(Boolean).join('\n'); if (desc) L.push('DESCRIPTION:' + esc(desc));
+      if (e.status === 'tentative') L.push('STATUS:TENTATIVE');
+      if (e.remind) L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + esc(e.title), 'TRIGGER:-PT' + e.remind + 'M', 'END:VALARM');
+      L.push('END:VEVENT');
+    }
+    L.push('END:VCALENDAR'); return L.map(fold).join('\r\n');
+  };
+
+  /* ── sample data (relative to today, so it always looks alive) ────── */
+  A.sample = function () {
+    const t = D.today(), ws = D.weekStart(t, A.settings().weekStart), iso = n => D.iso(n);
+    const ev = (off, start, dur, title, cat, extra) => Object.assign({ id: A.uid(), title, date: iso(t + off), start, dur, cat, status: 'confirmed', remind: 15, allDay: false }, extra || {});
+    const events = [
+      ev(0, 9 * 60, 30, 'Daily briefing with Chief of Staff', 'meeting', { loc: 'Boardroom 2', rec: 'weekdays' }),
+      ev(0, 10 * 60, 60, 'Investor call — Series B update', 'call', { people: 'Sarah Whitfield', loc: 'Zoom', notes: 'Send deck 30 min before. Do not discuss the Q4 forecast.' }),
+      ev(0, 12 * 60 + 30, 90, 'Lunch with the CFO', 'personal', { people: 'Daniel Moradi', loc: 'Lucca Restaurant' }),
+      ev(0, 15 * 60, 45, 'Visitor: Hamid Rezaei (supplier)', 'visit', { people: 'Hamid Rezaei', loc: 'Reception' }),
+      ev(0, 15 * 60 + 15, 45, 'Legal review — NDA', 'meeting', { loc: 'Room 4', status: 'tentative' }),
+      ev(0, 17 * 60, 60, 'Deep work — strategy memo', 'focus'),
+      ev(1, 9 * 60 + 30, 60, 'Board pre-read with Chair', 'meeting', { people: 'Elena Park', loc: 'Chair’s office' }),
+      ev(1, 11 * 60, 30, 'Press interview — Financial Daily', 'call', { people: 'Marcus Lee' }),
+      ev(1, 14 * 60, 120, 'Factory visit — Site B tour', 'visit', { loc: 'Industrial Zone, Site B', notes: 'PPE required. Driver at 13:15.' }),
+      ev(2, 8 * 60, 0, 'Flight IST → LHR (TK1983)', 'travel', { allDay: true, loc: 'Istanbul Airport' }),
+      ev(2, 16 * 60, 60, 'Town hall rehearsal', 'meeting', { loc: 'Auditorium' }),
+      ev(3, 10 * 60, 90, 'Quarterly business review', 'meeting', { loc: 'Boardroom 1', rec: 'monthly' }),
+      ev(3, 13 * 60, 60, 'Mentoring: Leila (Head of Ops)', 'meeting'),
+      ev(4, 9 * 60, 60, 'Weekly leadership sync', 'meeting', { rec: 'weekly', loc: 'Boardroom 1' }),
+      ev(4, 16 * 60, 60, 'Family dinner reservation', 'personal', { loc: 'Dar Restaurant' }),
+      ev(ws + 7 - t + 1, 11 * 60, 60, 'Supplier negotiation — Hamid Rezaei', 'meeting', { people: 'Hamid Rezaei' }),
+      ev(ws + 7 - t + 2, 0, 0, 'Out of office — Annual retreat', 'away', { allDay: true }),
+      ev(-2, 14 * 60, 60, 'Product demo for investors', 'meeting', { loc: 'Demo room' }),
+    ];
+    const contacts = [
+      { id: A.uid(), name: 'Sarah Whitfield', org: 'Northbridge Capital', role: 'Partner', phone: '+44 20 7946 0123', email: 'sarah@northbridge.example', tags: ['VIP', 'Investor'], notes: 'Prefers calls before noon (London time). Likes short agendas.' },
+      { id: A.uid(), name: 'Daniel Moradi', org: 'Own company', role: 'CFO', phone: '+98 912 000 0000', email: 'cfo@example.com', tags: ['Internal'], notes: '' },
+      { id: A.uid(), name: 'Elena Park', org: 'Board of Directors', role: 'Chair', phone: '', email: 'elena@example.com', tags: ['Board', 'VIP'], notes: 'Assistant: Tom (+44 20 7946 0999)' },
+      { id: A.uid(), name: 'Hamid Rezaei', org: 'Rezaei Trading', role: 'Supplier', phone: '+98 21 5555 0100', email: 'hamid@example.com', tags: ['Vendor'], notes: 'Always 10 minutes early. Offer tea.' },
+      { id: A.uid(), name: 'Marcus Lee', org: 'Financial Daily', role: 'Journalist', phone: '', email: 'marcus@example.com', tags: ['Press'], notes: 'Off-the-record unless agreed in writing.' },
+    ];
+    const requests = [
+      { id: A.uid(), who: 'Aria Nazari', org: 'Tehran Design Week', purpose: 'Invitation to speak at the opening panel', dur: 30, pref: 'Next week, mornings', pri: 'normal', status: 'pending', created: t - 1 },
+      { id: A.uid(), who: 'James Carter', org: 'Carter & Boyd LLP', purpose: 'Review of the shareholder agreement', dur: 60, pref: 'Any day before Friday', pri: 'high', status: 'pending', created: t },
+      { id: A.uid(), who: 'Mina Kamali', org: 'University of Tehran', purpose: 'Student mentoring programme kick-off', dur: 45, pref: 'Flexible', pri: 'normal', status: 'pending', created: t - 3 },
+    ];
+    const tasks = [
+      { id: A.uid(), title: 'Confirm car and driver for Site B visit', pri: 'now', due: iso(t), done: false },
+      { id: A.uid(), title: 'Send board pre-read pack to Elena', pri: 'now', due: iso(t + 1), done: false },
+      { id: A.uid(), title: 'Renew executive travel insurance', pri: 'plan', due: iso(t + 12), done: false },
+      { id: A.uid(), title: 'Reschedule dentist appointment', pri: 'delegate', due: '', done: false, owner: 'Personal assistant' },
+      { id: A.uid(), title: 'Review expense report (October)', pri: 'plan', due: iso(t + 4), done: false },
+      { id: A.uid(), title: 'Unsubscribe from vendor newsletters', pri: 'drop', due: '', done: false },
+      { id: A.uid(), title: 'Book hotel in London (3 nights)', pri: 'now', due: iso(t - 1), done: true },
+    ];
+    const notes = [
+      { id: A.uid(), title: 'Preferences — CEO', body: 'Coffee: flat white, no sugar.\nNo meetings before 09:00 or after 18:00 on Fridays.\nPrefers 25/50-minute meetings, not 30/60.\nAlways add 15 min travel buffer between sites.\nAisle seat, Turkish Airlines / Emirates.', color: 'visit', pinned: true, updated: Date.now() },
+      { id: A.uid(), title: 'Board meeting checklist', body: '☐ Agenda sent 5 days before\n☐ Pre-read pack uploaded\n☐ Catering confirmed\n☐ Minutes template ready\n☐ Video link tested', color: 'meeting', pinned: false, updated: Date.now() - 36e5 },
+      { id: A.uid(), title: 'یادداشت فارسی (RTL test)', body: 'جلسه با تأمین‌کننده باید حداقل ۲۴ ساعت قبل تأیید شود.', color: 'personal', pinned: false, updated: Date.now() - 72e5 },
+    ];
+    const avail = {}; for (let d = 0; d < 5; d++) { avail[d] = []; for (let s = 20; s < 24; s++) avail[d].push(s); for (let s = 28; s < 32; s++) avail[d].push(s); } // 10:00-12:00 and 14:00-16:00
+    return { settings: { name: 'Alex Morgan', title: 'Chief Executive Officer', assistant: 'Executive Assistant' }, events, contacts, requests, tasks, notes, avail, away: [] };
+  };
+})();
+
+/* ===== vault.js ===== */
+/* Aide · vault — sign-in and encrypted storage.
+   HONEST SECURITY NOTE: this site is static (GitHub Pages), so there is no
+   server to check passwords. Instead your data is encrypted in the browser with
+   AES-GCM 256, using a key derived from your password with PBKDF2-SHA256
+   (310,000 rounds). Without the password the saved data is unreadable.
+   The password cannot be recovered — keep a backup file (Settings → Backup). */
+(function () {
+  'use strict';
+  const A = window.Aide, { h, $ } = A;
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const KEY = 'aide.vault.', USERS = 'aide.users', FAIL = 'aide.fail', ITER = 310000;
+  const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  let cur = null;
+
+  const V = A.vault = {
+    supported: !!(window.crypto && crypto.subtle),
+    users: () => { try { return JSON.parse(localStorage.getItem(USERS) || '[]'); } catch (e) { return []; } },
+    async derive(pw, salt, iter) {
+      const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    },
+    async seal(data) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cur.key, enc.encode(JSON.stringify(data)));
+      localStorage.setItem(KEY + cur.user, JSON.stringify({ v: 1, u: cur.user, s: b64(cur.salt), i: cur.iter, iv: b64(iv), ct: b64(new Uint8Array(ct)), t: Date.now() }));
+    },
+    async create(user, pw, data) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      cur = { user, salt, iter: ITER, key: await V.derive(pw, salt, ITER) };
+      await V.seal(data);
+      const u = V.users(); if (!u.includes(user)) { u.push(user); localStorage.setItem(USERS, JSON.stringify(u)); }
+    },
+    async open(user, pw) {
+      const raw = localStorage.getItem(KEY + user); if (!raw) throw new Error('No such account on this device.');
+      const b = JSON.parse(raw), salt = unb64(b.s), key = await V.derive(pw, salt, b.i);
+      let pt; try { pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(b.iv) }, key, unb64(b.ct)); } catch (e) { throw new Error('Wrong username or password.'); }
+      cur = { user, salt, iter: b.i, key }; return JSON.parse(dec.decode(pt));
+    },
+    save: data => cur ? V.seal(data) : Promise.resolve(),
+    async changePassword(oldPw, newPw) {
+      const user = cur.user; await V.open(user, oldPw);   // proves the old password
+      const salt = crypto.getRandomValues(new Uint8Array(16)); cur = { user, salt, iter: ITER, key: await V.derive(newPw, salt, ITER) };
+      await V.seal(A.db.data);
+    },
+    user: () => cur && cur.user,
+    exportBlob: () => localStorage.getItem(KEY + (cur ? cur.user : '')) || '',
+    importBlob(text) { const b = JSON.parse(text); if (!b || b.v !== 1 || !b.u || !b.ct) throw new Error('This is not an Aide backup file.'); localStorage.setItem(KEY + b.u, text); const u = V.users(); if (!u.includes(b.u)) { u.push(b.u); localStorage.setItem(USERS, JSON.stringify(u)); } return b.u; },
+    lock() { cur = null; A.db.data = null; },
+    wipe() { if (cur) { localStorage.removeItem(KEY + cur.user); localStorage.setItem(USERS, JSON.stringify(V.users().filter(x => x !== cur.user))); } cur = null; A.db.data = null; },
+  };
+
+  /* brute-force slow-down: 3 free tries, then 2^n seconds (max 5 min) */
+  const fail = { get() { try { return JSON.parse(localStorage.getItem(FAIL)) || { n: 0, until: 0 }; } catch (e) { return { n: 0, until: 0 }; } }, set(o) { localStorage.setItem(FAIL, JSON.stringify(o)); } };
+
+  function strength(pw) {
+    let pool = 0; if (/[a-z]/.test(pw)) pool += 26; if (/[A-Z]/.test(pw)) pool += 26; if (/\d/.test(pw)) pool += 10; if (/[^A-Za-z0-9]/.test(pw)) pool += 32;
+    const bits = pw.length * Math.log2(pool || 1); let s = Math.min(1, bits / 70);
+    if (/^(.)\1+$/.test(pw) || /^(password|12345678|qwertyui)/i.test(pw)) s = Math.min(s, .15);
+    return { s, label: s < .35 ? 'Weak' : s < .6 ? 'Fair' : s < .85 ? 'Good' : 'Strong', bar: s < .35 ? 'var(--danger)' : s < .6 ? 'var(--b-travel)' : 'var(--b-visit)' };
+  }
+
+  /* ── the login screen ─────────────────────────────────────────────── */
+  A.showLogin = function (msg) {
+    const root = $('#login'); root.hidden = false; $('#app').hidden = true; root.replaceChildren();
+    const users = V.users(); let mode = users.length ? 'in' : 'up';
+    const draw = () => {
+      const up = mode === 'up';
+      const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: true, value: users.length === 1 && !up ? users[0] : '', placeholder: 'e.g. alex' });
+      const pw = h('input', { type: up ? 'password' : 'password', autocomplete: up ? 'new-password' : 'current-password', required: true, placeholder: up ? 'At least 10 characters' : 'Your password' });
+      const pw2 = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'Repeat password' });
+      const eye = h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Show password', onClick: () => { pw.type = pw.type === 'password' ? 'text' : 'password'; } }, A.ico('eye'));
+      const meter = h('div', { class: 'meter', hidden: !up }, h('i')), mlabel = h('span', { class: 'note' });
+      const sample = h('input', { type: 'checkbox', checked: true }), err = h('div', { class: 'warn', role: 'alert', hidden: true });
+      const go = h('button', { class: 'btn primary', type: 'submit' }, up ? 'Create secure vault' : 'Unlock desk');
+      pw.addEventListener('input', () => { if (!up) return; const r = strength(pw.value); meter.firstChild.style.setProperty('--s', r.s); meter.firstChild.style.setProperty('--bar', r.bar); mlabel.textContent = pw.value ? 'Strength: ' + r.label : ''; });
+      const show = t => { err.textContent = t; err.hidden = !t; form.classList.remove('shake'); void form.offsetWidth; if (t) form.classList.add('shake'); };
+      const form = h('form', { class: 'login-form', novalidate: true, onSubmit: async e => {
+        e.preventDefault(); show('');
+        const u = user.value.trim().toLowerCase(), p = pw.value;
+        if (!V.supported) return show('This browser blocks encryption. Open the site over https:// (GitHub Pages) or localhost.');
+        if (!u || !p) return show('Enter a username and password.');
+        const f = fail.get(); if (!up && f.until > Date.now()) return show('Too many attempts. Try again in ' + Math.ceil((f.until - Date.now()) / 1000) + ' s.');
+        go.disabled = true; go.textContent = 'Working…';
+        try {
+          if (up) {
+            if (!/^[a-z0-9._-]{2,32}$/.test(u)) throw new Error('Username: 2–32 letters, numbers, dot, dash or underscore.');
+            if (p.length < 10) throw new Error('Use at least 10 characters. A passphrase of 3–4 words works well.');
+            if (p !== pw2.value) throw new Error('The two passwords do not match.');
+            if (V.users().includes(u)) throw new Error('That username already exists on this device.');
+            const data = sample.checked ? A.sample() : { settings: {} };
+            await V.create(u, p, data); A.load(data);
+          } else { const data = await V.open(u, p); A.load(data); fail.set({ n: 0, until: 0 }); }
+          root.hidden = true; $('#app').hidden = false; A.start();
+        } catch (ex) {
+          if (!up) { const n = f.n + 1; fail.set({ n, until: n > 3 ? Date.now() + Math.min(300, Math.pow(2, n - 3)) * 1000 : 0 }); }
+          show(ex.message || 'Something went wrong.'); go.disabled = false; go.textContent = up ? 'Create secure vault' : 'Unlock desk';
+        }
+      } },
+        h('div', null, h('h1', null, up ? 'Create your desk' : 'Welcome back'), h('p', { class: 'muted' }, up ? 'One private vault for the schedule, notes and contacts.' : (msg || 'Sign in to open the executive desk.'))),
+        A.field('Username', user), A.field('Password', h('div', { class: 'pw' }, pw, eye)),
+        up ? [A.field('Repeat password', pw2), h('div', null, meter, mlabel), h('label', { class: 'row small' }, sample, h('span', null, 'Start with sample data so I can explore'))] : null,
+        err, go,
+        h('p', { class: 'note' }, up ? 'Your data is encrypted in this browser with your password. It never leaves this device, and the password cannot be recovered — keep a backup file.' : 'Data stays encrypted on this device.'),
+        h('div', { class: 'row wrap' },
+          users.length || up === false ? h('button', { type: 'button', class: 'btn sm', onClick: () => { mode = up ? 'in' : 'up'; draw(); } }, up ? 'I already have a vault' : 'Create a new vault') : null,
+          h('label', { class: 'btn sm' }, 'Restore backup file', h('input', { type: 'file', accept: '.aide,.json,application/json', class: 'sr', onChange: async e => { const f = e.target.files[0]; if (!f) return; try { const name = V.importBlob(await f.text()); users.splice(0, users.length, ...V.users()); mode = 'in'; draw(); A.toast('Backup restored for “' + name + '”. Sign in with its password.'); } catch (ex) { show(ex.message); } } }))));
+      root.replaceChildren(h('div', { class: 'login-card' },
+        h('div', { class: 'login-art' },
+          h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Executive Desk'))),
+          h('div', null, h('h2', null, 'Every meeting, visit and promise — in one calm place.'), h('p', null, 'Built for the person who runs the executive’s day.')),
+          h('ul', null, h('li', null, 'Day, week, month and year calendars'), h('li', null, 'Visitor and meeting requests with ready replies'), h('li', null, 'Visiting hours, notes and meeting timers'), h('li', null, 'Works offline on phone and desktop'))),
+        form));
+      (up ? user : (users.length === 1 ? pw : user)).focus({ preventScroll: true });
+    };
+    draw();
+  };
+})();
+
+/* ===== events.js ===== */
+/* Aide · events — the schedule model shared by every calendar view.
+   An event is stored once; recurring events are expanded on demand into
+   "occurrences" for the days being drawn. Conflicts (double bookings) are
+   found on the expanded occurrences. */
+(function () {
+  'use strict';
+  const A = window.Aide, { h, date: D } = A;
+  const E = A.ev = {};
+  const events = () => A.db.data.events;
+
+  /* ── expansion ────────────────────────────────────────────────────── */
+  E.expand = function (from, to, opt = {}) {
+    const out = [];
+    for (const e of events()) {
+      if (e.status === 'cancelled' && !opt.cancelled) continue;
+      const b = D.parse(e.date); if (b == null) continue;
+      const span = e.allDay ? Math.max(1, e.span || 1) : 1;
+      const push = d => out.push({ ev: e, id: e.id, day: d, start: e.allDay ? 0 : e.start, dur: e.allDay ? 1440 : e.dur, allDay: !!e.allDay, cat: e.cat, key: e.id + '@' + d, title: e.title, rec: !!(e.rec && e.rec !== 'none'), end: e.allDay ? 1440 : e.start + e.dur });
+      if (!e.rec || e.rec === 'none') { for (let k = 0; k < span; k++) { const d = b + k; if (d >= from && d <= to) push(d); } continue; }
+      const until = e.recUntil ? D.parse(e.recUntil) : Infinity, ex = e.ex || [], bd = D.ymd(b).d;
+      for (let d = Math.max(from, b); d <= Math.min(to, until); d++) {
+        let ok = false;
+        switch (e.rec) {
+          case 'daily': ok = true; break;
+          case 'weekdays': ok = D.dow(d) < 5; break;
+          case 'weekly': ok = (d - b) % 7 === 0; break;
+          case 'monthly': { const y = D.ymd(d); ok = y.d === Math.min(bd, D.daysIn(y.y, y.m)); break; }
+        }
+        if (ok && !ex.includes(D.iso(d))) push(d);
+      }
+    }
+    return out.sort((a, b) => a.day - b.day || a.allDay - b.allDay || a.start - b.start || a.end - b.end);
+  };
+  E.day = d => E.expand(d, d);
+
+  /* ── conflicts ────────────────────────────────────────────────────── */
+  const timed = o => !o.allDay && o.cat !== 'away' && o.dur > 0;
+  E.conflictKeys = function (occs) {
+    const bad = new Set(), byDay = {};
+    for (const o of occs) if (timed(o)) (byDay[o.day] = byDay[o.day] || []).push(o);
+    for (const d in byDay) { const L = byDay[d]; for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) if (L[i].start < L[j].end && L[j].start < L[i].end) { bad.add(L[i].key); bad.add(L[j].key); } }
+    return bad;
+  };
+  E.clashes = (day, start, dur, ignoreId) => E.day(day).filter(o => timed(o) && o.id !== ignoreId && o.start < start + dur && start < o.end);
+  E.awayOn = day => E.day(day).find(o => o.allDay && (o.cat === 'away' || o.cat === 'travel'));
+
+  /* ── moving a single occurrence (drag / resize) ───────────────────── */
+  E.moveOcc = function (occ, to) {
+    const e = occ.ev;
+    if (!occ.rec) { A.patch('events', e.id, { date: D.iso(to.day), start: to.start, dur: to.dur }); return e; }
+    e.ex = (e.ex || []).concat(D.iso(occ.day));                     // recurring: detach this occurrence
+    const copy = Object.assign({}, e, { id: A.uid(), rec: 'none', recUntil: '', ex: [], date: D.iso(to.day), start: to.start, dur: to.dur, log: {} });
+    A.add('events', copy); A.toast('Moved this occurrence only.'); return copy;
+  };
+
+  /* ── quick add: "Lunch with Sarah tomorrow 1pm 90m" ───────────────── */
+  const DAYN = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6, monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6 };
+  const MONN = {}; D.MON.forEach((m, i) => { MONN[m.toLowerCase()] = i + 1; MONN[m.slice(0, 3).toLowerCase()] = i + 1; });
+  E.parse = function (text, base) {
+    let s = ' ' + text.trim() + ' ', day = null, start = null, dur = null, cat = null; const today = base || D.today();
+    const cut = (re, fn) => { const m = re.exec(s); if (m) { fn(m); s = s.replace(re, ' '); return true; } return false; };
+    cut(/\s(today|tonight)\s/i, () => { day = today; });
+    cut(/\s(tomorrow|tmrw)\s/i, () => { day = today + 1; });
+    if (day == null) cut(/\s(?:next\s+)?(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\s/i, m => { let t = DAYN[m[1].toLowerCase()]; let d = today + ((t - D.dow(today) + 7) % 7 || 7); if (/next/i.test(m[0]) && d - today < 7 && false) d += 7; day = d; });
+    if (day == null) cut(/\s(\d{4})-(\d{2})-(\d{2})\s/, m => { day = D.num(+m[1], +m[2], +m[3]); });
+    if (day == null) cut(/\s(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s/i, m => { const y = D.ymd(today).y; day = D.num(y, MONN[m[2].toLowerCase()], +m[1]); if (day < today) day = D.num(y + 1, MONN[m[2].toLowerCase()], +m[1]); });
+    if (day == null) cut(/\s(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{1,2})\s/i, m => { const y = D.ymd(today).y; day = D.num(y, MONN[m[1].toLowerCase()], +m[2]); if (day < today) day = D.num(y + 1, MONN[m[1].toLowerCase()], +m[2]); });
+    cut(/\s(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)\s/i, m => { let hh = +m[1] % 12; if (/pm/i.test(m[3])) hh += 12; start = hh * 60 + (+m[2] || 0); });
+    if (start == null) cut(/\s(?:at\s+)?(\d{1,2}):(\d{2})\s/, m => { if (+m[1] < 24 && +m[2] < 60) start = +m[1] * 60 + +m[2]; });
+    if (start == null) cut(/\s(noon|midday)\s/i, () => { start = 720; });
+    if (start == null) cut(/\sat\s+(\d{1,2})\s/i, m => { let hh = +m[1]; if (hh < 7) hh += 12; start = hh * 60; });
+    cut(/\s(?:for\s+)?(\d+)\s*h(?:ours?|rs?)?\s*(\d+)?\s*(?:m(?:in(?:ute)?s?)?)?\s/i, m => { dur = +m[1] * 60 + (+m[2] || 0); });
+    if (dur == null) cut(/\s(?:for\s+)?(\d+)\s*(?:m|min|mins|minutes)\s/i, m => { dur = +m[1]; });
+    const lc = text.toLowerCase();
+    cat = /\b(call|zoom|phone|teams|meet link)\b/.test(lc) ? 'call' : /\b(visit|visitor|tour|site|guest)\b/.test(lc) ? 'visit' : /\b(flight|fly|travel|train|hotel)\b/.test(lc) ? 'travel' : /\b(lunch|dinner|family|doctor|dentist|gym)\b/.test(lc) ? 'personal' : /\b(focus|deep work|write|review)\b/.test(lc) ? 'focus' : /\b(ooo|out of office|vacation|leave|holiday)\b/.test(lc) ? 'away' : 'meeting';
+    const title = s.replace(/\s+/g, ' ').trim().replace(/^(?:at|on|for)\s+|\s+(?:at|on|for)$/gi, '');
+    return { title: title ? title[0].toUpperCase() + title.slice(1) : '', day: day == null ? today : day, start, dur, cat, hadTime: start != null };
+  };
+
+  /* ── the editor dialog ────────────────────────────────────────────── */
+  E.edit = function (src, defaults = {}, onDone) {
+    const isNew = !src, S = A.settings();
+    const e = src ? JSON.parse(JSON.stringify(src)) : Object.assign({ id: A.uid(), title: '', date: D.iso(D.today()), start: Math.max(S.dayStart, Math.min(S.dayEnd - 1, new Date().getHours() + 1)) * 60, dur: S.defDur, cat: 'meeting', status: 'confirmed', remind: S.remind, allDay: false, rec: 'none', loc: '', people: '', notes: '' }, defaults);
+    const title = h('input', { type: 'text', dir: 'auto', value: e.title, placeholder: 'What is it?', required: true, autocomplete: 'off' });
+    const date = h('input', { type: 'date', value: e.date }), until = h('input', { type: 'date', value: e.recUntil || '' }), endDate = h('input', { type: 'date', value: D.iso(D.parse(e.date) + Math.max(1, e.span || 1) - 1) });
+    const st = h('input', { type: 'time', step: 300, value: A.hhmm(e.start) }), en = h('input', { type: 'time', step: 300, value: A.hhmm(e.start + e.dur) });
+    const loc = h('input', { type: 'text', dir: 'auto', value: e.loc || '', placeholder: 'Room, address or video link' });
+    const people = h('input', { type: 'text', dir: 'auto', value: e.people || '', placeholder: 'Names, comma separated', list: 'ppl' });
+    const dl = h('datalist', { id: 'ppl' }, A.db.data.contacts.map(c => h('option', { value: c.name })));
+    const notes = h('textarea', { dir: 'auto', placeholder: 'Prep notes, talking points, dress code…' }); notes.value = e.notes || '';
+    const rec = h('select', null, [['none', 'Does not repeat'], ['daily', 'Every day'], ['weekdays', 'Every weekday'], ['weekly', 'Every week'], ['monthly', 'Every month']].map(([v, t]) => h('option', { value: v, selected: v === (e.rec || 'none') }, t)));
+    const status = h('select', null, [['confirmed', 'Confirmed'], ['tentative', 'Tentative (not yet confirmed)'], ['cancelled', 'Cancelled']].map(([v, t]) => h('option', { value: v, selected: v === e.status }, t)));
+    const rem = h('select', null, [[0, 'No reminder'], [5, '5 minutes before'], [10, '10 minutes before'], [15, '15 minutes before'], [30, '30 minutes before'], [60, '1 hour before']].map(([v, t]) => h('option', { value: v, selected: v === (e.remind || 0) }, t)));
+    let cat = e.cat, allDay = !!e.allDay;
+    const cats = h('div', { class: 'cats', role: 'group', 'aria-label': 'Category' }, Object.entries(A.CATS).map(([k, n]) => h('button', { type: 'button', style: A.catStyle(k), 'aria-pressed': k === cat, 'data-k': k, onClick: ev => { cat = k; A.$$('button', cats).forEach(b => b.setAttribute('aria-pressed', b.dataset.k === k)); if (k === 'away' || k === 'travel') toggleAll(true, true); } }, h('i', { class: 'dot', style: { background: 'var(--b)' } }), n)));
+    const sw = h('button', { type: 'button', class: 'switch', role: 'switch', 'aria-checked': allDay, 'aria-label': 'All day', onClick: () => toggleAll(!allDay) });
+    const timeRow = h('div', { class: 'two' }, A.field('Starts', st), A.field('Ends', en)), endRow = A.field('Last day', endDate);
+    const warn = h('div', { class: 'warn', hidden: true, role: 'alert' });
+    function toggleAll(v, quiet) { allDay = v; sw.setAttribute('aria-checked', v); timeRow.hidden = v; endRow.hidden = !v; if (!quiet) check(); }
+    const times = () => { const s = A.parseTime(st.value), t = A.parseTime(en.value); return { s, t, d: Math.max(5, (t == null || s == null ? 60 : t - s)) }; };
+    function check() {
+      const day = D.parse(date.value); if (day == null) { warn.hidden = true; return; }
+      let list = [];
+      if (allDay) { const away = e.cat === 'away' || cat === 'away' || cat === 'travel'; if (away) list = E.day(day).filter(o => !o.allDay && o.id !== e.id && o.cat !== 'away').slice(0, 4); }
+      else { const { s, d } = times(); if (s != null) list = E.clashes(day, s, d, e.id); }
+      warn.hidden = !list.length; warn.replaceChildren(...(list.length ? [A.ico('bell'), h('span', null, 'Conflicts with: ' + list.map(o => o.title + ' (' + A.time(o.start) + ')').join(', '))] : []));
+    }
+    [date, st, en].forEach(x => x.addEventListener('change', check));
+    st.addEventListener('change', () => { const s = A.parseTime(st.value); if (s != null && A.parseTime(en.value) <= s) en.value = A.hhmm(s + (e.dur || 60)); });
+    toggleAll(allDay, true); check();
+    const save = () => {
+      if (!title.value.trim()) { title.focus(); return A.toast('Please give it a title.'); }
+      const day = D.parse(date.value); if (day == null) return A.toast('Pick a valid date.');
+      const { s, t } = times(); if (!allDay && (s == null || t == null || t <= s)) return A.toast('The end time must be after the start time.');
+      const span = allDay ? Math.max(1, (D.parse(endDate.value) || day) - day + 1) : 1;
+      const out = Object.assign(e, { title: title.value.trim(), date: date.value, allDay, span, start: allDay ? 0 : s, dur: allDay ? 0 : t - s, cat, status: status.value, loc: loc.value.trim(), people: people.value.trim(), notes: notes.value, rec: rec.value, recUntil: rec.value === 'none' ? '' : until.value, remind: +rem.value });
+      if (isNew) A.add('events', out); else { const i = events().findIndex(x => x.id === out.id); events()[i] = out; A.save('events'); }
+      m.close(); A.toast(isNew ? 'Added to the schedule.' : 'Saved.'); onDone && onDone(out);
+    };
+    const ics = () => A.download((e.title || 'event').replace(/[^\w-]+/g, '_') + '.ics', A.ics([Object.assign(e, { title: title.value || e.title })], 'Aide'), 'text/calendar');
+    const log = e.log && e.log[date.value]; const logLine = h('span', { class: 'small muted' }, log ? 'In ' + (log.ci != null ? A.time(log.ci) : '—') + (log.co != null ? ' · Out ' + A.time(log.co) : '') : '');
+    const m = A.modal({
+      title: isNew ? 'New event' : 'Edit event', cls: '',
+      body: [A.field('Title', title), cats,
+        h('div', { class: 'two' }, A.field('Date', date), h('div', { class: 'field' }, h('span', null, 'All day'), h('div', { class: 'row', style: { minHeight: '42px' } }, sw))),
+        timeRow, endRow, warn,
+        A.field('Location', loc), A.field('With', people), dl,
+        h('div', { class: 'two' }, A.field('Repeat', rec), A.field('Until (optional)', until)),
+        h('div', { class: 'two' }, A.field('Status', status), A.field('Reminder', rem)),
+        A.field('Notes', notes),
+        !isNew && cat === 'visit' ? h('div', { class: 'row wrap' }, h('button', { type: 'button', class: 'btn sm', onClick: () => { e.log = e.log || {}; e.log[date.value] = Object.assign(e.log[date.value] || {}, { ci: D.nowMin() }); A.patch('events', e.id, { log: e.log }); logLine.textContent = 'Checked in ' + A.time(D.nowMin()); } }, 'Check in visitor'), h('button', { type: 'button', class: 'btn sm', onClick: () => { e.log = e.log || {}; e.log[date.value] = Object.assign(e.log[date.value] || {}, { co: D.nowMin() }); A.patch('events', e.id, { log: e.log }); logLine.textContent = 'Checked out ' + A.time(D.nowMin()); } }, 'Check out'), logLine) : null],
+      footer: [!isNew ? h('button', { type: 'button', class: 'btn danger', onClick: async () => { const sel = await E.askDelete(src, date.value); if (sel) m.close(); } }, 'Delete') : null,
+        !isNew ? h('button', { type: 'button', class: 'btn', 'aria-label': 'Export .ics', onClick: ics }, A.ico('download'), '.ics') : null,
+        !isNew ? h('button', { type: 'button', class: 'btn', onClick: () => { m.close(); E.edit(null, Object.assign({}, e, { id: A.uid(), title: e.title + ' (copy)', log: {}, ex: [] })); } }, 'Duplicate') : null,
+        h('span', { class: 'grow' }), h('button', { type: 'button', class: 'btn', onClick: () => m.close() }, 'Cancel'), h('button', { type: 'button', class: 'btn primary', onClick: save }, 'Save')],
+    });
+    m.sheet.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target.tagName === 'INPUT') { ev.preventDefault(); save(); } });
+    if (isNew) setTimeout(() => title.focus(), 60);
+    return m;
+  };
+  E.askDelete = function (ev, dayIso) {
+    return new Promise(res => {
+      if (!ev.rec || ev.rec === 'none') { A.del('events', ev.id, 'Event deleted'); return res(true); }
+      const m = A.modal({ title: 'Delete repeating event', body: h('p', null, 'This event repeats. What should be deleted?'), footer: [
+        h('button', { class: 'btn', type: 'button', onClick: () => { A.patch('events', ev.id, { ex: (ev.ex || []).concat(dayIso) }); A.toast('This occurrence deleted.'); m.close(); res(true); } }, 'Only this one'),
+        h('button', { class: 'btn danger', type: 'button', onClick: () => { A.del('events', ev.id, 'Series deleted'); m.close(); res(true); } }, 'Whole series'),
+        h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => { m.close(); res(false); } }, 'Cancel')], onClose: () => res(false) });
+    });
+  };
+
+  /* ── reminders while the desk is open ─────────────────────────────── */
+  const told = new Set();
+  E.startReminders = function () {
+    clearInterval(E._t);
+    E._t = setInterval(() => {
+      if (!A.db.data) return; const t = D.today(), now = D.nowMin();
+      for (const o of E.day(t)) {
+        if (o.allDay || !o.ev.remind || o.ev.status === 'tentative' && false) continue;
+        const k = o.key + '#' + o.start; if (told.has(k)) continue;
+        if (now >= o.start - o.ev.remind && now < o.start + 1) { told.add(k); const left = o.start - now; A.notify(left > 0 ? 'In ' + left + ' min: ' + o.title : 'Starting now: ' + o.title, [o.ev.loc, o.ev.people].filter(Boolean).join(' · ')); }
+      }
+    }, 15000);
+  };
+})();
+
+/* ===== calendar.js ===== */
+/* Aide · calendar — six ways to look at the same schedule.
+   Day · 3 days · Week share one time grid: events snap to 15 minutes, drag
+   to move (mouse, or long-press on touch), stretch from the bottom edge, and
+   arrow keys nudge the focused event (Shift + ↑↓ changes the duration).
+   Month, Year and Agenda are built from the same expanded occurrences. */
+(function () {
+  'use strict';
+  const A = window.Aide, { h, date: D, ev: E } = A;
+  const SNAP = 15, MIN = 15;
+  const ui = A.ui.cal = { view: null, anchor: D.today(), cats: new Set(Object.keys(A.CATS)), q: '' };
+  try { const s = JSON.parse(localStorage.getItem('aide.ui') || '{}'); ui.view = s.calView || null; } catch (e) { /* ignore */ }
+  const isPhone = () => matchMedia('(max-width: 860px)').matches;
+  const VIEWS = [['day', 'Day'], ['3day', '3 Days'], ['week', 'Week'], ['month', 'Month'], ['year', 'Year'], ['agenda', 'Agenda']];
+
+  A.views.calendar = {
+    title: 'Calendar', flush: true, noTop: true,
+    render(root, bar) {
+      if (!ui.view) ui.view = isPhone() ? 'day' : 'week';
+      const view = ui.view, S = A.settings(), ws = S.weekStart;
+      const seg = h('div', { class: 'seg', role: 'tablist', 'aria-label': 'Calendar view' }, VIEWS.map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': k === view, onClick: () => { ui.view = k; localStorage.setItem('aide.ui', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('aide.ui') || '{}'), { calView: k }))); A.route(); } }, n)));
+      const move = dir => { const v = view; ui.anchor = v === 'day' ? ui.anchor + dir : v === '3day' ? ui.anchor + 3 * dir : v === 'week' ? ui.anchor + 7 * dir : v === 'year' ? D.addMonths(ui.anchor, 12 * dir) : v === 'agenda' ? ui.anchor + 14 * dir : D.addMonths(ui.anchor, dir); A.route(); };
+      const a = ui.anchor, y = D.ymd(a);
+      let title, sub = '';
+      if (view === 'day') { title = D.long(a); sub = D.sec(a) ? D.sec(a) : ''; }
+      else if (view === '3day' || view === 'week') { const n = view === 'week' ? 7 : 3, s = view === 'week' ? D.weekStart(a, ws) : a, f = D.ymd(s), l = D.ymd(s + n - 1); title = f.m === l.m ? D.MON[f.m - 1] + ' ' + f.d + ' – ' + l.d + ', ' + l.y : D.MON3[f.m - 1] + ' ' + f.d + ' – ' + D.MON3[l.m - 1] + ' ' + l.d + ', ' + l.y; }
+      else if (view === 'month') title = D.MON[y.m - 1] + ' ' + y.y; else if (view === 'year') title = String(y.y); else title = 'Next 30 days';
+      const quick = h('input', { type: 'text', class: 'quick', placeholder: 'Quick add: “Call Sarah tomorrow 3pm 30m”', 'aria-label': 'Quick add', autocomplete: 'off', dir: 'auto', style: { maxWidth: '360px', minWidth: '180px', flex: '1 1 220px', minHeight: '34px', padding: '4px 14px', borderRadius: '999px' } });
+      quick.addEventListener('keydown', ev => { if (ev.key !== 'Enter' || !quick.value.trim()) return; const p = E.parse(quick.value); quick.value = ''; E.edit(null, { title: p.title, date: D.iso(p.day), start: p.start != null ? p.start : undefined, dur: p.dur || undefined, cat: p.cat, allDay: p.cat === 'away' }); });
+      const nav = h('div', { class: 'row' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Previous', onClick: () => move(-1) }, A.ico('chevL')),
+        h('button', { class: 'btn sm', type: 'button', onClick: () => { ui.anchor = D.today(); A.route(); } }, 'Today'),
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Next', onClick: () => move(1) }, A.ico('chevR')));
+      const head = h('div', { class: 'cal-head' }, nav, h('div', { class: 'cal-title', 'aria-live': 'polite' }, title, sub ? h('small', null, sub) : null), h('span', { class: 'grow' }),
+        seg, h('button', { class: 'btn primary', type: 'button', onClick: () => E.edit(null, { date: D.iso(view === 'day' ? a : D.today()) }) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New')));
+      const body = h('div', { class: 'cal-body view-enter' });
+      root.append(head, catFilter(quick), body);
+      ({ day: timeGrid, '3day': timeGrid, week: timeGrid, month, year, agenda })[view](body, view);
+      A.keys = ev => { if (ev.target.matches('input,textarea,select')) return false; if (ev.key === 'ArrowLeft' && !ev.target.closest('.ev')) { move(-1); return true; } if (ev.key === 'ArrowRight' && !ev.target.closest('.ev')) { move(1); return true; } if (ev.key === 't') { ui.anchor = D.today(); A.route(); return true; } if (ev.key === 'n') { E.edit(null, {}); return true; } return false; };
+    },
+    destroy() { clearInterval(ui._t); A.keys = null; if (this._cleanup) { this._cleanup(); this._cleanup = null; } },
+  };
+
+  function catFilter(quick) {
+    return h('div', { class: 'row wrap cal-filter', role: 'group', 'aria-label': 'Show categories and quick add' }, Object.entries(A.CATS).map(([k, n]) => h('button', { type: 'button', class: 'chip', style: Object.assign(A.catStyle(k), { opacity: ui.cats.has(k) ? 1 : .45 }), 'aria-pressed': ui.cats.has(k), onClick: ev => { ui.cats.has(k) ? ui.cats.delete(k) : ui.cats.add(k); A.route(); } }, h('i'), n)), h('span', { class: 'grow' }), quick);
+  }
+  const visible = occs => occs.filter(o => ui.cats.has(o.cat));
+  const sub = o => [o.ev.people, o.ev.loc].filter(Boolean).join(' · ');
+
+  /* ── time grid ────────────────────────────────────────────────────── */
+  function timeGrid(body, view) {
+    const S = A.settings(), n = view === 'day' ? 1 : view === '3day' ? 3 : 7, first = view === 'week' ? D.weekStart(ui.anchor, S.weekStart) : ui.anchor;
+    const days = Array.from({ length: n }, (_, i) => first + i), t0 = D.today();
+    const H0 = Math.max(0, Math.min(S.dayStart, 12)), H1 = Math.min(24, Math.max(S.dayEnd, H0 + 4)), hours = H1 - H0;
+    body.style.setProperty('--cols', n); body.style.setProperty('--hours', hours);
+    const occs = visible(E.expand(first, first + n - 1)), bad = E.conflictKeys(occs);
+    const head = h('div', { class: 'tg-head' }, h('div'), days.map(d => h('div', { class: 'tg-day' + (d === t0 ? ' today' : '') }, h('button', { type: 'button', 'aria-label': D.long(d), onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, h('span', { class: 'dn' }, D.DOW3[D.dow(d)]), h('span', { class: 'dd num' }, D.ymd(d).d), D.sec(d) ? h('span', { class: 'sec' }, D.sec(d)) : null))));
+    const allday = h('div', { class: 'tg-allday' }, h('div'), days.map(d => h('div', null, occs.filter(o => o.allDay && o.day === d).map(o => h('button', { type: 'button', class: 'ev-chip', style: A.catStyle(o.cat), onClick: () => E.edit(o.ev) }, h('span', { class: 't' }, o.title))))));
+    const hoursCol = h('div', { class: 'tg-hours' }, Array.from({ length: hours }, (_, i) => h('span', { style: { top: i * 100 / hours + '%' } }, i === 0 ? '' : A.hourLabel(H0 + i))));
+    const cols = days.map(d => {
+      const col = h('div', { class: 'tg-col' + (d === t0 ? ' today' : '') + (D.dow(d) > 4 ? ' wknd' : ''), 'data-day': d, role: 'group', 'aria-label': D.long(d) });
+      // outside working hours (view range only)
+      layout(occs.filter(o => !o.allDay && o.day === d)).forEach(p => col.append(evEl(p.o, p, H0, bad, hours)));
+      return col;
+    });
+    const grid = h('div', { class: 'tg' }, hoursCol, cols);
+    const scroll = h('div', { class: 'tg-scroll' }, grid);
+    body.append(head, allday, scroll);
+    const hourPx = () => parseFloat(getComputedStyle(grid).height) / hours;
+    // scrollbar compensation for the sticky header
+    requestAnimationFrame(() => { const sb = scroll.offsetWidth - scroll.clientWidth; body.style.setProperty('--sbw', sb + 'px'); });
+    // now line
+    const nowLine = () => { A.$$('.now-line', grid).forEach(x => x.remove()); const m = D.nowMin(); if (!days.includes(t0) || m < H0 * 60 || m > H1 * 60) return; const col = cols[days.indexOf(t0)]; col.append(h('div', { class: 'now-line', style: { top: (m - H0 * 60) / (hours * 60) * 100 + '%' } })); };
+    nowLine(); clearInterval(ui._t); ui._t = setInterval(nowLine, 30000);
+    // scroll to the first event or to "now"
+    requestAnimationFrame(() => { const px = hourPx(), todayShown = days.includes(t0), firstMin = occs.filter(o => !o.allDay).reduce((m, o) => Math.min(m, o.start), 1e9); const target = todayShown ? Math.max(H0 * 60, D.nowMin() - 90) : Math.max(H0 * 60, Math.min(firstMin === 1e9 ? S.dayStart * 60 : firstMin, 14 * 60) - 30); scroll.scrollTop = (target - H0 * 60) / 60 * px; });
+    interact(grid, cols, days, H0, hours, bad, occs);
+  }
+
+  function layout(list) {                              // side-by-side columns for overlaps
+    const L = list.map(o => ({ o, s: o.start, e: Math.max(o.end, o.start + 20) })).sort((a, b) => a.s - b.s || b.e - a.e), out = []; let group = [], gEnd = -1;
+    const flush = () => { const cols = []; group.forEach(p => { let c = cols.findIndex(end => end <= p.s); if (c < 0) { c = cols.length; cols.push(0); } cols[c] = p.e; p.c = c; }); group.forEach(p => { p.n = cols.length; out.push(p); }); group = []; };
+    L.forEach(p => { if (p.s >= gEnd && group.length) flush(); group.push(p); gEnd = Math.max(gEnd, p.e); }); if (group.length) flush();
+    return out;
+  }
+  function evEl(o, p, H0, bad, hours) {
+    const top = (o.start - H0 * 60) / (hours * 60) * 100, hgt = Math.max(o.dur, 20) / (hours * 60) * 100;
+    const el = h('button', { type: 'button', class: 'ev' + (o.ev.status === 'tentative' ? ' tent' : '') + (bad.has(o.key) ? ' conflict' : '') + (o.ev.status === 'cancelled' ? ' done' : ''), style: Object.assign(A.catStyle(o.cat), { top: top + '%', height: hgt + '%', '--l': p.c * 100 / p.n, '--w': 100 / p.n }), 'data-key': o.key, 'data-day': o.day, 'data-start': o.start, 'data-dur': o.dur, 'aria-label': o.title + ', ' + A.time(o.start) + ' to ' + A.time(o.end) + (bad.has(o.key) ? ', conflict' : '') },
+      h('span', { class: 't', dir: 'auto' }, o.title), o.dur >= 40 ? h('span', { class: 'm' }, A.time(o.start) + ' – ' + A.time(o.end)) : null, o.dur >= 60 && sub(o) ? h('span', { class: 'm', dir: 'auto' }, sub(o)) : null, h('i', { class: 'rz', 'aria-hidden': 'true' }));
+    el._o = o; return el;
+  }
+
+  function interact(grid, cols, days, H0, hours, bad, occs) {
+    const px = () => parseFloat(getComputedStyle(grid).height) / hours, snap = m => Math.round(m / SNAP) * SNAP;
+    const minAt = (y, col) => { const r = col.getBoundingClientRect(); return H0 * 60 + (y - r.top) / r.height * hours * 60; };
+    let drag = null, bubble = null;
+    const say = (x, y, txt) => { bubble = bubble || h('div', { class: 'bubble' }); bubble.textContent = txt; bubble.style.left = x + 'px'; bubble.style.top = y + 'px'; if (!bubble.isConnected) document.body.append(bubble); };
+    const stop = () => { bubble && bubble.remove(); bubble = null; };
+    const blockTouch = ev => { if (drag && drag.on) ev.preventDefault(); };
+    document.addEventListener('touchmove', blockTouch, { passive: false });
+    grid.addEventListener('pointerdown', ev => {
+      const evEl = ev.target.closest('.ev'), col = ev.target.closest('.tg-col'); if (ev.button > 0 || !col) return;
+      if (evEl) {
+        const o = evEl._o, resize = !!ev.target.closest('.rz'), touch = ev.pointerType === 'touch';
+        drag = { type: resize ? 'resize' : 'move', el: evEl, o, x0: ev.clientX, y0: ev.clientY, id: ev.pointerId, on: false, armed: !touch || resize, col, day: o.day, start: o.start, dur: o.dur, moved: false };
+        if (touch && !resize) drag.timer = setTimeout(() => { drag.armed = true; drag.on = true; evEl.classList.add('drag'); if (navigator.vibrate) navigator.vibrate(12); }, 380);
+        if (resize) drag.on = true;
+      } else if (ev.pointerType !== 'touch') {
+        const m0 = Math.max(H0 * 60, Math.min(H0 * 60 + hours * 60 - SNAP, Math.floor(minAt(ev.clientY, col) / SNAP) * SNAP));
+        drag = { type: 'draw', col, m0, id: ev.pointerId, on: false, armed: true, x0: ev.clientX, y0: ev.clientY, box: null, day: +col.dataset.day, m1: m0 + A.settings().defDur };
+      } else { drag = { type: 'tap', col, x0: ev.clientX, y0: ev.clientY, y: ev.clientY, id: ev.pointerId, moved: false, t: Date.now() }; }
+    });
+    const onMove = ev => {
+      if (!drag || ev.pointerId !== drag.id) return;
+      const dx = ev.clientX - drag.x0, dy = ev.clientY - drag.y0, far = Math.hypot(dx, dy) > 6;
+      if (drag.type === 'tap') { if (far) drag.moved = true; return; }
+      if (drag.timer && far && !drag.armed) { clearTimeout(drag.timer); drag = null; return; }          // it was a scroll
+      if (!drag.armed) return;
+      if (!drag.on && far) { drag.on = true; if (drag.type === 'move') drag.el.classList.add('drag'); }
+      if (!drag.on) return;
+      const hp = px();
+      if (drag.type === 'move') {
+        const dm = snap(dy / hp * 60), cw = grid.querySelector('.tg-col').getBoundingClientRect().width, dd = Math.round(dx / cw);
+        drag.start = Math.max(H0 * 60, Math.min(H0 * 60 + hours * 60 - drag.dur, snap(drag.o.start + dm))); drag.day = Math.max(days[0], Math.min(days[days.length - 1], drag.o.day + dd));
+        drag.el.style.transform = 'translate(' + (dx) + 'px,' + ((drag.start - drag.o.start) / 60 * hp) + 'px)';
+        say(ev.clientX, ev.clientY, D.DOW3[D.dow(drag.day)] + ' ' + A.time(drag.start) + ' – ' + A.time(drag.start + drag.dur));
+      } else if (drag.type === 'resize') {
+        drag.dur = Math.max(MIN, snap(drag.o.dur + dy / hp * 60)); drag.el.style.height = 'calc(' + (drag.dur / (hours * 60) * 100) + '% )';
+        say(ev.clientX, ev.clientY, A.time(drag.o.start) + ' – ' + A.time(drag.o.start + drag.dur) + ' · ' + A.dur(drag.dur));
+      } else if (drag.type === 'draw') {
+        const m = Math.max(H0 * 60, Math.min(H0 * 60 + hours * 60, snap(minAt(ev.clientY, drag.col)))); const a = Math.min(drag.m0, m), b = Math.max(drag.m0 + SNAP, m); drag.a = a; drag.m1 = b;
+        drag.box = drag.box || h('div', { class: 'drawing' }); if (!drag.box.isConnected) drag.col.append(drag.box);
+        drag.box.style.top = (a - H0 * 60) / (hours * 60) * 100 + '%'; drag.box.style.height = (b - a) / (hours * 60) * 100 + '%';
+        say(ev.clientX, ev.clientY, A.time(a) + ' – ' + A.time(b));
+      }
+    };
+    window.addEventListener('pointermove', onMove);
+    const end = ev => {
+      if (!drag || (ev.pointerId !== drag.id && ev.type !== 'cancel')) return; const d = drag; drag = null; clearTimeout(d.timer); stop();
+      if (ev.type === 'pointercancel') { d.el && (d.el.style.transform = '', d.el.classList.remove('drag')); d.box && d.box.remove(); return; }
+      if (d.type === 'tap') { if (!d.moved && Date.now() - d.t < 450) { const m = Math.max(H0 * 60, Math.floor(minAt(d.y, d.col) / 30) * 30); E.edit(null, { date: D.iso(+d.col.dataset.day), start: Math.min(m, 1380), dur: A.settings().defDur }); } return; }
+      if (d.type === 'draw') { d.box && d.box.remove(); const day = d.day; if (!d.on) E.edit(null, { date: D.iso(day), start: d.m0, dur: A.settings().defDur }); else E.edit(null, { date: D.iso(day), start: d.a != null ? d.a : d.m0, dur: Math.max(15, d.m1 - (d.a != null ? d.a : d.m0)) }); return; }
+      if (!d.on) { d.el.classList.remove('drag'); if (d.type === 'move') E.edit(d.o.ev); return; }       // a plain click opens the editor
+      const changed = d.type === 'move' ? (d.day !== d.o.day || d.start !== d.o.start) : d.dur !== d.o.dur;
+      if (!changed) { d.el.style.transform = ''; d.el.classList.remove('drag'); d.el.style.height = ''; if (d.type === 'resize') E.edit(d.o.ev); return; }   // a tap on the bottom edge still opens it
+      const to = { day: d.day, start: d.type === 'move' ? d.start : d.o.start, dur: d.dur }, clash = E.clashes(to.day, to.start, to.dur, d.o.id);
+      E.moveOcc(d.o, to); if (clash.length) A.toast('Heads up: this now overlaps “' + clash[0].title + '”.', { ms: 4500 });
+    };
+    window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
+    grid.addEventListener('click', e => { const el = e.target.closest('.ev'); if (el && e.detail === 0) E.edit(el._o.ev); });   // keyboard Enter / Space
+    // keyboard: arrows move, shift+arrows resize, Enter edits, Delete removes
+    grid.addEventListener('keydown', ev => {
+      const el = ev.target.closest('.ev'); if (!el) return; const o = el._o, k = ev.key;
+      if (k === 'Delete' || k === 'Backspace') { ev.preventDefault(); E.askDelete(o.ev, D.iso(o.day)); return; }
+      if (!/^Arrow/.test(k)) return; ev.preventDefault();
+      let day = o.day, start = o.start, dur = o.dur;
+      if (ev.shiftKey && (k === 'ArrowUp' || k === 'ArrowDown')) dur = Math.max(MIN, dur + (k === 'ArrowDown' ? SNAP : -SNAP)); else if (k === 'ArrowUp') start -= SNAP; else if (k === 'ArrowDown') start += SNAP; else day += k === 'ArrowLeft' ? -1 : 1;
+      start = Math.max(0, Math.min(1440 - dur, start)); E.moveOcc(o, { day, start, dur }); setTimeout(() => { const n = A.$('.ev[data-key^="' + CSS.escape(o.ev.id) + '"]'); n && n.focus(); }, 30);
+    });
+    A.views.calendar._cleanup = () => { document.removeEventListener('touchmove', blockTouch); window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end); stop(); };
+  }
+
+  /* ── month ────────────────────────────────────────────────────────── */
+  function month(body) {
+    const S = A.settings(), y = D.ymd(ui.anchor), first = D.num(y.y, y.m, 1), gs = D.weekStart(first, S.weekStart), total = Math.ceil((first - gs + D.daysIn(y.y, y.m)) / 7) * 7, last = gs + total - 1, t0 = D.today();
+    const occs = visible(E.expand(gs, last)), by = {}; occs.forEach(o => (by[o.day] = by[o.day] || []).push(o));
+    let sel = ui._sel != null && ui._sel >= gs && ui._sel <= last ? ui._sel : (t0 >= gs && t0 <= last ? t0 : first);
+    const dow = h('div', { class: 'mo-dow' }, Array.from({ length: 7 }, (_, i) => h('span', null, D.DOW3[(S.weekStart + i) % 7])));
+    const panel = h('div', { class: 'mo-side' });
+    const fill = () => { const L = by[sel] || []; panel.replaceChildren(h('b', null, D.long(sel)), h('div', { class: 'stack', style: { marginTop: '8px' } }, L.length ? L.map(o => evChip(o)) : h('span', { class: 'muted' }, 'Nothing scheduled.'))); };
+    const cells = [];
+    const grid = h('div', { class: 'mo-grid' }, Array.from({ length: total }, (_, i) => {
+      const d = gs + i, L = by[d] || [], out = D.ymd(d).m !== y.m;
+      const c = h('button', { type: 'button', class: 'mo-cell' + (out ? ' out' : '') + (d === t0 ? ' today' : '') + (d === sel ? ' sel' : ''), 'aria-label': D.long(d) + ', ' + L.length + ' events', onClick: () => { if (isPhone()) { sel = d; ui._sel = d; cells.forEach((x, j) => x.classList.toggle('sel', gs + j === sel)); fill(); } else { ui.anchor = d; ui.view = 'day'; A.route(); } }, onDblclick: () => E.edit(null, { date: D.iso(d) }) },
+        h('span', { class: 'd' }, h('b', { class: 'num' }, D.ymd(d).d), D.sec(d) ? h('em', null, D.sec(d)) : null),
+        L.slice(0, 3).map(o => h('span', { class: 'mo-ev', style: A.catStyle(o.cat), dir: 'auto' }, (o.allDay ? '' : A.time(o.start) + ' ') + o.title)), L.length > 3 ? h('span', { class: 'mo-more' }, '+' + (L.length - 3) + ' more') : null,
+        h('span', { class: 'mo-dots' }, L.slice(0, 4).map(o => h('i', { class: 'dot', style: { background: 'var(--b-' + o.cat + ')' } }))));
+      cells.push(c); return c;
+    }));
+    fill(); body.append(h('div', { class: 'mo' }, dow, grid), panel);
+  }
+  function evChip(o) { return h('button', { type: 'button', class: 'ev-chip', style: A.catStyle(o.cat), onClick: () => E.edit(o.ev) }, h('span', { class: 'grow' }, h('span', { class: 't', dir: 'auto' }, o.title), h('small', null, (o.allDay ? 'All day' : A.time(o.start) + ' – ' + A.time(o.end)) + (sub(o) ? ' · ' + sub(o) : ''))), o.ev.status === 'tentative' ? h('span', { class: 'pill' }, 'Tentative') : null); }
+
+  /* ── year ─────────────────────────────────────────────────────────── */
+  function year(body) {
+    const S = A.settings(), Y = D.ymd(ui.anchor).y, t0 = D.today(), occs = visible(E.expand(D.num(Y, 1, 1), D.num(Y, 12, 31))), cnt = {}; occs.forEach(o => cnt[o.day] = (cnt[o.day] || 0) + 1);
+    body.append(h('div', { class: 'yr' }, Array.from({ length: 12 }, (_, mi) => {
+      const first = D.num(Y, mi + 1, 1), lead = (D.dow(first) - S.weekStart + 7) % 7, n = D.daysIn(Y, mi + 1);
+      return h('section', { class: 'mini' }, h('h4', null, h('button', { type: 'button', onClick: () => { ui.anchor = first; ui.view = 'month'; A.route(); } }, D.MON[mi])),
+        h('div', { class: 'mini-grid' }, Array.from({ length: 7 }, (_, i) => h('b', null, D.DOW3[(S.weekStart + i) % 7][0])), Array.from({ length: lead }, () => h('span')), Array.from({ length: n }, (_, i) => { const d = first + i; return h('button', { type: 'button', class: d === t0 ? 'today' : '', style: { '--heat': Math.min(cnt[d] || 0, 6) }, 'aria-label': D.long(d) + ', ' + (cnt[d] || 0) + ' events', onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, i + 1); })));
+    })));
+  }
+
+  /* ── agenda ───────────────────────────────────────────────────────── */
+  function agenda(body) {
+    const from = ui.anchor, to = from + 29, occs = visible(E.expand(from, to)), bad = E.conflictKeys(occs), t0 = D.today();
+    const q = h('input', { type: 'search', placeholder: 'Filter agenda…', value: ui.q, 'aria-label': 'Filter agenda', dir: 'auto', style: { maxWidth: '320px', margin: '10px 22px 0' } });
+    const wrap = h('div', { class: 'ag' });
+    const draw = () => {
+      const term = q.value.trim().toLowerCase(); ui.q = q.value; wrap.replaceChildren();
+      const L = term ? occs.filter(o => (o.title + ' ' + (o.ev.people || '') + ' ' + (o.ev.loc || '') + ' ' + (o.ev.notes || '')).toLowerCase().includes(term)) : occs;
+      if (!L.length) return wrap.append(A.empty('Nothing here', 'No events in the next 30 days match.'));
+      const g = {}; L.forEach(o => (g[o.day] = g[o.day] || []).push(o));
+      Object.keys(g).sort((a, b) => a - b).forEach(d => { d = +d; wrap.append(h('div', { class: 'ag-day' + (d === t0 ? ' today' : '') }, h('div', { class: 'dl num' }, D.ymd(d).d, h('small', null, D.DOW3[D.dow(d)] + ' · ' + D.MON3[D.ymd(d).m - 1])), h('div', { class: 'list' }, g[d].map(o => { const c = evChip(o); if (bad.has(o.key)) c.append(h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'Conflict')); return c; })))); });
+    };
+    q.addEventListener('input', A.debounce(draw, 120)); body.append(q, wrap); draw();
+  }
+})();
+
+/* ===== people.js ===== */
+/* Aide · people — everything about other people's time:
+   Requests (who wants to see the executive), Availability (visiting hours the
+   executive is open to, plus a live list of real free windows) and Contacts. */
+(function () {
+  'use strict';
+  const A = window.Aide, { h, date: D, ev: E } = A;
+
+  /* ── free windows: availability minus the schedule ────────────────── */
+  A.windows = function (dur, days = 14, from) {
+    const S = A.settings(), buf = S.buffer == null ? 10 : S.buffer, av = A.db.data.avail, t0 = from == null ? D.today() : from, out = [], nowM = D.nowMin();
+    const occs = E.expand(t0, t0 + days);
+    for (let d = t0; d < t0 + days; d++) {
+      const dw = D.dow(d), slots = (av[dw] || []).slice().sort((a, b) => a - b); if (!slots.length || E.awayOn(d)) continue;
+      let ranges = [], s = null, p = null;                                    // contiguous half-hour slots → ranges
+      slots.forEach(i => { if (s == null) { s = i; p = i; } else if (i === p + 1) p = i; else { ranges.push([s * 30, (p + 1) * 30]); s = i; p = i; } }); if (s != null) ranges.push([s * 30, (p + 1) * 30]);
+      if (d === t0) ranges = ranges.map(([a, b]) => [Math.max(a, Math.ceil((nowM + 15) / 15) * 15), b]).filter(([a, b]) => b > a);
+      const busy = occs.filter(o => o.day === d && !o.allDay && o.dur > 0 && o.cat !== 'away').map(o => [o.start - buf, o.end + buf]).sort((a, b) => a[0] - b[0]);
+      for (const [a0, b0] of ranges) {
+        let cur = a0; const free = [];
+        for (const [bs, be] of busy) { if (be <= cur) continue; if (bs >= b0) break; if (bs > cur) free.push([cur, Math.min(bs, b0)]); cur = Math.max(cur, be); }
+        if (cur < b0) free.push([cur, b0]);
+        free.forEach(([a, b]) => { if (b - a >= dur) out.push({ day: d, from: a, to: b }); });
+      }
+    }
+    return out;
+  };
+  const winText = w => D.mid(w.day) + ', ' + A.time(w.from) + '–' + A.time(w.to);
+  const sign = () => { const S = A.settings(); return 'Kind regards,\n' + (S.assistant || 'Executive Office') + (S.name ? '\nOffice of ' + S.name : ''); };
+  const replyBox = (title, text, to) => {
+    const ta = h('textarea', { dir: 'auto', style: { minHeight: '230px' } }); ta.value = text;
+    const m = A.modal({ title, body: [ta, h('p', { class: 'note' }, 'Edit the text if you like, then copy it into your email or chat.')], footer: [
+      to ? h('a', { class: 'btn', href: 'mailto:' + encodeURIComponent(to) + '?body=' + encodeURIComponent(ta.value), onClick: e => { e.currentTarget.href = 'mailto:' + encodeURIComponent(to) + '?body=' + encodeURIComponent(ta.value); } }, A.ico('mail'), 'Open email') : null,
+      h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Close'), h('button', { class: 'btn primary', type: 'button', onClick: () => A.copy(ta.value) }, A.ico('copy'), 'Copy')] });
+  };
+
+  /* ── requests ─────────────────────────────────────────────────────── */
+  const reqUI = { tab: 'pending' };
+  const STAT = { pending: 'Pending', approved: 'Approved', declined: 'Declined' };
+  A.views.requests = {
+    title: 'Requests', sub: 'Meeting and visit requests for the executive',
+    actions: () => [h('button', { class: 'btn primary', type: 'button', onClick: () => editReq() }, A.ico('plus'), 'New request')],
+    render(root) {
+      const R = A.db.data.requests, count = s => R.filter(r => r.status === s).length;
+      root.append(h('div', { class: 'row wrap', style: { marginBottom: '14px' } }, h('div', { class: 'seg', role: 'tablist' }, Object.entries(STAT).map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': reqUI.tab === k, onClick: () => { reqUI.tab = k; A.route(); } }, n + ' · ' + count(k))))));
+      const list = R.filter(r => r.status === reqUI.tab).sort((a, b) => (b.pri === 'high') - (a.pri === 'high') || b.created - a.created);
+      if (!list.length) return root.append(A.empty(reqUI.tab === 'pending' ? 'Inbox zero' : 'Nothing here yet', reqUI.tab === 'pending' ? 'No pending requests. New ones appear here.' : '', 'inbox'));
+      root.append(h('div', { class: 'grid g2' }, list.map(r => h('article', { class: 'req' + (r.pri === 'high' ? ' high' : '') },
+        h('div', { class: 'row' }, h('div', { class: 'avatar' }, A.initials(r.who)), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, r.who), h('div', { class: 'small muted', dir: 'auto' }, [r.org, 'asked ' + D.rel(r.created).toLowerCase()].filter(Boolean).join(' · '))), r.pri === 'high' ? h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'High priority') : null),
+        h('p', { dir: 'auto' }, r.purpose), h('div', { class: 'row wrap small muted' }, h('span', null, A.dur(r.dur || 30)), r.pref ? h('span', null, '· ' + r.pref) : null, r.status === 'approved' && r.when ? h('span', null, '· Booked ' + r.when) : null),
+        h('div', { class: 'row wrap' },
+          r.status === 'pending' ? [h('button', { class: 'btn sm primary', type: 'button', onClick: () => approve(r) }, 'Approve & schedule'), h('button', { class: 'btn sm', type: 'button', onClick: () => propose(r) }, 'Suggest times'), h('button', { class: 'btn sm', type: 'button', onClick: () => decline(r) }, 'Decline')] : h('button', { class: 'btn sm', type: 'button', onClick: () => { A.patch('requests', r.id, { status: 'pending' }); A.route(); } }, 'Move back to pending'),
+          h('span', { class: 'grow' }), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Edit request', onClick: () => editReq(r) }, A.ico('settings')), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete request', onClick: () => { A.del('requests', r.id, 'Request deleted'); A.route(); } }, A.ico('trash')))))));
+    },
+  };
+  function editReq(r) {
+    const isNew = !r, o = r || { who: '', org: '', purpose: '', dur: 30, pref: '', pri: 'normal', status: 'pending', email: '', created: D.today() };
+    const f = { who: h('input', { type: 'text', dir: 'auto', value: o.who, placeholder: 'Full name' }), org: h('input', { type: 'text', dir: 'auto', value: o.org || '', placeholder: 'Company / organisation' }), email: h('input', { type: 'email', value: o.email || '', placeholder: 'name@example.com' }), purpose: h('textarea', { dir: 'auto', placeholder: 'What is it about?' }), dur: h('select', null, [15, 30, 45, 60, 90, 120].map(v => h('option', { value: v, selected: v === o.dur }, A.dur(v)))), pref: h('input', { type: 'text', dir: 'auto', value: o.pref || '', placeholder: 'e.g. mornings next week' }), pri: h('select', null, [['normal', 'Normal'], ['high', 'High priority']].map(([v, t]) => h('option', { value: v, selected: v === o.pri }, t))) };
+    f.purpose.value = o.purpose;
+    const m = A.modal({ title: isNew ? 'New request' : 'Edit request', body: [A.field('Who', f.who), h('div', { class: 'two' }, A.field('Organisation', f.org), A.field('Email', f.email)), A.field('Purpose', f.purpose), h('div', { class: 'two' }, A.field('Length', f.dur), A.field('Priority', f.pri)), A.field('Preferred time', f.pref)],
+      footer: [h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: () => { if (!f.who.value.trim()) return A.toast('Who is asking?'); const d = { who: f.who.value.trim(), org: f.org.value.trim(), email: f.email.value.trim(), purpose: f.purpose.value.trim() || 'Meeting', dur: +f.dur.value, pref: f.pref.value.trim(), pri: f.pri.value }; isNew ? A.add('requests', Object.assign(o, d)) : A.patch('requests', o.id, d); m.close(); reqUI.tab = isNew ? 'pending' : reqUI.tab; A.route(); } }, 'Save')] });
+  }
+  function approve(r) {
+    const w = A.windows(r.dur || 30, 21)[0], visit = /visit|tour|site/i.test(r.purpose);
+    E.edit(null, { title: (visit ? 'Visit: ' : 'Meeting: ') + r.who + (r.org ? ' (' + r.org + ')' : ''), people: r.who, cat: visit ? 'visit' : 'meeting', date: w ? D.iso(w.day) : D.iso(D.today() + 1), start: w ? w.from : 10 * 60, dur: r.dur || 30, notes: r.purpose }, ev => { A.patch('requests', r.id, { status: 'approved', when: D.mid(D.parse(ev.date)) + ' ' + A.time(ev.start), eventId: ev.id }); A.route(); });
+    if (w) A.toast('Suggested the first free slot: ' + winText(w));
+  }
+  function propose(r) {
+    const ws = A.windows(r.dur || 30, 21).slice(0, 5), S = A.settings();
+    replyBox('Suggest times to ' + r.who, 'Dear ' + r.who + ',\n\nThank you for your request regarding “' + r.purpose + '”. ' + (S.name || 'The executive') + ' would be glad to meet. The following ' + A.dur(r.dur || 30) + ' times are available:\n\n' + (ws.length ? ws.map(w => '• ' + D.long(w.day).replace(/, \d{4}$/, '') + ', ' + A.time(w.from) + ' – ' + A.time(Math.min(w.to, w.from + (r.dur || 30)))).join('\n') : '• (no open times in the next three weeks — please check Availability)') + '\n\nPlease let me know which suits you best and I will confirm the booking.\n\n' + sign(), r.email);
+  }
+  function decline(r) {
+    const S = A.settings(); replyBox('Reply to ' + r.who, 'Dear ' + r.who + ',\n\nThank you for thinking of ' + (S.name || 'us') + ' regarding “' + r.purpose + '”. Unfortunately the diary is full for the coming weeks, so we are unable to accommodate a meeting at this time. We would be happy to reconnect later in the year.\n\nWith thanks for your understanding,\n' + sign().replace('Kind regards,\n', ''), r.email);
+    A.patch('requests', r.id, { status: 'declined' }); A.route();
+  }
+
+  /* ── availability / visiting hours ────────────────────────────────── */
+  const avUI = { dur: 30 };
+  A.views.availability = {
+    title: 'Availability', sub: 'Visiting hours and real free windows',
+    actions: () => [h('button', { class: 'btn', type: 'button', onClick: () => E.edit(null, { cat: 'away', allDay: true, title: 'Out of office' }) }, A.ico('calendar'), 'Block dates')],
+    render(root) {
+      const S = A.settings(), av = A.db.data.avail, ws = S.weekStart, H0 = Math.min(S.dayStart, 12), H1 = Math.max(S.dayEnd, H0 + 4), rows = (H1 - H0) * 2;
+      const order = Array.from({ length: 7 }, (_, i) => (ws + i) % 7), on = (dw, i) => (av[dw] || []).includes(i);
+      const grid = h('div', { class: 'av-grid', role: 'application', 'aria-label': 'Weekly visiting hours. Drag to add or remove.' }, h('div', { class: 'hd' }), order.map(dw => h('div', { class: 'hd' }, D.DOW3[dw])));
+      for (let r = 0; r < rows; r++) { const slot = H0 * 2 + r; A.put(grid, h('div', { class: 'hr' }, r % 2 === 0 ? A.hourLabel(H0 + r / 2).replace(':00', '') : ''), order.map(dw => h('div', { class: 'av-cell' + (r % 2 === 0 ? ' hour' : '') + (on(dw, slot) ? ' on' : ''), 'data-dw': dw, 'data-slot': slot }))); }
+      let mode = null;
+      const paint = el => { if (!el || !el.classList || !el.classList.contains('av-cell')) return; const dw = +el.dataset.dw, s = +el.dataset.slot; const list = av[dw] = av[dw] || []; const has = list.includes(s); if (mode === 'add' && !has) list.push(s); else if (mode === 'del' && has) list.splice(list.indexOf(s), 1); else return; el.classList.toggle('on', mode === 'add'); };
+      grid.addEventListener('pointerdown', e => { const c = e.target.closest('.av-cell'); if (!c) return; e.preventDefault(); mode = c.classList.contains('on') ? 'del' : 'add'; grid.setPointerCapture(e.pointerId); paint(c); });
+      grid.addEventListener('pointermove', e => { if (mode) paint(document.elementFromPoint(e.clientX, e.clientY)); });
+      const done = () => { if (mode) { mode = null; A.save('avail'); drawSlots(); } }; grid.addEventListener('pointerup', done); grid.addEventListener('pointercancel', done);
+      const preset = fn => { fn(); A.save('avail'); A.route(); };
+      const range = (a, b) => { const o = []; for (let i = a * 2; i < b * 2; i++) o.push(i); return o; };
+      const tools = h('div', { class: 'row wrap', style: { marginBottom: '10px' } },
+        h('button', { class: 'btn sm', type: 'button', onClick: () => preset(() => { for (let d = 0; d < 5; d++) av[d] = range(10, 12).concat(range(14, 16)); av[5] = []; av[6] = []; }) }, 'Weekdays 10–12 & 14–16'),
+        h('button', { class: 'btn sm', type: 'button', onClick: () => preset(() => { const m = (av[0] || []).slice(); for (let d = 1; d < 5; d++) av[d] = m.slice(); }) }, 'Copy Monday → Fri'),
+        h('button', { class: 'btn sm danger', type: 'button', onClick: () => preset(() => { A.db.data.avail = {}; }) }, 'Clear all'));
+      const slotsBox = h('div', { class: 'stack' });
+      const dur = h('select', { 'aria-label': 'Meeting length', style: { width: 'auto' }, onChange: () => { avUI.dur = +dur.value; drawSlots(); } }, [15, 30, 45, 60, 90, 120].map(v => h('option', { value: v, selected: v === avUI.dur }, A.dur(v))));
+      function drawSlots() {
+        const ws2 = A.windows(avUI.dur, 21); slotsBox.replaceChildren();
+        if (!ws2.length) return slotsBox.append(A.empty('No free windows', 'Paint some visiting hours on the left, or shorten the meeting length.', 'clock'));
+        ws2.slice(0, 40).forEach(w => slotsBox.append(h('div', { class: 'slot' }, h('div', { class: 'grow' }, h('b', null, D.rel(w.day) + ' · ' + A.time(w.from) + '–' + A.time(w.to)), h('div', { class: 'small muted' }, A.dur(w.to - w.from) + ' free')), h('button', { class: 'btn sm', type: 'button', onClick: () => E.edit(null, { date: D.iso(w.day), start: w.from, dur: avUI.dur, cat: 'visit', title: 'Visit: ' }) }, 'Book'))));
+        copyBtn.onclick = () => A.copy('Available times (' + A.dur(avUI.dur) + '):\n' + ws2.slice(0, 6).map(w => '• ' + D.long(w.day).replace(/, \d{4}$/, '') + ', ' + A.time(w.from) + ' – ' + A.time(w.to)).join('\n'));
+      }
+      const copyBtn = h('button', { class: 'btn sm', type: 'button' }, A.ico('copy'), 'Copy 6 times');
+      const away = E.expand(D.today(), D.today() + 120).filter(o => o.allDay && (o.cat === 'away' || o.cat === 'travel'));
+      root.append(h('div', { class: 'grid', style: { gridTemplateColumns: 'minmax(0,1.15fr) minmax(0,1fr)', alignItems: 'start' }, id: 'avgrid' },
+        h('div', { class: 'card' }, h('h3', null, 'Weekly visiting hours'), h('p', { class: 'note', style: { marginBottom: '10px' } }, 'Drag across the grid to mark the hours the executive can receive visitors and meetings. Each cell is 30 minutes.'), tools, grid),
+        h('div', { class: 'stack' },
+          h('div', { class: 'card' }, h('h3', null, 'Free windows', h('span', { class: 'grow' }), dur, copyBtn), h('p', { class: 'note', style: { marginBottom: '10px' } }, 'Visiting hours minus the schedule, with a ' + (S.buffer == null ? 10 : S.buffer) + '-minute buffer. Days marked out of office are skipped.'), slotsBox),
+          h('div', { class: 'card' }, h('h3', null, 'Away & blocked days'), away.length ? h('div', { class: 'stack' }, away.slice(0, 8).map(o => h('button', { type: 'button', class: 'ev-chip', style: A.catStyle(o.cat), onClick: () => E.edit(o.ev) }, h('span', { class: 'grow' }, h('span', { class: 't', dir: 'auto' }, o.title), h('small', null, D.mid(o.day)))))) : h('p', { class: 'muted small' }, 'No upcoming travel or out-of-office days.')))));
+      if (matchMedia('(max-width: 1100px)').matches) A.$('#avgrid').style.gridTemplateColumns = 'minmax(0,1fr)';
+      drawSlots();
+    },
+  };
+
+  /* ── contacts ─────────────────────────────────────────────────────── */
+  const cUI = { q: '', tag: '' };
+  A.views.people = {
+    title: 'People', sub: 'Contacts, VIPs and visitors',
+    actions: () => [h('button', { class: 'btn primary', type: 'button', onClick: () => editContact() }, A.ico('plus'), 'New contact')],
+    render(root) {
+      const C = A.db.data.contacts, tags = [...new Set(C.flatMap(c => c.tags || []))].sort();
+      const q = h('input', { type: 'search', placeholder: 'Search name, company, note…', value: cUI.q, 'aria-label': 'Search contacts', dir: 'auto' }), box = h('div');
+      const chips = h('div', { class: 'row wrap', style: { margin: '10px 0 12px' } }, tags.map(t => h('button', { type: 'button', class: 'chip', 'aria-pressed': cUI.tag === t, style: { background: cUI.tag === t ? 'var(--accent)' : '', color: cUI.tag === t ? '#fff' : '' }, onClick: () => { cUI.tag = cUI.tag === t ? '' : t; A.route(); } }, t)));
+      const draw = () => {
+        cUI.q = q.value; const term = q.value.trim().toLowerCase(); box.replaceChildren();
+        const L = C.filter(c => (!cUI.tag || (c.tags || []).includes(cUI.tag)) && (!term || [c.name, c.org, c.role, c.notes, c.email].join(' ').toLowerCase().includes(term))).sort((a, b) => a.name.localeCompare(b.name));
+        if (!L.length) return box.append(A.empty('No contacts', term ? 'Nothing matches your search.' : 'Add VIPs, visitors and suppliers.', 'people'));
+        let letter = '';
+        const card = h('div', { class: 'card', style: { padding: '6px' } });
+        L.forEach(c => { const l = (c.name[0] || '#').toUpperCase(); if (l !== letter) { letter = l; card.append(h('div', { class: 'alpha' }, l)); } card.append(h('button', { type: 'button', class: 'item', onClick: () => editContact(c) }, h('div', { class: 'avatar' }, A.initials(c.name)), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, c.name), h('div', { class: 'small muted', dir: 'auto' }, [c.role, c.org].filter(Boolean).join(' · '))), (c.tags || []).slice(0, 2).map(t => h('span', { class: 'pill', style: t === 'VIP' ? { '--c': 'var(--c-focus)' } : {} }, t)))); });
+        box.append(card);
+      };
+      q.addEventListener('input', A.debounce(draw, 120)); root.append(q, chips, box); draw();
+    },
+  };
+  function editContact(c) {
+    const isNew = !c, o = c || { name: '', org: '', role: '', phone: '', email: '', tags: [], notes: '' };
+    const f = { name: h('input', { type: 'text', dir: 'auto', value: o.name, placeholder: 'Full name' }), org: h('input', { type: 'text', dir: 'auto', value: o.org || '' }), role: h('input', { type: 'text', dir: 'auto', value: o.role || '' }), phone: h('input', { type: 'tel', value: o.phone || '' }), email: h('input', { type: 'email', value: o.email || '' }), tags: h('input', { type: 'text', value: (o.tags || []).join(', '), placeholder: 'VIP, Board, Press…' }), notes: h('textarea', { dir: 'auto', placeholder: 'Preferences, assistant’s number, how to greet…' }) };
+    f.notes.value = o.notes || '';
+    const hist = !isNew ? E.expand(D.today() - 120, D.today() + 120).filter(x => (x.ev.people || '').toLowerCase().includes(o.name.toLowerCase())) : [], past = hist.filter(x => x.day < D.today()).slice(-1)[0], next = hist.filter(x => x.day >= D.today())[0];
+    const m = A.modal({ title: isNew ? 'New contact' : o.name, body: [
+      !isNew ? h('div', { class: 'row wrap' }, o.phone ? h('a', { class: 'btn sm', href: 'tel:' + o.phone.replace(/\s/g, '') }, A.ico('phone'), 'Call') : null, o.email ? h('a', { class: 'btn sm', href: 'mailto:' + o.email }, A.ico('mail'), 'Email') : null, h('button', { class: 'btn sm', type: 'button', onClick: () => { m.close(); E.edit(null, { people: o.name, title: 'Meeting with ' + o.name }); } }, A.ico('calendar'), 'Schedule'), h('span', { class: 'small muted' }, next ? 'Next: ' + D.mid(next.day) + ' ' + A.time(next.start) : past ? 'Last: ' + D.mid(past.day) : 'No meetings on record')) : null,
+      A.field('Name', f.name), h('div', { class: 'two' }, A.field('Organisation', f.org), A.field('Role', f.role)), h('div', { class: 'two' }, A.field('Phone', f.phone), A.field('Email', f.email)), A.field('Tags', f.tags), A.field('Notes', f.notes)],
+      footer: [!isNew ? h('button', { class: 'btn danger', type: 'button', onClick: () => { A.del('contacts', o.id, 'Contact deleted'); m.close(); A.route(); } }, 'Delete') : null, h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: () => { if (!f.name.value.trim()) return A.toast('A name is needed.'); const d = { name: f.name.value.trim(), org: f.org.value.trim(), role: f.role.value.trim(), phone: f.phone.value.trim(), email: f.email.value.trim(), tags: f.tags.value.split(',').map(s => s.trim()).filter(Boolean), notes: f.notes.value }; isNew ? A.add('contacts', Object.assign(o, d)) : A.patch('contacts', o.id, d); m.close(); A.route(); } }, 'Save')] });
+  }
+})();
+
+/* ===== tools.js ===== */
+/* Aide · tools — Tasks (list + priority matrix), Notebook, Timers & world clocks.
+   Timers keep absolute timestamps, so they stay correct when the tab sleeps. */
+(function () {
+  'use strict';
+  const A = window.Aide, { h, date: D, ev: E } = A;
+
+  /* ── tasks ────────────────────────────────────────────────────────── */
+  const QUAD = { now: ['Do now', 'Urgent & important'], plan: ['Schedule', 'Important, not urgent'], delegate: ['Delegate', 'Urgent, less important'], drop: ['Drop or later', 'Neither'] };
+  const tUI = { mode: 'list', showDone: false };
+  A.views.tasks = {
+    title: 'Tasks', sub: 'Follow-ups, errands and delegations',
+    actions: () => [h('div', { class: 'seg', role: 'tablist' }, [['list', 'List'], ['matrix', 'Matrix']].map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': tUI.mode === k, onClick: () => { tUI.mode = k; A.route(); } }, n)))],
+    render(root) {
+      const T = A.db.data.tasks, t0 = D.iso(D.today());
+      const inp = h('input', { type: 'text', dir: 'auto', placeholder: 'Add a task… try “Send pack to Elena tomorrow”', 'aria-label': 'New task', autocomplete: 'off' });
+      inp.addEventListener('keydown', e => { if (e.key !== 'Enter' || !inp.value.trim()) return; const p = E.parse(inp.value); const hasDate = /today|tomorrow|tmrw|mon|tue|wed|thu|fri|sat|sun|\d{4}-\d{2}-\d{2}|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/i.test(inp.value); A.add('tasks', { title: p.title || inp.value.trim(), pri: 'plan', due: hasDate ? D.iso(p.day) : '', done: false }); A.route(); });
+      root.append(h('div', { class: 'row', style: { marginBottom: '14px' } }, inp));
+      const row = (t, drag) => {
+        const due = t.due ? D.parse(t.due) : null, over = due != null && !t.done && due < D.today();
+        const chk = h('button', { type: 'button', class: 'check', role: 'checkbox', 'aria-checked': !!t.done, 'aria-label': 'Done: ' + t.title, onClick: () => { A.patch('tasks', t.id, { done: !t.done }); A.route(); } }, A.ico('check'));
+        const el = h('div', { class: 'task' + (t.done ? ' done' : ''), 'data-id': t.id }, drag ? h('span', { class: 'grip', 'aria-hidden': 'true' }, A.ico('grip')) : null, chk,
+          h('button', { type: 'button', class: 'grow', style: { textAlign: 'left' }, onClick: () => editTask(t) }, h('span', { class: 'tt', dir: 'auto' }, t.title), t.owner ? h('div', { class: 'small muted', dir: 'auto' }, '→ ' + t.owner) : null),
+          due != null ? h('span', { class: 'pill', style: over ? { '--c': 'var(--danger-bg)', color: 'var(--danger)' } : {} }, D.rel(due)) : null);
+        return el;
+      };
+      if (tUI.mode === 'list') {
+        const open = T.filter(t => !t.done).sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1), groups = [['Overdue', t => t.due && t.due < t0], ['Today', t => t.due === t0], ['Upcoming', t => t.due > t0], ['No date', t => !t.due]];
+        let any = false;
+        groups.forEach(([n, f]) => { const L = open.filter(f); if (!L.length) return; any = true; root.append(h('div', { class: 'card', style: { marginBottom: '14px' } }, h('h3', null, n, h('span', { class: 'badge', style: { background: n === 'Overdue' ? 'var(--danger)' : 'var(--accent-ink)' } }, L.length)), h('div', { class: 'stack' }, L.map(t => row(t))))); });
+        if (!any) root.append(A.empty('All clear', 'No open tasks. Add one above.', 'tasks'));
+        const done = T.filter(t => t.done); if (done.length) root.append(h('div', { class: 'card' }, h('h3', null, 'Completed', h('span', { class: 'grow' }), h('button', { class: 'btn sm', type: 'button', onClick: () => { tUI.showDone = !tUI.showDone; A.route(); } }, tUI.showDone ? 'Hide' : 'Show ' + done.length)), tUI.showDone ? h('div', { class: 'stack' }, done.map(t => row(t))) : null));
+      } else {
+        const M = h('div', { class: 'matrix' }, Object.entries(QUAD).map(([k, [n, s]]) => h('section', { class: 'quad', 'data-q': k }, h('h3', null, n, h('small', null, s)), T.filter(t => !t.done && t.pri === k).map(t => row(t, true)))));
+        root.append(M); matrixDrag(M);
+      }
+    },
+  };
+  function matrixDrag(M) {
+    let d = null;
+    M.addEventListener('pointerdown', e => { const g = e.target.closest('.grip'); if (!g) return; e.preventDefault(); const el = g.closest('.task'), r = el.getBoundingClientRect(); d = { el, id: el.dataset.id, ghost: el.cloneNode(true), dx: e.clientX - r.left, dy: e.clientY - r.top, pid: e.pointerId }; d.ghost.classList.add('drag'); d.ghost.style.cssText = 'left:' + r.left + 'px;top:' + r.top + 'px;width:' + r.width + 'px'; document.body.append(d.ghost); el.style.opacity = .3; g.setPointerCapture(e.pointerId); });
+    M.addEventListener('pointermove', e => { if (!d) return; d.ghost.style.left = e.clientX - d.dx + 'px'; d.ghost.style.top = e.clientY - d.dy + 'px'; const q = document.elementFromPoint(e.clientX, e.clientY); const quad = q && q.closest('.quad'); A.$$('.quad', M).forEach(x => x.classList.toggle('over', x === quad)); });
+    const end = e => { if (!d) return; const q = document.elementFromPoint(e.clientX, e.clientY), quad = q && q.closest('.quad'); d.ghost.remove(); const id = d.id; d = null; if (quad && quad.dataset.q) { A.patch('tasks', id, { pri: quad.dataset.q }); } A.route(); };
+    M.addEventListener('pointerup', end); M.addEventListener('pointercancel', end);
+  }
+  function editTask(t) {
+    const f = { title: h('input', { type: 'text', dir: 'auto', value: t.title }), due: h('input', { type: 'date', value: t.due || '' }), pri: h('select', null, Object.entries(QUAD).map(([k, [n]]) => h('option', { value: k, selected: k === t.pri }, n))), owner: h('input', { type: 'text', dir: 'auto', value: t.owner || '', placeholder: 'Who is handling it?' }), notes: h('textarea', { dir: 'auto' }) }; f.notes.value = t.notes || '';
+    const m = A.modal({ title: 'Task', body: [A.field('Task', f.title), h('div', { class: 'two' }, A.field('Due', f.due), A.field('Priority', f.pri)), A.field('Delegated to', f.owner), A.field('Notes', f.notes)], footer: [h('button', { class: 'btn danger', type: 'button', onClick: () => { A.del('tasks', t.id, 'Task deleted'); m.close(); A.route(); } }, 'Delete'), h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: () => { if (!f.title.value.trim()) return; A.patch('tasks', t.id, { title: f.title.value.trim(), due: f.due.value, pri: f.pri.value, owner: f.owner.value.trim(), notes: f.notes.value }); m.close(); A.route(); } }, 'Save')] });
+  }
+
+  /* ── notebook ─────────────────────────────────────────────────────── */
+  const nUI = { sel: null, q: '' };
+  const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : D.mid(D.num(...(d => [d.getFullYear(), d.getMonth() + 1, d.getDate()])(new Date(t)))); };
+  A.views.notes = {
+    title: 'Notebook', sub: 'Preferences, call notes and checklists', flush: true,
+    actions: () => [h('button', { class: 'btn', type: 'button', onClick: () => newNote(true) }, 'Today’s log'), h('button', { class: 'btn primary', type: 'button', onClick: () => newNote() }, A.ico('plus'), 'New note')],
+    render(root) {
+      const N = A.db.data.notes; if (nUI.sel && !A.get('notes', nUI.sel)) nUI.sel = null; if (!nUI.sel && N.length && !matchMedia('(max-width:860px)').matches) nUI.sel = sorted()[0].id;
+      const wrap = h('div', { class: 'notes', style: { padding: '4px 22px 18px', flex: 1, minHeight: 0 } });
+      if (matchMedia('(max-width:860px)').matches) wrap.style.padding = '4px 14px 12px';
+      const q = h('input', { type: 'search', placeholder: 'Search notes…', value: nUI.q, 'aria-label': 'Search notes', dir: 'auto' }), list = h('div', { class: 'nlist' }), ed = h('div', { class: 'neditor' });
+      const drawList = () => { nUI.q = q.value; const t = q.value.trim().toLowerCase(); list.replaceChildren(); const L = sorted().filter(n => !t || (n.title + ' ' + n.body).toLowerCase().includes(t)); if (!L.length) list.append(A.empty('No notes', 'Create one to get started.', 'notes')); L.forEach(n => list.append(h('button', { type: 'button', class: 'nitem', 'aria-current': n.id === nUI.sel, style: { '--b': 'var(--b-' + (n.color || 'meeting') + ')' }, 'data-id': n.id, onClick: () => { nUI.sel = n.id; wrap.classList.add('editing'); A.$$('.nitem', list).forEach(x => x.setAttribute('aria-current', x.dataset.id === n.id)); drawEd(); } }, h('b', { dir: 'auto' }, (n.pinned ? '📌 ' : '') + (n.title || 'Untitled')), h('span', { dir: 'auto' }, ago(n.updated) + ' · ' + (n.body.split('\n')[0] || 'Empty'))))); };
+      const drawEd = () => {
+        const n = nUI.sel && A.get('notes', nUI.sel); ed.replaceChildren(); if (!n) { ed.append(A.empty('Select a note', '', 'notes')); return; }
+        const ttl = h('input', { class: 'ttl', type: 'text', dir: 'auto', value: n.title, placeholder: 'Title', 'aria-label': 'Note title' }), body = h('textarea', { dir: 'auto', placeholder: 'Start typing…', 'aria-label': 'Note text' }), count = h('span', { class: 'small muted' });
+        body.value = n.body; const words = () => { const w = body.value.trim() ? body.value.trim().split(/\s+/).length : 0; count.textContent = w + ' words · saved'; };
+        const save = A.debounce(() => { A.patch('notes', n.id, { title: ttl.value, body: body.value, updated: Date.now() }); words(); const it = A.$('.nitem[data-id="' + n.id + '"]', list); if (it) { it.firstChild.textContent = (n.pinned ? '📌 ' : '') + (ttl.value || 'Untitled'); it.lastChild.textContent = 'just now · ' + (body.value.split('\n')[0] || 'Empty'); } }, 350);
+        [ttl, body].forEach(x => x.addEventListener('input', () => { count.textContent = 'Saving…'; save(); }));
+        const ins = txt => { const s = body.selectionStart; body.setRangeText(txt, s, body.selectionEnd, 'end'); body.focus(); body.dispatchEvent(new Event('input')); };
+        body.addEventListener('keydown', e => { if (e.key === 'Enter') { const s = body.selectionStart, line = body.value.slice(body.value.lastIndexOf('\n', s - 1) + 1, s); if (/^☐ $/.test(line)) { e.preventDefault(); body.setRangeText('', s - 2, s, 'end'); ins('\n'); } else if (/^(☐|☑|•) /.test(line)) { e.preventDefault(); ins('\n' + line[0].replace('☑', '☐') + ' '); } } });
+        body.addEventListener('click', e => { const s = body.selectionStart, a = body.value.lastIndexOf('\n', s - 1) + 1, ch = body.value[a]; if ((ch === '☐' || ch === '☑') && s <= a + 1) { body.setRangeText(ch === '☐' ? '☑' : '☐', a, a + 1, 'preserve'); body.dispatchEvent(new Event('input')); } });
+        const colors = h('div', { class: 'row', style: { gap: '6px' } }, ['meeting', 'visit', 'call', 'travel', 'personal', 'focus'].map(c => h('button', { type: 'button', class: 'dot', 'aria-label': 'Colour ' + c, style: { width: '18px', height: '18px', background: 'var(--b-' + c + ')', outline: n.color === c ? '2px solid var(--ink)' : 'none', outlineOffset: '2px' }, onClick: () => { A.patch('notes', n.id, { color: c }); drawList(); drawEd(); } })));
+        ed.append(h('div', { class: 'row' }, h('button', { class: 'icon-btn show-sm', type: 'button', 'aria-label': 'Back to notes', onClick: () => wrap.classList.remove('editing') }, A.ico('chevL')), ttl, h('button', { class: 'icon-btn', type: 'button', 'aria-label': n.pinned ? 'Unpin' : 'Pin', style: { color: n.pinned ? 'var(--accent-ink)' : '' }, onClick: () => { A.patch('notes', n.id, { pinned: !n.pinned }); drawList(); drawEd(); } }, A.ico('pin')), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete note', onClick: () => { A.del('notes', n.id, 'Note deleted'); nUI.sel = null; wrap.classList.remove('editing'); A.route(); } }, A.ico('trash'))),
+          h('div', { class: 'row wrap' }, colors, h('span', { class: 'grow' }), h('button', { class: 'btn sm', type: 'button', onClick: () => ins((body.value && !/\n$/.test(body.value.slice(0, body.selectionStart)) ? '\n' : '') + '☐ ') }, 'Checklist'), h('button', { class: 'btn sm', type: 'button', onClick: () => ins((body.value && !/\n$/.test(body.value.slice(0, body.selectionStart)) ? '\n' : '') + '• ') }, 'Bullet'), h('button', { class: 'btn sm', type: 'button', onClick: () => ins(A.time(D.nowMin()) + ' ') }, 'Time')), body, count); words();
+        if (!n.title && !n.body) setTimeout(() => ttl.focus(), 50);
+      };
+      q.addEventListener('input', A.debounce(drawList, 120)); wrap.append(h('div', { class: 'nside' }, q, list), ed); root.append(wrap); drawList(); drawEd(); if (nUI.sel && nUI._open) { wrap.classList.add('editing'); nUI._open = false; }
+    },
+  };
+  const sorted = () => A.db.data.notes.slice().sort((a, b) => (b.pinned - a.pinned) || b.updated - a.updated);
+  function newNote(log) {
+    if (log) { const t = D.long(D.today()), ex = A.db.data.notes.find(n => n.title === 'Log — ' + t); if (ex) { nUI.sel = ex.id; nUI._open = true; return A.route(); } const n = A.add('notes', { title: 'Log — ' + t, body: '', color: 'focus', pinned: false, updated: Date.now() }); nUI.sel = n.id; nUI._open = true; }
+    else { const n = A.add('notes', { title: '', body: '', color: 'meeting', pinned: false, updated: Date.now() }); nUI.sel = n.id; nUI._open = true; nUI.q = ''; }
+    if (A.current !== 'notes') location.hash = '#/notes'; else A.route();
+  }
+  A.newNote = newNote;
+
+  /* ── timers ───────────────────────────────────────────────────────── */
+  const SS = 'aide.timers';
+  const T = (() => { try { return JSON.parse(sessionStorage.getItem(SS)) || {}; } catch (e) { return {}; } })();
+  T.cd = T.cd || { total: 25 * 60, end: null, left: null, label: '' }; T.sw = T.sw || { start: null, acc: 0, laps: [] }; T.mt = T.mt || { items: [{ t: 'Welcome', m: 5 }, { t: 'Updates', m: 15 }, { t: 'Decisions', m: 10 }], idx: -1, t0: null, acc: [], paused: null }; T.tab = T.tab || 'cd';
+  const persist = () => sessionStorage.setItem(SS, JSON.stringify(T));
+  const mmss = s => { s = Math.max(0, Math.ceil(s)); return A.pad(Math.floor(s / 60)) + ':' + A.pad(s % 60); };
+  const hms = s => { const h2 = Math.floor(s / 3600); return (h2 ? h2 + ':' : '') + A.pad(Math.floor(s / 60) % 60) + ':' + A.pad(Math.floor(s) % 60); };
+  const cdLeft = () => T.cd.end ? Math.max(0, (T.cd.end - Date.now()) / 1000) : (T.cd.left != null ? T.cd.left : T.cd.total);
+  let raf = 0, tick = null;
+  // background alarm: runs even when the Timers tab is not open
+  setInterval(() => { if (T.cd.end && Date.now() >= T.cd.end) { const l = T.cd.label; T.cd = { total: T.cd.total, end: null, left: 0, label: l, done: true }; persist(); A.notify('Time is up', l || 'Countdown finished'); } }, 500);
+
+  A.views.timer = {
+    title: 'Timers', sub: 'Countdown, stopwatch, meeting agenda and world clocks',
+    actions: () => [h('div', { class: 'seg', role: 'tablist' }, [['cd', 'Countdown'], ['sw', 'Stopwatch'], ['mt', 'Meeting'], ['wc', 'World clocks']].map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': T.tab === k, onClick: () => { T.tab = k; persist(); A.route(); } }, n)))],
+    render(root) { ({ cd, sw, mt, wc })[T.tab](root); },
+    destroy() { cancelAnimationFrame(raf); clearInterval(tick); tick = null; },
+  };
+  const loop = fn => { cancelAnimationFrame(raf); const f = () => { fn(); raf = requestAnimationFrame(f); }; f(); };
+  function cd(root) {
+    const NS = 'http://www.w3.org/2000/svg', R = 80, C = 2 * Math.PI * R, mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+    const svg = mk('svg', { viewBox: '0 0 200 200', class: 'dial', role: 'slider', 'aria-label': 'Minutes', 'aria-valuemin': 1, 'aria-valuemax': 60, tabindex: 0 });
+    const face = mk('circle', { class: 'face', cx: 100, cy: 100, r: 96 }), trk = mk('circle', { class: 'trk', cx: 100, cy: 100, r: R }), arc = mk('circle', { class: 'arc', cx: 100, cy: 100, r: R, transform: 'rotate(-90 100 100)', 'stroke-dasharray': C, 'stroke-dashoffset': 0 });
+    const txt = mk('text', { x: 100, y: 112, 'text-anchor': 'middle', 'font-size': 38, 'font-weight': 800 }), lab = mk('text', { x: 100, y: 138, 'text-anchor': 'middle', 'font-size': 11, 'letter-spacing': '.1em', style: 'fill:var(--faint);text-transform:uppercase' });
+    const ticks = Array.from({ length: 12 }, (_, i) => { const a = i / 12 * Math.PI * 2; return mk('line', { x1: 100 + Math.sin(a) * 62, y1: 100 - Math.cos(a) * 62, x2: 100 + Math.sin(a) * 67, y2: 100 - Math.cos(a) * 67, stroke: 'var(--line)', 'stroke-width': 2, 'stroke-linecap': 'round' }); });
+    const knob = mk('circle', { class: 'knob', r: 9 }); svg.append(face, trk, ...ticks, arc, txt, lab, knob);
+    const running = () => !!T.cd.end, setMin = m => { m = Math.max(1, Math.min(180, Math.round(m))); T.cd = { total: m * 60, end: null, left: null, label: T.cd.label }; persist(); };
+    const angleMin = e => { const r = svg.getBoundingClientRect(), a = Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2))); let deg = (a * 180 / Math.PI + 360) % 360; const prev = T.cd.total / 60; let m = Math.round(deg / 6); if (m === 0) m = prev > 30 ? 60 : 1; return m; };
+    let dragging = false; svg.addEventListener('pointerdown', e => { if (running()) return; dragging = true; svg.setPointerCapture(e.pointerId); setMin(angleMin(e)); }); svg.addEventListener('pointermove', e => { if (dragging) setMin(angleMin(e)); }); svg.addEventListener('pointerup', () => dragging = false); svg.addEventListener('pointercancel', () => dragging = false);
+    svg.addEventListener('keydown', e => { if (running()) return; if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); setMin(T.cd.total / 60 + 1); } if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); setMin(T.cd.total / 60 - 1); } });
+    const main = h('button', { class: 'btn primary', type: 'button', style: { minWidth: '120px', minHeight: '48px' } });
+    const start = () => { if (running()) { T.cd.left = cdLeft(); T.cd.end = null; } else { const left = T.cd.done ? T.cd.total : cdLeft(); T.cd = { total: T.cd.total, end: Date.now() + left * 1000, left: null, label: T.cd.label }; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } persist(); };
+    main.onclick = start;
+    const label = h('input', { type: 'text', dir: 'auto', value: T.cd.label || '', placeholder: 'What is this for? (optional)', 'aria-label': 'Timer label', style: { maxWidth: '320px' } }); label.addEventListener('input', () => { T.cd.label = label.value; persist(); });
+    const preset = (n, m) => h('button', { type: 'button', class: 'chip', onClick: () => { if (!running()) { setMin(m); } } }, n);
+    root.append(h('div', { class: 'card', style: { maxWidth: '560px', margin: '0 auto' } }, h('div', { class: 'dial-wrap' }, svg), h('div', { class: 'row', style: { justifyContent: 'center', margin: '4px 0 14px' } }, label), h('div', { class: 'row', style: { justifyContent: 'center' } }, h('button', { class: 'btn', type: 'button', onClick: () => { T.cd = { total: T.cd.total, end: null, left: null, label: T.cd.label }; persist(); } }, A.ico('reset'), 'Reset'), main, h('button', { class: 'btn', type: 'button', onClick: () => { if (running()) { T.cd.end += 60000; } else setMin(T.cd.total / 60 + 1); persist(); } }, '+1 min')), h('div', { class: 'row wrap', style: { justifyContent: 'center', marginTop: '14px' } }, [['5 min', 5], ['10 min', 10], ['15 min', 15], ['25 focus', 25], ['45 min', 45], ['60 min', 60]].map(([n, m]) => preset(n, m)))));
+    loop(() => { const left = cdLeft(), tot = T.cd.total, frac = Math.max(0, Math.min(1, left / tot)), a = (running() || T.cd.left != null ? frac : tot / 3600) * Math.PI * 2; const show = running() || T.cd.left != null ? frac : Math.min(1, tot / 3600);
+      arc.setAttribute('stroke-dashoffset', C * (1 - show)); const ang = show * Math.PI * 2; knob.setAttribute('cx', 100 + Math.sin(ang) * R); knob.setAttribute('cy', 100 - Math.cos(ang) * R); knob.style.display = running() ? 'none' : '';
+      txt.textContent = mmss(left); lab.textContent = running() ? (T.cd.label || 'running') : T.cd.done ? 'finished' : T.cd.left != null ? 'paused' : 'drag the dial'; arc.style.stroke = left < 30 && running() ? 'var(--danger)' : ''; svg.setAttribute('aria-valuenow', Math.round(tot / 60));
+      main.replaceChildren(A.ico(running() ? 'pause' : 'play'), running() ? 'Pause' : T.cd.left != null ? 'Resume' : 'Start'); document.title = running() ? mmss(left) + ' · Aide' : 'Aide · Executive Desk'; });
+  }
+  function sw(root) {
+    const big = h('div', { class: 'display num', style: { fontSize: 'clamp(44px,12vw,84px)', fontWeight: 800, textAlign: 'center', letterSpacing: '-.02em' } }), laps = h('div', { class: 'stack', style: { marginTop: '14px' } });
+    const el = () => T.sw.acc + (T.sw.start ? Date.now() - T.sw.start : 0), run = () => !!T.sw.start;
+    const main = h('button', { class: 'btn primary', type: 'button', style: { minWidth: '120px', minHeight: '48px' }, onClick: () => { if (run()) { T.sw.acc = el(); T.sw.start = null; } else T.sw.start = Date.now(); persist(); } });
+    const drawLaps = () => { laps.replaceChildren(...T.sw.laps.slice().reverse().map((l, i) => h('div', { class: 'item num', style: { background: 'var(--line-fine)' } }, h('span', { class: 'muted' }, 'Lap ' + (T.sw.laps.length - i)), h('span', { class: 'grow' }), h('b', null, fmt(l.split)), h('span', { class: 'muted' }, fmt(l.total))))); };
+    const fmt = ms => { const s = ms / 1000; return hms(s) + '.' + A.pad(Math.floor(ms % 1000 / 10)); };
+    root.append(h('div', { class: 'card', style: { maxWidth: '560px', margin: '0 auto' } }, big, h('div', { class: 'row', style: { justifyContent: 'center', margin: '16px 0' } }, h('button', { class: 'btn', type: 'button', onClick: () => { if (run()) { const t = el(), last = T.sw.laps.length ? T.sw.laps[T.sw.laps.length - 1].total : 0; T.sw.laps.push({ total: t, split: t - last }); persist(); drawLaps(); } else { T.sw = { start: null, acc: 0, laps: [] }; persist(); drawLaps(); } } }, A.ico('flag'), 'Lap / Reset'), main), laps)); drawLaps();
+    loop(() => { big.textContent = fmt(el()); main.replaceChildren(A.ico(run() ? 'pause' : 'play'), run() ? 'Stop' : 'Start'); });
+  }
+  const MT_PRESETS = { 'Board meeting': [['Welcome & minutes', 5], ['CEO update', 15], ['Financials', 20], ['Discussion', 30], ['Decisions', 10], ['Any other business', 5]], 'One-to-one': [['Check-in', 5], ['Updates', 15], ['Priorities', 10]], 'Stand-up': [['Wins', 3], ['Blockers', 5], ['Today', 5]] };
+  function mt(root) {
+    const M = T.mt, box = h('div'), now = () => Date.now();
+    const elapsed = () => M.idx < 0 ? 0 : (M.paused != null ? M.paused : now() - M.t0) / 1000;
+    const total = M.items.reduce((s, i) => s + i.m, 0);
+    const edit = () => {
+      const rows = M.items.map((it, i) => h('div', { class: 'row' }, h('input', { type: 'text', dir: 'auto', value: it.t, 'aria-label': 'Agenda item', onInput: e => { it.t = e.target.value; persist(); } }), h('input', { type: 'number', min: 1, max: 240, value: it.m, 'aria-label': 'Minutes', style: { width: '84px' }, onInput: e => { it.m = Math.max(1, +e.target.value || 1); persist(); } }), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Remove item', onClick: () => { M.items.splice(i, 1); persist(); A.route(); } }, A.ico('x'))));
+      box.replaceChildren(h('div', { class: 'card', style: { maxWidth: '640px', margin: '0 auto' } }, h('h3', null, 'Meeting agenda', h('span', { class: 'grow' }), h('span', { class: 'muted small' }, total + ' min total')), h('div', { class: 'stack' }, rows), h('div', { class: 'row wrap', style: { marginTop: '12px' } }, h('button', { class: 'btn sm', type: 'button', onClick: () => { M.items.push({ t: '', m: 10 }); persist(); A.route(); } }, A.ico('plus'), 'Add item'), Object.keys(MT_PRESETS).map(k => h('button', { class: 'btn sm', type: 'button', onClick: () => { M.items = MT_PRESETS[k].map(([t, m]) => ({ t, m })); persist(); A.route(); } }, k)), h('span', { class: 'grow' }), h('button', { class: 'btn primary', type: 'button', disabled: !M.items.length, onClick: () => { M.idx = 0; M.t0 = now(); M.acc = []; M.paused = null; persist(); A.route(); } }, A.ico('play'), 'Start meeting'))));
+    };
+    const run = () => {
+      const bar = h('div', { class: 'pbar' }, h('i')), cur = h('div', { class: 'display', style: { fontSize: '26px', fontWeight: 800, textAlign: 'center' }, dir: 'auto' }), clock = h('div', { class: 'display num', style: { fontSize: 'clamp(54px,14vw,96px)', fontWeight: 800, textAlign: 'center', lineHeight: 1.05 } }), drift = h('div', { class: 'small muted', style: { textAlign: 'center' } }), list = h('div', { class: 'stack', style: { marginTop: '14px' } });
+      const next = () => { const it = M.items[M.idx], used = elapsed(); M.acc[M.idx] = used; if (M.idx >= M.items.length - 1) { M.idx = M.items.length; } else { M.idx++; M.t0 = now(); M.paused = null; } persist(); A.route(); };
+      const pause = h('button', { class: 'btn', type: 'button', onClick: () => { if (M.paused != null) { M.t0 = now() - M.paused * 1000; M.paused = null; } else M.paused = elapsed(); persist(); } });
+      if (M.idx >= M.items.length) { const used = M.acc.reduce((s, x) => s + x, 0) / 60; return box.replaceChildren(h('div', { class: 'card', style: { maxWidth: '640px', margin: '0 auto' } }, h('h3', null, 'Meeting finished'), h('p', null, 'Planned ' + total + ' min · actual ' + Math.round(used) + ' min (' + (used > total ? Math.round(used - total) + ' min over' : Math.round(total - used) + ' min under') + ').'), h('div', { class: 'stack', style: { margin: '12px 0' } }, M.items.map((it, i) => h('div', { class: 'item', style: { background: 'var(--line-fine)' } }, h('span', { dir: 'auto' }, it.t), h('span', { class: 'grow' }), h('b', { class: 'num', style: { color: (M.acc[i] || 0) / 60 > it.m ? 'var(--danger)' : '' } }, Math.round((M.acc[i] || 0) / 60) + ' / ' + it.m + ' min')))), h('button', { class: 'btn primary', type: 'button', onClick: () => { M.idx = -1; persist(); A.route(); } }, 'Back to agenda'))); }
+      list.append(...M.items.map((it, i) => h('div', { class: 'item', style: { background: i === M.idx ? 'var(--c-visit)' : 'var(--line-fine)', opacity: i < M.idx ? .55 : 1 } }, h('span', null, i < M.idx ? '✓' : i + 1 + '.'), h('span', { class: 'grow', dir: 'auto' }, it.t), h('span', { class: 'muted num' }, it.m + ' min'))));
+      box.replaceChildren(h('div', { class: 'card', style: { maxWidth: '640px', margin: '0 auto' } }, cur, clock, bar, drift, h('div', { class: 'row', style: { justifyContent: 'center', margin: '14px 0 0' } }, h('button', { class: 'btn', type: 'button', onClick: async () => { if (await A.confirm('End meeting', 'Stop the agenda timer?', 'End', false)) { M.idx = -1; persist(); A.route(); } } }, 'End'), pause, h('button', { class: 'btn primary', type: 'button', onClick: next }, 'Next item', A.ico('arrow'))), list));
+      let warned = -1;
+      loop(() => { if (M.idx < 0 || M.idx >= M.items.length) return; const it = M.items[M.idx], used = elapsed(), left = it.m * 60 - used; cur.textContent = it.t || 'Item ' + (M.idx + 1); clock.textContent = (left < 0 ? '+' : '') + mmss(Math.abs(left)); clock.style.color = left < 0 ? 'var(--danger)' : ''; bar.classList.toggle('over', left < 0); bar.firstChild.style.setProperty('--p', Math.min(1, used / (it.m * 60)));
+        const planned = M.items.slice(0, M.idx).reduce((s, x) => s + x.m * 60, 0) + used, actual = M.acc.slice(0, M.idx).reduce((s, x) => s + x, 0) + used, plannedAll = planned, dd = Math.round((actual - M.items.slice(0, M.idx).reduce((s, x) => s + x.m * 60, 0) - it.m * 60 * Math.min(1, used / (it.m * 60))) / 60); drift.textContent = 'Item ' + (M.idx + 1) + ' of ' + M.items.length + ' · ' + (dd > 0 ? dd + ' min behind plan' : dd < 0 ? -dd + ' min ahead of plan' : 'on plan'); if (left <= 0 && warned !== M.idx) { warned = M.idx; A.notify('Time for “' + (it.t || 'this item') + '” is up', 'Move on or extend.'); } });
+    };
+    root.append(box); M.idx < 0 ? edit() : run();
+  }
+  /* ── world clocks ─────────────────────────────────────────────────── */
+  const CITIES = [['Tehran', 'Asia/Tehran'], ['Dubai', 'Asia/Dubai'], ['Istanbul', 'Europe/Istanbul'], ['London', 'Europe/London'], ['Paris', 'Europe/Paris'], ['Berlin', 'Europe/Berlin'], ['Moscow', 'Europe/Moscow'], ['Cairo', 'Africa/Cairo'], ['Mumbai', 'Asia/Kolkata'], ['Singapore', 'Asia/Singapore'], ['Shanghai', 'Asia/Shanghai'], ['Tokyo', 'Asia/Tokyo'], ['Sydney', 'Australia/Sydney'], ['New York', 'America/New_York'], ['Chicago', 'America/Chicago'], ['Los Angeles', 'America/Los_Angeles'], ['Toronto', 'America/Toronto'], ['São Paulo', 'America/Sao_Paulo']];
+  const offset = (tz, d) => { const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(d).map(x => [x.type, x.value])); return (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(d.getTime() / 1000) * 1000) / 60000; };
+  A.clockRows = function (when) {
+    const S = A.settings(), d = when || new Date(), loc = -d.getTimezoneOffset();
+    return S.clocks.map(tz => { const city = (CITIES.find(c => c[1] === tz) || [tz.split('/').pop().replace(/_/g, ' '), tz])[0]; let o; try { o = offset(tz, d); } catch (e) { return null; } const w = new Date(d.getTime() + o * 60000), hh = w.getUTCHours(), mm = w.getUTCMinutes(), diff = o - loc; return { tz, city, time: A.time(hh * 60 + mm), day: D.mid(D.num(w.getUTCFullYear(), w.getUTCMonth() + 1, w.getUTCDate())), night: hh < 7 || hh >= 21, diff: diff === 0 ? 'same as you' : (diff > 0 ? '+' : '−') + Math.floor(Math.abs(diff) / 60) + (Math.abs(diff) % 60 ? ':' + A.pad(Math.abs(diff) % 60) : '') + ' h from you' }; }).filter(Boolean);
+  };
+  function wc(root) {
+    const S = A.settings(), box = h('div', { class: 'stack' }); let when = null;
+    const conv = h('input', { type: 'time', 'aria-label': 'Convert a local time', style: { width: 'auto' } });
+    const draw = () => { const rows = A.clockRows(when); box.replaceChildren(...rows.map(r => h('div', { class: 'clock' }, h('span', { 'aria-hidden': 'true', style: { fontSize: '22px' } }, r.night ? '🌙' : '☀️'), h('div', null, h('b', null, r.city), h('div', { class: 'small muted' }, r.diff)), h('div', { class: 'tm num' }, r.time, h('small', null, r.day)), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Remove ' + r.city, onClick: () => { S.clocks = S.clocks.filter(z => z !== r.tz); A.save('settings'); A.route(); } }, A.ico('x'))))); if (!rows.length) box.append(A.empty('No clocks', 'Add a city below.', 'globe')); };
+    conv.addEventListener('input', () => { const m = A.parseTime(conv.value); if (m == null) { when = null; } else { const n = new Date(); n.setHours(Math.floor(m / 60), m % 60, 0, 0); when = n; } draw(); });
+    const add = h('select', { 'aria-label': 'Add a city', style: { width: 'auto' }, onChange: e => { if (e.target.value) { S.clocks.push(e.target.value); A.save('settings'); A.route(); } } }, h('option', { value: '' }, 'Add a city…'), CITIES.filter(c => !S.clocks.includes(c[1])).map(c => h('option', { value: c[1] }, c[0])));
+    root.append(h('div', { class: 'card', style: { maxWidth: '640px', margin: '0 auto' } }, h('h3', null, 'World clocks'), h('div', { class: 'row wrap', style: { marginBottom: '12px' } }, h('span', { class: 'small muted' }, 'Convert my local time'), conv, h('span', { class: 'grow' }), add), box)); draw();
+    clearInterval(tick); tick = setInterval(() => { if (!conv.value) draw(); }, 20000);
+  }
+})();
+
+/* ===== app.js ===== */
+/* Aide · app — the shell: navigation, router, Today dashboard, Settings,
+   the ⌘K command palette and the idle auto-lock. */
+(function () {
+  'use strict';
+  const A = window.Aide, { h, date: D, ev: E, $ } = A;
+  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['settings', 'Settings', 'settings']];
+  const TABS = ['today', 'calendar', 'requests', 'notes'];
+  A.current = null;
+  let built = false, view = null;
+
+  /* ── shell ────────────────────────────────────────────────────────── */
+  function build() {
+    const app = $('#app'); app.replaceChildren();
+    const S = A.settings();
+    const side = h('aside', { class: 'side', 'aria-label': 'Main' },
+      h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Executive Desk'))),
+      h('button', { class: 'btn', type: 'button', style: { margin: '0 4px 10px', justifyContent: 'flex-start' }, onClick: () => A.palette() }, A.ico('search'), 'Search', h('span', { class: 'grow' }), h('small', { class: 'muted' }, '⌘K')),
+      h('nav', { class: 'nav' }, NAV.map(([id, n, ic]) => h('a', { href: '#/' + id, 'data-id': id }, A.ico(ic), n, id === 'requests' ? h('span', { class: 'badge', 'data-badge': 'requests', hidden: true }) : null))),
+      h('div', { class: 'side-foot' }, h('div', { class: 'who' }, h('div', { class: 'avatar' }, A.initials(S.name || A.vault.user())), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, S.name || A.vault.user()), h('div', { class: 'small muted' }, S.title || 'Executive'))),
+        h('div', { class: 'row' }, h('button', { class: 'btn sm grow', type: 'button', onClick: lock }, A.ico('lock'), 'Lock'), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Sign out', onClick: lock }, A.ico('logout')))));
+    const main = h('main', { class: 'main', id: 'main' });
+    const tabs = h('nav', { class: 'tabbar', 'aria-label': 'Main' }, TABS.map(id => { const n = NAV.find(x => x[0] === id); return h('a', { href: '#/' + id, 'data-id': id }, A.ico(n[2]), n[1], id === 'requests' ? h('span', { class: 'badge', 'data-badge': 'requests', hidden: true }) : null); }), h('button', { type: 'button', 'data-id': 'more', onClick: more }, A.ico('more'), 'More'));
+    app.append(side, main, tabs); built = true;
+  }
+  function more() {
+    const list = h('div', { class: 'stack' }, NAV.filter(x => !TABS.includes(x[0])).map(([id, n, ic]) => h('a', { href: '#/' + id, class: 'item hov', style: { textDecoration: 'none', color: 'inherit' }, onClick: () => m.close() }, A.ico(ic), n)),
+      h('button', { type: 'button', class: 'item hov', onClick: () => { m.close(); A.palette(); } }, A.ico('search'), 'Search everything'), h('button', { type: 'button', class: 'item hov', onClick: () => { m.close(); lock(); } }, A.ico('lock'), 'Lock the desk'));
+    const m = A.modal({ title: 'More', body: list });
+  }
+  function lock(msg) { A.flush().finally(() => { A.vault.lock(); document.title = 'Aide · Executive Desk'; clearInterval(E._t); view && view.destroy && view.destroy(); view = null; built = false; A.showLogin(typeof msg === 'string' ? msg : 'Locked. Enter your password to continue.'); }); }
+
+  /* ── router ───────────────────────────────────────────────────────── */
+  A.route = function () {
+    if (!A.db.data) return; const id = (location.hash.replace(/^#\//, '') || 'today').split('?')[0], v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
+    const main = $('#main'); if (!main) return;
+    const prev = main.querySelector('.page'), keep = prev && A.current === key ? prev.scrollTop : 0;
+    view && view.destroy && view.destroy(); view = v; const changed = A.current !== key; A.current = key;
+    main.replaceChildren(); main.classList.toggle('notop', !!v.noTop);
+    if (!v.noTop) { const acts = v.actions ? v.actions() : []; main.append(h('div', { class: 'topbar' }, h('div', null, h('h1', null, typeof v.title === 'function' ? v.title() : v.title), v.sub ? h('div', { class: 'sub' }, typeof v.sub === 'function' ? v.sub() : v.sub) : null), h('span', { class: 'grow' }), acts)); }
+    const page = h('div', { class: 'page' + (v.flush ? ' flush' : ''), id: 'page', role: 'region', 'aria-label': v.title }); main.append(page);
+    try { v.render(page); } catch (e) { console.error(e); page.append(A.empty('Something went wrong', e.message, 'x')); }
+    if (changed) page.classList.add('view-enter'); else page.scrollTop = keep;
+    A.$$('[data-id]').forEach(a => { if (a.tagName === 'A') { a.toggleAttribute('aria-current', a.dataset.id === key); if (a.dataset.id === key) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); } });
+    const more = A.$('.tabbar [data-id=more]'); if (more) { if (!TABS.includes(key)) more.setAttribute('aria-current', 'page'); else more.removeAttribute('aria-current'); }
+    badges();
+  };
+  function badges() { const n = A.db.data.requests.filter(r => r.status === 'pending').length; A.$$('[data-badge=requests]').forEach(b => { b.hidden = !n; b.textContent = n; }); }
+  window.addEventListener('hashchange', () => A.db.data && A.route());
+  A.on('change', badges);
+
+  /* ── today ────────────────────────────────────────────────────────── */
+  A.views.today = {
+    title: () => { const S = A.settings(), hr = new Date().getHours(), g = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening'; return g + (S.assistant ? '' : (S.name ? ', ' + S.name.split(' ')[0] : '')); },
+    sub: () => D.long(D.today()) + (D.sec(D.today()) ? ' · ' + D.sec(D.today()) : ''),
+    actions: () => [h('button', { class: 'btn noprint', type: 'button', onClick: () => window.print() }, A.ico('print'), h('span', { class: 'hide-sm' }, 'Daily brief')), h('button', { class: 'btn primary noprint', type: 'button', onClick: () => E.edit(null, {}) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New event'))],
+    render(root) {
+      const t0 = D.today(), now = D.nowMin(), todays = E.day(t0), bad = E.conflictKeys(E.expand(t0, t0 + 6)), tm = E.day(t0 + 1);
+      const upcoming = todays.filter(o => !o.allDay && o.end > now && o.cat !== 'away')[0], later = !upcoming ? tm.filter(o => !o.allDay)[0] : null;
+      const away = todays.find(o => o.allDay && (o.cat === 'away' || o.cat === 'travel'));
+      const quick = h('input', { type: 'text', dir: 'auto', placeholder: 'Quick add event: “Lunch with Sarah tomorrow 1pm 90m”', 'aria-label': 'Quick add event', autocomplete: 'off' });
+      quick.addEventListener('keydown', ev => { if (ev.key !== 'Enter' || !quick.value.trim()) return; const p = E.parse(quick.value); quick.value = ''; E.edit(null, { title: p.title, date: D.iso(p.day), start: p.start != null ? p.start : undefined, dur: p.dur || undefined, cat: p.cat, allDay: p.cat === 'away' }); });
+      const hero = h('div', { class: 'hero' });
+      const cdown = h('span', null);
+      if (upcoming) { const live = upcoming.start <= now; A.put(hero, h('p', { style: { fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', fontSize: '12px' } }, live ? 'Happening now' : 'Next up'), h('div', { class: 'big', dir: 'auto', style: { fontSize: 'clamp(26px,4vw,36px)' } }, upcoming.title), h('p', null, A.time(upcoming.start) + ' – ' + A.time(upcoming.end), ' · ', cdown, [upcoming.ev.loc, upcoming.ev.people].filter(Boolean).length ? ' · ' + [upcoming.ev.loc, upcoming.ev.people].filter(Boolean).join(' · ') : ''), upcoming.ev.notes ? h('p', { style: { marginTop: '8px', opacity: .85, fontSize: '14px' }, dir: 'auto' }, '📝 ' + upcoming.ev.notes) : null, h('div', { class: 'row', style: { marginTop: '14px' } }, h('button', { class: 'btn sm noprint', type: 'button', onClick: () => E.edit(upcoming.ev) }, 'Open'), h('button', { class: 'btn sm noprint', type: 'button', onClick: () => { location.hash = '#/timer'; } }, 'Meeting timer')));
+        const upd = () => { const d = upcoming.start - D.nowMin(); cdown.textContent = d > 0 ? 'in ' + (d >= 60 ? Math.floor(d / 60) + ' h ' + (d % 60) + ' min' : d + ' min') : 'ends in ' + Math.max(0, upcoming.end - D.nowMin()) + ' min'; }; upd(); const iv = setInterval(() => { if (!hero.isConnected) return clearInterval(iv); upd(); }, 20000); }
+      else A.put(hero, h('p', { style: { fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', fontSize: '12px' } }, later ? 'Tomorrow starts with' : 'All clear'), h('div', { class: 'big', style: { fontSize: 'clamp(26px,4vw,36px)' } }, later ? later.title : 'Nothing else today'), h('p', null, later ? A.time(later.start) + ' · ' + (later.ev.loc || '') : 'Enjoy the quiet — or plan ahead.'));
+      const alerts = [];
+      if (away) alerts.push(h('div', { class: 'warn', style: { background: 'var(--c-travel)', color: 'var(--ink)' } }, A.ico('globe'), h('span', null, 'Executive is away today: ' + away.title)));
+      const nBad = [...bad].filter(k => { const d = +k.split('@')[1]; return d >= t0; }).length; if (nBad) alerts.push(h('div', { class: 'warn' }, A.ico('bell'), h('span', null, nBad + ' overlapping event' + (nBad > 1 ? 's' : '') + ' in the next 7 days — look for the red “!” on the calendar.')));
+      const timeline = h('div', { class: 'card' }, h('h3', null, 'Today’s schedule', h('span', { class: 'grow' }), h('span', { class: 'muted small' }, todays.length + ' item' + (todays.length === 1 ? '' : 's'))), h('div', { class: 'stack' }, todays.length ? todays.map(o => { const c = h('button', { type: 'button', class: 'ev-chip', style: Object.assign(A.catStyle(o.cat), { opacity: !o.allDay && o.end <= now ? .55 : 1 }), onClick: () => E.edit(o.ev) }, h('span', { class: 'grow' }, h('span', { class: 't', dir: 'auto' }, o.title), h('small', null, (o.allDay ? 'All day' : A.time(o.start) + ' – ' + A.time(o.end)) + ([o.ev.loc, o.ev.people].filter(Boolean).length ? ' · ' + [o.ev.loc, o.ev.people].filter(Boolean).join(' · ') : ''))), bad.has(o.key) ? h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'Conflict') : null, o.ev.status === 'tentative' ? h('span', { class: 'pill' }, 'Tentative') : null); return c; }) : A.empty('Free day', 'Nothing scheduled.', 'calendar')));
+      const visits = todays.filter(o => o.cat === 'visit'), logOf = o => (o.ev.log && o.ev.log[D.iso(t0)]) || {};
+      const visitCard = visits.length ? h('div', { class: 'card' }, h('h3', null, 'Visitors today'), h('div', { class: 'stack' }, visits.map(o => { const l = logOf(o); return h('div', { class: 'item', style: { background: 'var(--c-visit)', padding: '8px 12px' } }, h('div', { class: 'grow' }, h('b', { dir: 'auto' }, o.title.replace(/^Visit: /, '')), h('div', { class: 'small', style: { color: 'var(--soft)' } }, A.time(o.start) + (l.ci != null ? ' · in ' + A.time(l.ci) : '') + (l.co != null ? ' · out ' + A.time(l.co) : ''))), l.co == null ? h('button', { class: 'btn sm noprint', type: 'button', onClick: () => { const log = Object.assign({}, o.ev.log); log[D.iso(t0)] = Object.assign({}, l, l.ci == null ? { ci: D.nowMin() } : { co: D.nowMin() }); A.patch('events', o.ev.id, { log }); A.route(); } }, l.ci == null ? 'Check in' : 'Check out') : h('span', { class: 'pill' }, 'Done')); }))) : null;
+      const pend = A.db.data.requests.filter(r => r.status === 'pending');
+      const reqCard = h('div', { class: 'card' }, h('h3', null, 'Requests', h('span', { class: 'grow' }), pend.length ? h('span', { class: 'badge' }, pend.length) : null), pend.length ? h('div', { class: 'stack' }, pend.slice(0, 3).map(r => h('a', { href: '#/requests', class: 'item hov', style: { textDecoration: 'none', color: 'inherit', padding: '6px 8px' } }, h('div', { class: 'avatar' }, A.initials(r.who)), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, r.who), h('div', { class: 'small muted', dir: 'auto' }, r.purpose.slice(0, 48)))))) : h('p', { class: 'muted small' }, 'No pending requests.'));
+      const tasks = A.db.data.tasks.filter(t => !t.done && t.due && t.due <= D.iso(t0)).slice(0, 4);
+      const taskCard = h('div', { class: 'card' }, h('h3', null, 'Due today & overdue', h('span', { class: 'grow' }), h('a', { href: '#/tasks', class: 'small', style: { color: 'var(--accent-ink)' } }, 'All')), tasks.length ? h('div', { class: 'stack' }, tasks.map(t => h('div', { class: 'row' }, h('button', { type: 'button', class: 'check', role: 'checkbox', 'aria-checked': 'false', 'aria-label': 'Done: ' + t.title, onClick: () => { A.patch('tasks', t.id, { done: true }); A.route(); } }, A.ico('check')), h('span', { class: 'grow', dir: 'auto' }, t.title), t.due < D.iso(t0) ? h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'Overdue') : null))) : h('p', { class: 'muted small' }, 'Nothing due. 🎉'));
+      const wk = D.weekStart(t0, A.settings().weekStart), wocc = E.expand(wk, wk + 6), counts = Array.from({ length: 7 }, (_, i) => wocc.filter(o => o.day === wk + i).length);
+      const weekCard = h('div', { class: 'card' }, h('h3', null, 'This week'), h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '6px', textAlign: 'center' } }, counts.map((c, i) => h('button', { type: 'button', 'aria-label': D.long(wk + i) + ', ' + c + ' events', onClick: () => { A.ui.cal.anchor = wk + i; A.ui.cal.view = 'day'; location.hash = '#/calendar'; A.route(); }, style: { padding: '8px 0', borderRadius: '14px', background: 'color-mix(in srgb, var(--accent) ' + Math.min(c, 6) * 12 + '%, transparent)', outline: wk + i === t0 ? '2px solid var(--accent)' : 'none' } }, h('div', { class: 'small muted' }, D.DOW3[D.dow(wk + i)][0]), h('b', { class: 'num' }, c)))));
+      const clocks = A.clockRows().slice(0, 3), clockCard = clocks.length ? h('div', { class: 'card' }, h('h3', null, 'World clocks', h('span', { class: 'grow' }), h('a', { href: '#/timer', class: 'small', style: { color: 'var(--accent-ink)' }, onClick: () => { sessionStorage.setItem('aide.timers', JSON.stringify(Object.assign(JSON.parse(sessionStorage.getItem('aide.timers') || '{}'), { tab: 'wc' }))); } }, 'More')), h('div', { class: 'stack' }, clocks.map(r => h('div', { class: 'clock' }, h('span', null, r.night ? '🌙' : '☀️'), h('b', null, r.city), h('div', { class: 'tm num' }, r.time, h('small', null, r.diff)))))) : null;
+      root.append(h('div', { class: 'stack', style: { gap: '14px' } }, quick, alerts, h('div', { class: 'grid', style: { gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr)', alignItems: 'start' }, id: 'tg' }, h('div', { class: 'stack', style: { gap: '14px' } }, hero, timeline, visitCard), h('div', { class: 'stack', style: { gap: '14px' } }, reqCard, taskCard, weekCard, clockCard))));
+      if (matchMedia('(max-width: 1000px)').matches) $('#tg').style.gridTemplateColumns = '1fr';
+    },
+  };
+
+  /* ── settings ─────────────────────────────────────────────────────── */
+  A.views.settings = {
+    title: 'Settings', sub: 'Profile, appearance, security and backups',
+    render(root) {
+      const S = A.settings(), set = (k, v) => { S[k] = v; A.save('settings'); }, txt = (k, ph, ac) => h('input', { type: 'text', dir: 'auto', value: S[k] || '', placeholder: ph, autocomplete: ac || 'off', onInput: e => set(k, e.target.value) });
+      const seg = (k, opts, after) => h('div', { class: 'seg' }, opts.map(([v, n]) => h('button', { type: 'button', 'aria-pressed': S[k] === v, onClick: () => { set(k, v); if (k === 'theme') A.applyTheme(); A.route(); } }, n)));
+      const num = (k, min, max, step) => h('input', { type: 'number', min, max, step: step || 1, value: S[k] == null ? '' : S[k], style: { width: '96px' }, onChange: e => { const v = Math.max(min, Math.min(max, +e.target.value || 0)); e.target.value = v; set(k, v); } });
+      const row = (label, ctrl, hint) => h('div', { class: 'line' }, h('div', { class: 'grow' }, h('b', null, label), hint ? h('div', { class: 'small muted' }, hint) : null), ctrl);
+      const card = (title, ...kids) => h('section', { class: 'card' }, h('h3', null, title), h('div', { class: 'sett' }, kids));
+      const fileIn = h('input', { type: 'file', accept: '.aide,.json', class: 'sr', onChange: async e => { const f = e.target.files[0]; if (!f) return; try { const u = A.vault.importBlob(await f.text()); A.toast('Backup for “' + u + '” stored. Lock the desk and sign in with that vault’s password.'); } catch (x) { A.toast(x.message); } } });
+      root.append(h('div', { class: 'stack', style: { gap: '14px', maxWidth: '820px' } },
+        card('Profile', A.field('Executive’s name', txt('name', 'e.g. Alex Morgan')), A.field('Executive’s title', txt('title', 'e.g. Chief Executive Officer')), A.field('Your role / signature', txt('assistant', 'e.g. Executive Assistant'))),
+        card('Appearance', row('Theme', seg('theme', [['auto', 'Auto'], ['paper', 'Paper'], ['dusk', 'Dusk']])), row('Time format', seg('hour12', [[false, '24-hour'], [true, '12-hour']])), row('Week starts on', seg('weekStart', [[0, 'Mon'], [5, 'Sat'], [6, 'Sun']])), row('Second calendar', seg('secondary', [['none', 'None'], ['persian', 'Persian'], ['islamic', 'Hijri']]), 'Shown in small type under each day.')),
+        card('Schedule', row('Day starts at', num('dayStart', 0, 12), 'Hour, 0–12'), row('Day ends at', num('dayEnd', 12, 24), 'Hour, 12–24'), row('Default event length', num('defDur', 15, 480, 15), 'Minutes'), row('Buffer between meetings', num('buffer', 0, 60, 5), 'Minutes, used for free windows'), row('Default reminder', num('remind', 0, 120, 5), 'Minutes before; 0 = none')),
+        card('Security', row('Auto-lock after', num('lockMin', 0, 240), 'Minutes of inactivity; 0 = never'), row('Lock now', h('button', { class: 'btn', type: 'button', onClick: lock }, A.ico('lock'), 'Lock')), row('Password', h('button', { class: 'btn', type: 'button', onClick: changePw }, 'Change password'), 'Re-encrypts everything with the new password.'), h('p', { class: 'note' }, 'Everything is stored only in this browser, encrypted with your password. There is no server and no way to reset a forgotten password — so keep a backup file somewhere safe.')),
+        card('Notifications', row('Reminders & timers', h('button', { class: 'btn', type: 'button', onClick: async () => { if (!('Notification' in window)) return A.toast('This browser has no notification support.'); const r = await Notification.requestPermission(); A.toast('Notifications: ' + r); } }, A.ico('bell'), 'Allow notifications'), 'Alerts only fire while the desk is open (also on the iPhone/iPad home-screen app).')),
+        card('Data & backup', row('Backup file', h('button', { class: 'btn', type: 'button', onClick: () => { A.flush().then(() => A.download('aide-backup-' + D.iso(D.today()) + '.aide', A.vault.exportBlob(), 'application/json')); } }, A.ico('download'), 'Download'), 'Encrypted. Safe to store in cloud drive or email to yourself.'), row('Restore backup', h('label', { class: 'btn' }, A.ico('upload'), 'Choose file', fileIn)), row('Calendar export', h('button', { class: 'btn', type: 'button', onClick: () => A.download('aide-calendar.ics', A.ics(A.db.data.events, 'Aide'), 'text/calendar') }, A.ico('calendar'), '.ics'), 'Opens in Apple, Google and Outlook calendars.'), row('Everything as plain JSON', h('button', { class: 'btn', type: 'button', onClick: async () => { if (await A.confirm('Export unencrypted data', 'The file will NOT be encrypted. Anyone who gets it can read it. Continue?', 'Export', false)) A.download('aide-data.json', JSON.stringify(A.db.data, null, 2), 'application/json'); } }, 'Export')), row('Load sample data', h('button', { class: 'btn', type: 'button', onClick: async () => { if (await A.confirm('Add sample data', 'Adds example events, contacts, tasks and notes to your existing data.', 'Add', false)) { const s = A.sample(); ['events', 'contacts', 'requests', 'tasks', 'notes'].forEach(k => A.db.data[k].push(...s[k])); A.db.data.avail = Object.assign({}, s.avail, A.db.data.avail); A.save('all'); A.toast('Sample data added.'); } } }, 'Add')), row('Erase everything', h('button', { class: 'btn danger', type: 'button', onClick: async () => { if (await A.confirm('Erase this vault', 'This permanently deletes the vault and all data on this device.', 'Erase forever')) { A.vault.wipe(); built = false; A.showLogin('The vault was erased.'); } } }, 'Erase'))),
+        card('About', h('p', { class: 'note' }, 'Aide · Executive Desk v1.0. Design language inspired by Moxen’s free resources (moxen.cl/recursos): cream paper, cacao ink, pastel categories and spring motion. All code in this project is original and dependency-free.'), h('p', { class: 'note' }, 'Shortcuts: ⌘/Ctrl + K search · N new event · T today · ← → previous/next in the calendar · in the calendar, arrow keys move a focused event, Shift + ↑↓ changes its length.'))));
+    },
+  };
+  function changePw() {
+    const o = h('input', { type: 'password', autocomplete: 'current-password' }), n = h('input', { type: 'password', autocomplete: 'new-password' }), n2 = h('input', { type: 'password', autocomplete: 'new-password' });
+    const m = A.modal({ title: 'Change password', body: [A.field('Current password', o), A.field('New password (10+ characters)', n), A.field('Repeat new password', n2)], footer: [h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: async () => { if (n.value.length < 10) return A.toast('Use at least 10 characters.'); if (n.value !== n2.value) return A.toast('The new passwords do not match.'); try { await A.vault.changePassword(o.value, n.value); m.close(); A.toast('Password changed.'); } catch (e) { A.toast('Current password is wrong.'); } } }, 'Change')] });
+  }
+
+  /* ── command palette (⌘K) ─────────────────────────────────────────── */
+  A.palette = function () {
+    if (!A.db.data) return; const t0 = D.today(); let sel = 0, items = [];
+    const inp = h('input', { type: 'search', placeholder: 'Search events, people, notes, tasks — or type a command', 'aria-label': 'Search', autocomplete: 'off', dir: 'auto' }), list = h('div', { class: 'pal-list', role: 'listbox' });
+    const go = id => () => { location.hash = '#/' + id; };
+    const cmds = [['New event', 'plus', () => E.edit(null, {})], ['New task', 'tasks', () => { location.hash = '#/tasks'; }], ['New note', 'notes', () => A.newNote()], ['New contact', 'people', () => { location.hash = '#/people'; }], ...NAV.map(([id, n, ic]) => ['Go to ' + n, ic, go(id)])];
+    const build2 = () => {
+      const q = inp.value.trim().toLowerCase(); items = [];
+      if (!q) items = cmds.slice(0, 9).map(([t, ic, fn]) => ({ t, ic, fn, s: 'Command' }));
+      else {
+        cmds.filter(c => c[0].toLowerCase().includes(q)).slice(0, 4).forEach(([t, ic, fn]) => items.push({ t, ic, fn, s: 'Command' }));
+        E.expand(t0 - 30, t0 + 180).filter(o => (o.title + ' ' + (o.ev.people || '') + ' ' + (o.ev.loc || '') + ' ' + (o.ev.notes || '')).toLowerCase().includes(q)).slice(0, 6).forEach(o => items.push({ t: o.title, ic: 'calendar', s: D.mid(o.day) + (o.allDay ? '' : ' · ' + A.time(o.start)), fn: () => E.edit(o.ev) }));
+        A.db.data.contacts.filter(c => [c.name, c.org, c.role, c.notes].join(' ').toLowerCase().includes(q)).slice(0, 4).forEach(c => items.push({ t: c.name, ic: 'user', s: [c.role, c.org].filter(Boolean).join(' · '), fn: () => { location.hash = '#/people'; } }));
+        A.db.data.notes.filter(n => (n.title + ' ' + n.body).toLowerCase().includes(q)).slice(0, 4).forEach(n => items.push({ t: n.title || 'Untitled', ic: 'notes', s: 'Note', fn: () => { location.hash = '#/notes'; } }));
+        A.db.data.tasks.filter(t => t.title.toLowerCase().includes(q)).slice(0, 4).forEach(t => items.push({ t: t.title, ic: 'tasks', s: t.done ? 'Task · done' : 'Task', fn: () => { location.hash = '#/tasks'; } }));
+      }
+      sel = 0; draw();
+    };
+    const run = i => { const it = items[i]; if (!it) return; m.close(); setTimeout(it.fn, 60); };
+    const draw = () => { list.replaceChildren(...(items.length ? items.map((it, i) => h('button', { type: 'button', class: 'item', role: 'option', 'aria-selected': i === sel, onClick: () => run(i) }, A.ico(it.ic), h('span', { class: 'grow', dir: 'auto' }, it.t), h('span', { class: 'small muted' }, it.s))) : [A.empty('No matches', '', 'search')])); const s = list.querySelector('[aria-selected=true]'); s && s.scrollIntoView({ block: 'nearest' }); };
+    inp.addEventListener('input', A.debounce(build2, 80));
+    inp.addEventListener('keydown', e => { if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); draw(); } else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(0, sel - 1); draw(); } else if (e.key === 'Enter') { e.preventDefault(); run(sel); } });
+    const m = A.modal({ title: 'Search', cls: 'palette', body: [inp, list] }); build2(); setTimeout(() => inp.focus(), 40);
+  };
+
+  /* ── keyboard + idle lock ─────────────────────────────────────────── */
+  document.addEventListener('keydown', e => {
+    if (!A.db.data) return;
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (!document.querySelector('dialog[open]')) A.palette(); return; }
+    if (document.querySelector('dialog[open]') || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (A.keys && A.keys(e)) e.preventDefault();
+    else if (!e.target.matches('input,textarea,select') && e.key === '/') { e.preventDefault(); A.palette(); }
+  });
+  let idle = Date.now();
+  ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(n => window.addEventListener(n, () => idle = Date.now(), { passive: true, capture: true }));
+  setInterval(() => { if (!A.db.data) return; const m = A.settings().lockMin; if (m > 0 && Date.now() - idle > m * 60000) lock('Locked after ' + m + ' minutes of inactivity.'); }, 15000);
+  window.addEventListener('pagehide', () => { A.db.data && A.flush(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && A.db.data) A.flush(); });
+
+  A.start = function () {
+    A.applyTheme(); idle = Date.now(); if (!built) build(); E.startReminders();
+    if (!location.hash) history.replaceState(null, '', '#/today'); A.route();
+  };
+})();
+
+
+  </script>
   <script>
     Aide.showLogin();
-    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(function () {});
   </script>
 </body>
 </html>
