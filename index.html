@@ -307,6 +307,16 @@ dialog::backdrop { background: rgba(40,20,10,.42); backdrop-filter: blur(5px); a
 .sp-pill { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; background: var(--line-fine); } .sp-pill.on { background: var(--accent); color: var(--btn-ink); }
 .sp-box { width: 64px; height: 64px; display: grid; place-items: center; background: var(--canvas); border: 1px solid var(--line); font-weight: 700; color: var(--faint); } .sp-sp { background: var(--accent); border-radius: 4px; }
 
+/* ── holidays & Description Farsi ─────────────────────────────────── */
+.hol-chip { --c: var(--danger-bg); --b: var(--danger); background: var(--danger-bg) !important; color: var(--danger); } .tg-col.hol { background-color: color-mix(in srgb, var(--danger) 7%, transparent); } .tg-day.hol .dd { color: var(--danger); } .tg-day.hol.today .dd { color: #fff; }
+.mo-cell.wk { background: var(--weekend); } .mo-cell.hol { background: color-mix(in srgb, var(--danger) 6%, transparent); } .mo-cell.hol .d b { color: var(--danger); } .mo-cell.hol.today .d b { color: #fff; } .mo-hol { display: block; font-size: 10.5px; font-weight: 700; color: var(--danger); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+.mini-grid button.hol { outline: 1.5px solid var(--danger); outline-offset: -1.5px; }
+.fa-tip { position: fixed; z-index: 140; max-width: 300px; padding: 7px 11px; border-radius: 12px; background: var(--tip); color: var(--tip-ink); font: 500 13px/1.6 "Vazirmatn", var(--f-text); pointer-events: none; box-shadow: 0 16px 28px -12px rgba(0,0,0,.45); text-align: right; } .fa-tip b { font-family: var(--f-text); font-weight: 700; opacity: .85; direction: ltr; unicode-bidi: isolate; } .fa-l + .fa-l { margin-top: 3px; padding-top: 3px; border-top: 1px solid rgba(128,128,128,.3); }
+.fa-bar { position: fixed; z-index: 90; left: 0; right: 0; bottom: 0; height: 28px; padding: 0 16px; display: flex; align-items: center; background: color-mix(in srgb, var(--paper) 92%, transparent); border-top: 1px solid var(--line); backdrop-filter: blur(14px); font: 500 12px "Vazirmatn", var(--f-text); color: var(--soft); white-space: nowrap; overflow: hidden; } .fa-bar-t { overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: right; }
+html.fa-on .app { height: calc(100vh - 28px); height: calc(100dvh - 28px); } html.fa-on .toasts { bottom: 40px; }
+@media (max-width: 860px) { html.fa-on .app { height: auto; } html.fa-on .main { height: calc(100dvh - 28px); } html.fa-on .tabbar { bottom: calc(36px + env(safe-area-inset-bottom)); } html.fa-on .toasts { bottom: calc(100px + env(safe-area-inset-bottom)); } .fa-bar { padding-bottom: env(safe-area-inset-bottom); height: calc(28px + env(safe-area-inset-bottom)); } }
+@media print { .fa-bar, .fa-tip { display: none !important; } }
+
 /* Acomodo · Moxen — los estilos del efecto y de la demostración.
    Todos los colores están aquí arriba. Cada tarjeta lleva su color en tres
    variables que pone su clase (.ac-coral, .ac-cielo, .ac-limon, .ac-menta,
@@ -1786,7 +1796,7 @@ a { color: inherit; }
   A.catStyle = c => ({ '--c': 'var(--c-' + (A.CATS[c] ? c : 'meeting') + ')', '--b': 'var(--b-' + (A.CATS[c] ? c : 'meeting') + ')' });
 
   /* ── store (in memory; vault.js encrypts it to disk) ──────────────── */
-  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 0, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 10, secondary: 'none', clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15, themeMode: 'auto', themeLight: 'ice', themeDark: 'aurora', customThemes: [], fontDisplay: '', fontText: '', fontScale: 100, buffer: 10, remindersOn: true, sound: true, vibrate: true, hidePreview: false });
+  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 0, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 10, clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15, secondary: 'persian', weekend: 'sat-sun', calSystem: 'gregorian', holidaysOn: true, holidayIntl: false, holidayBlock: true, hijriOffset: 0, customHolidays: [], faOn: false, faOnline: false, themeMode: 'auto', themeLight: 'ice', themeDark: 'aurora', customThemes: [], fontDisplay: '', fontText: '', fontScale: 100, buffer: 10, remindersOn: true, sound: true, vibrate: true, hidePreview: false });
   A.db = { data: null };
   A.settings = () => (A.db.data && A.db.data.settings) || DEFAULTS();
   A.uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -1794,7 +1804,8 @@ a { color: inherit; }
     data = data || {};
     A.db.data = Object.assign({ events: [], contacts: [], requests: [], tasks: [], notes: [], avail: {}, away: [] }, data);
     A.db.data.settings = Object.assign(DEFAULTS(), data.settings || {});
-    const st = A.db.data.settings; if (data.settings && !data.settings.themeMode) st.themeMode = { paper: 'light', dusk: 'dark', auto: 'auto' }[data.settings.theme] || 'auto';   // from the older theme setting
+    const st = A.db.data.settings; if (!st.shamsiInit) { if (st.secondary === 'none') st.secondary = 'persian'; st.shamsiInit = true; }
+    if (data.settings && !data.settings.themeMode) st.themeMode = { paper: 'light', dusk: 'dark', auto: 'auto' }[data.settings.theme] || 'auto';   // from the older theme setting
     A.applyTheme();
   };
   let saveT = 0;
@@ -2070,6 +2081,87 @@ a { color: inherit; }
   /* every token as copyable text */
   A.themeCss = d => ':root {\n' + Object.entries(Object.assign({}, A.tokens(d))).map(([k, v]) => '  ' + k + ': ' + v + ';').join('\n') + '\n  --f-display: ' + A.fontStack(d.font.display) + ';\n  --f-text: ' + A.fontStack(d.font.text) + ';\n}';
   A.themeJson = d => JSON.stringify({ name: d.name, mode: d.mode, bg: d.bg, bg2: d.bg2, surface: d.surface, surface2: d.surface2, ink: d.ink, accent: d.accent, accent2: d.accent2, hues: d.hues, mesh: d.mesh, font: d.font }, null, 2);
+})();
+
+/* ===== js/holidays.js ===== */
+/* Aide · holidays — the Shamsi (Jalali) calendar and holidays.
+   Jalali and Hijri dates come from the browser's own Intl calendars, so there are no
+   conversion tables to maintain. Iranian lunar holidays follow moon sighting, so the
+   computed dates can be off by a day or two: use "Lunar holiday shift" to match the
+   official Iranian calendar, and add your own holidays below. */
+(function () {
+  'use strict';
+  const A = window.Aide, { h, date: D } = A;
+  const fJ = new Intl.DateTimeFormat('en-u-ca-persian-nu-latn', { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' });
+  const fH = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' });
+  const fFa = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const fFaM = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const fFaD = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { day: 'numeric', timeZone: 'UTC' });
+  const mem = { j: new Map(), h: new Map() };
+  const parts = (f, n) => { const o = {}; f.formatToParts(new Date(n * 864e5 + 432e5)).forEach(p => { if (p.type === 'year' || p.type === 'month' || p.type === 'day') o[p.type[0]] = +p.value; }); return o; };
+  D.jalali = n => { let v = mem.j.get(n); if (!v) { v = parts(fJ, n); mem.j.set(n, v); } return v; };         // {y, m, d}
+  D.hijri = n => { let v = mem.h.get(n); if (!v) { v = parts(fH, n); mem.h.set(n, v); } return v; };
+  D.faNum = x => String(x).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  D.faDate = n => fFa.format(new Date(n * 864e5 + 432e5));          // ۱ آبان ۱۴۰۵
+  D.faMonth = n => fFaM.format(new Date(n * 864e5 + 432e5));        // آبان ۱۴۰۵
+  D.faDay = n => fFaD.format(new Date(n * 864e5 + 432e5));          // ۱
+  D.jalaliMonthStart = n => { let s = n; for (let i = 0; i < 32 && D.jalali(s - 1).m === D.jalali(n).m; i++) s--; return s; };
+  D.jalaliMonthLen = start => { let e = start; const m = D.jalali(start).m; while (D.jalali(e + 1).m === m) e++; return e - start + 1; };
+  D.addJalaliMonths = (n, k) => { let s = D.jalaliMonthStart(n); for (let i = 0; i < Math.abs(k); i++) s = k > 0 ? s + D.jalaliMonthLen(s) : D.jalaliMonthStart(s - 1); return s; };
+  const fMonthShort = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { month: 'long', timeZone: 'UTC' });
+  D.sec = function (n) {                                              // the small second-calendar label under each day
+    const s = A.settings().secondary; if (!s || s === 'none') return '';
+    if (s === 'persian') { const j = D.jalali(n); return j.d === 1 ? D.faDay(n) + ' ' + fMonthShort.format(new Date(n * 864e5 + 432e5)) : D.faDay(n); }
+    const hj = D.hijri(n); return hj.d === 1 ? hj.d + '/' + hj.m : String(hj.d);
+  };
+
+  /* ── weekend ──────────────────────────────────────────────────────── */
+  A.isWeekend = n => { const w = D.dow(n), k = A.settings().weekend || 'sat-sun'; return k === 'fri' ? w === 4 : k === 'thu-fri' ? w === 3 || w === 4 : w === 5 || w === 6; };
+
+  /* ── holiday data ─────────────────────────────────────────────────── */
+  const JAL = { '1-1': ['Nowruz', 'نوروز'], '1-2': ['Nowruz (day 2)', 'نوروز'], '1-3': ['Nowruz (day 3)', 'نوروز'], '1-4': ['Nowruz (day 4)', 'نوروز'], '1-12': ['Islamic Republic Day', 'روز جمهوری اسلامی'], '1-13': ['Nature Day · Sizdah Bedar', 'سیزده‌به‌در'], '3-14': ['Khomeini’s demise', 'رحلت امام خمینی'], '3-15': ['15 Khordad uprising', 'قیام ۱۵ خرداد'], '11-22': ['Revolution Victory Day', 'پیروزی انقلاب اسلامی'], '12-29': ['Oil Nationalisation Day', 'ملی شدن صنعت نفت'] };
+  const HIJ = { '1-9': ['Tasua', 'تاسوعا'], '1-10': ['Ashura', 'عاشورا'], '2-20': ['Arbaeen', 'اربعین'], '2-28': ['Prophet’s demise · Imam Hassan', 'رحلت پیامبر و شهادت امام حسن'], '2-30': ['Imam Reza martyrdom', 'شهادت امام رضا'], '3-17': ['Prophet’s birthday', 'میلاد پیامبر و امام صادق'], '6-3': ['Fatima martyrdom', 'شهادت حضرت فاطمه'], '7-13': ['Imam Ali’s birthday', 'ولادت امام علی'], '7-27': ['Mab’ath', 'مبعث'], '8-15': ['Imam Mahdi’s birthday', 'نیمه شعبان'], '9-21': ['Imam Ali martyrdom', 'شهادت امام علی'], '10-1': ['Eid al-Fitr', 'عید فطر'], '10-2': ['Eid al-Fitr (day 2)', 'تعطیل عید فطر'], '12-10': ['Eid al-Adha', 'عید قربان'], '12-18': ['Eid al-Ghadir', 'عید غدیر'] };
+  const INTL = { '1-1': ['New Year’s Day', 'سال نو میلادی'], '5-1': ['Labour Day', 'روز کارگر'], '12-25': ['Christmas Day', 'کریسمس'] };
+  const cache = new Map(); A.on('change', k => { if (k === 'settings' || k === 'all') cache.clear(); });
+  A.holiday = function (n) {
+    let v = cache.get(n); if (v) return v; const S = A.settings(), out = [];
+    if (S.holidaysOn !== false) {
+      const j = D.jalali(n), a = JAL[j.m + '-' + j.d]; if (a) out.push({ name: a[0], fa: a[1], kind: 'official' });
+      const off = S.hijriOffset || 0, hj = D.hijri(n - off); let key = hj.m + '-' + hj.d; if (hj.m === 2 && hj.d === 29 && D.hijri(n - off + 1).m === 3) key = '2-30';
+      const b = HIJ[key]; if (b) out.push({ name: b[0], fa: b[1], kind: 'official' });
+    }
+    if (S.holidayIntl) { const g = D.ymd(n), c = INTL[g.m + '-' + g.d]; if (c) out.push({ name: c[0], fa: c[1], kind: 'intl' }); }
+    (S.customHolidays || []).forEach(c => { const g = D.ymd(n), p = D.parse(c.date); if (p == null) return; const q = D.ymd(p); if (p === n || (c.yearly && q.m === g.m && q.d === g.d)) out.push({ name: c.name, fa: c.name, kind: 'custom' }); });
+    cache.set(n, out); return out;
+  };
+  A.holidays = (from, to) => { const o = []; for (let d = from; d <= to; d++) A.holiday(d).forEach(x => o.push(Object.assign({ day: d }, x))); return o; };
+  A.isHoliday = n => A.holiday(n).length > 0;
+
+  /* ── settings cards (shown under the appearance settings) ─────────── */
+  A.prefCards = function () {
+    const S = A.settings(), set = (k, v, route) => { S[k] = v; A.save('settings'); if (k === 'faOn') A.faEnable(v); if (route !== false) A.route(); };
+    const seg = (k, opts) => h('div', { class: 'seg' }, opts.map(([v, n]) => h('button', { type: 'button', 'aria-pressed': S[k] === v || (S[k] == null && v === opts[0][0]), onClick: () => { set(k, v); if (k === 'calSystem' && v === 'jalali' && S.weekStart !== 5) { S.weekStart = 5; A.toast('Week now starts on Saturday (change it in Settings).'); } } }, n)));
+    const onoff = (k, def) => seg(k, [[true, 'On'], [false, 'Off']].map(x => x)), row = (label, ctrl, hint) => h('div', { class: 'line' }, h('div', { class: 'grow' }, h('b', null, label), hint ? h('div', { class: 'small muted' }, hint) : null), ctrl);
+    const tf = (k, def) => { const on = S[k] == null ? def : !!S[k]; return h('div', { class: 'seg' }, [[true, 'On'], [false, 'Off']].map(([v, n]) => h('button', { type: 'button', 'aria-pressed': on === v, onClick: () => set(k, v) }, n))); };
+    const num = h('input', { type: 'number', min: -3, max: 3, value: S.hijriOffset || 0, style: { width: '84px' }, onChange: e => { set('hijriOffset', Math.max(-3, Math.min(3, +e.target.value || 0)), false); A.toast('Lunar holidays shifted by ' + (S.hijriOffset || 0) + ' day(s).'); } });
+    const cname = h('input', { type: 'text', dir: 'auto', placeholder: 'Holiday name' }), cdate = h('input', { type: 'date', value: D.iso(D.today()) }), cy = h('input', { type: 'checkbox', checked: true });
+    const mine = h('div', { class: 'stack', style: { marginTop: '8px' } }, (S.customHolidays || []).map(c => h('div', { class: 'item', style: { background: 'var(--line-fine)', padding: '6px 10px' } }, h('span', { class: 'grow', dir: 'auto' }, c.name + ' · ' + c.date + (c.yearly ? ' · every year' : '')), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Remove ' + c.name, onClick: () => { S.customHolidays = S.customHolidays.filter(x => x.id !== c.id); A.save('settings'); A.route(); } }, A.ico('trash')))));
+    const nextH = A.holidays(D.today(), D.today() + 120).slice(0, 5);
+    return h('div', { class: 'stack', style: { gap: '14px', padding: '0 22px 28px', maxWidth: '880px' }, id: 'prefcards' },
+      h('section', { class: 'card' }, h('h3', null, 'Description Farsi'), h('div', { class: 'sett' },
+        row('Description Farsi', tf('faOn', false), 'Hold the mouse on any word or text to see its Persian beside the pointer (press and hold on touch). A one-line bar at the bottom explains the section under the mouse.'),
+        row('Online translation for unknown words', tf('faOnline', false), 'Off by default. When on, words missing from the built-in dictionary — including your own text — are sent to the free MyMemory service to be translated. Keep it off for confidential text.'))),
+      h('section', { class: 'card' }, h('h3', null, 'Shamsi calendar & holidays'), h('div', { class: 'sett' },
+        row('Month view calendar', seg('calSystem', [['gregorian', 'Gregorian'], ['jalali', 'Shamsi']]), 'Shamsi shows Persian months and digits, with the Gregorian date small beside each day.'),
+        row('Second calendar under each day', seg('secondary', [['persian', 'Shamsi'], ['islamic', 'Hijri'], ['none', 'None']])),
+        row('Weekend', seg('weekend', [['sat-sun', 'Sat–Sun'], ['fri', 'Friday'], ['thu-fri', 'Thu–Fri']]), 'Tints the weekend in the calendar.'),
+        row('Iranian holidays', tf('holidaysOn', true), 'Fixed Shamsi holidays plus the lunar (Hijri) ones.'),
+        row('Common international holidays', tf('holidayIntl', false), 'New Year’s Day, Labour Day, Christmas.'),
+        row('Lunar holiday shift', num, 'Days. Iran’s moon sighting can differ from the computed date by a day or two — adjust to match the official calendar.'),
+        row('Keep holidays out of free windows', tf('holidayBlock', true), 'Visiting-hour windows skip holidays.'),
+        h('div', null, h('b', null, 'My holidays'), h('div', { class: 'row wrap', style: { margin: '8px 0 0' } }, cname, cdate, h('label', { class: 'row small' }, cy, 'every year'), h('button', { class: 'btn sm primary', type: 'button', onClick: () => { if (!cname.value.trim() || !cdate.value) return A.toast('Add a name and a date.'); (S.customHolidays = S.customHolidays || []).push({ id: A.uid(), name: cname.value.trim(), date: cdate.value, yearly: cy.checked }); A.save('settings'); A.route(); } }, 'Add')), mine),
+        h('div', null, h('b', null, 'Coming up'), nextH.length ? h('div', { class: 'stack', style: { marginTop: '8px' } }, nextH.map(x => h('div', { class: 'item', style: { background: 'var(--c-personal)', padding: '6px 10px' }, title: x.fa }, h('span', { class: 'grow' }, D.mid(x.day) + ' · ' + x.name), h('span', { class: 'small muted', dir: 'rtl' }, D.faDate(x.day))))) : h('p', { class: 'muted small' }, 'No holidays in the next 120 days.')))));
+  };
 })();
 
 /* ===== js/vault.js ===== */
@@ -2395,12 +2487,12 @@ a { color: inherit; }
       if (!ui.view) ui.view = isPhone() ? 'day' : 'week';
       const view = ui.view, S = A.settings(), ws = S.weekStart;
       const seg = h('div', { class: 'seg', role: 'tablist', 'aria-label': 'Calendar view' }, VIEWS.map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': k === view, onClick: () => { ui.view = k; localStorage.setItem('aide.ui', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('aide.ui') || '{}'), { calView: k }))); A.route(); } }, n)));
-      const move = dir => { const v = view; ui.anchor = v === 'day' ? ui.anchor + dir : v === '3day' ? ui.anchor + 3 * dir : v === 'week' ? ui.anchor + 7 * dir : v === 'year' ? D.addMonths(ui.anchor, 12 * dir) : v === 'agenda' ? ui.anchor + 14 * dir : D.addMonths(ui.anchor, dir); A.route(); };
+      const move = dir => { const v = view; ui.anchor = v === 'day' ? ui.anchor + dir : v === '3day' ? ui.anchor + 3 * dir : v === 'week' ? ui.anchor + 7 * dir : v === 'year' ? D.addMonths(ui.anchor, 12 * dir) : v === 'agenda' ? ui.anchor + 14 * dir : (S.calSystem === 'jalali' ? D.addJalaliMonths(ui.anchor, dir) : D.addMonths(ui.anchor, dir)); A.route(); };
       const a = ui.anchor, y = D.ymd(a);
       let title, sub = '';
       if (view === 'day') { title = D.long(a); sub = D.sec(a) ? D.sec(a) : ''; }
       else if (view === '3day' || view === 'week') { const n = view === 'week' ? 7 : 3, s = view === 'week' ? D.weekStart(a, ws) : a, f = D.ymd(s), l = D.ymd(s + n - 1); title = f.m === l.m ? D.MON[f.m - 1] + ' ' + f.d + ' – ' + l.d + ', ' + l.y : D.MON3[f.m - 1] + ' ' + f.d + ' – ' + D.MON3[l.m - 1] + ' ' + l.d + ', ' + l.y; }
-      else if (view === 'month') title = D.MON[y.m - 1] + ' ' + y.y; else if (view === 'year') title = String(y.y); else title = 'Next 30 days';
+      else if (view === 'month') { if (S.calSystem === 'jalali') { const fs = D.jalaliMonthStart(a); title = D.faMonth(fs); sub = D.MON[D.ymd(fs).m - 1] + ' – ' + D.MON[D.ymd(fs + D.jalaliMonthLen(fs) - 1).m - 1] + ' ' + D.ymd(fs).y; } else title = D.MON[y.m - 1] + ' ' + y.y; } else if (view === 'year') title = String(y.y); else title = 'Next 30 days';
       const quick = h('input', { type: 'text', class: 'quick', placeholder: 'Quick add: “Call Sarah tomorrow 3pm 30m”', 'aria-label': 'Quick add', autocomplete: 'off', dir: 'auto', style: { maxWidth: '360px', minWidth: '180px', flex: '1 1 220px', minHeight: '34px', padding: '4px 14px', borderRadius: '999px' } });
       quick.addEventListener('keydown', ev => { if (ev.key !== 'Enter' || !quick.value.trim()) return; const p = E.parse(quick.value); quick.value = ''; E.edit(null, { title: p.title, date: D.iso(p.day), start: p.start != null ? p.start : undefined, dur: p.dur || undefined, cat: p.cat, allDay: p.cat === 'away' }); });
       const nav = h('div', { class: 'row' },
@@ -2430,11 +2522,11 @@ a { color: inherit; }
     const H0 = Math.max(0, Math.min(S.dayStart, 12)), H1 = Math.min(24, Math.max(S.dayEnd, H0 + 4)), hours = H1 - H0;
     body.style.setProperty('--cols', n); body.style.setProperty('--hours', hours);
     const occs = visible(E.expand(first, first + n - 1)), bad = E.conflictKeys(occs);
-    const head = h('div', { class: 'tg-head' }, h('div'), days.map(d => h('div', { class: 'tg-day' + (d === t0 ? ' today' : '') }, h('button', { type: 'button', 'aria-label': D.long(d), onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, h('span', { class: 'dn' }, D.DOW3[D.dow(d)]), h('span', { class: 'dd num' }, D.ymd(d).d), D.sec(d) ? h('span', { class: 'sec' }, D.sec(d)) : null))));
-    const allday = h('div', { class: 'tg-allday' }, h('div'), days.map(d => h('div', null, occs.filter(o => o.allDay && o.day === d).map(o => h('button', { type: 'button', class: 'ev-chip', style: A.catStyle(o.cat), onClick: () => E.edit(o.ev) }, h('span', { class: 't' }, o.title))))));
+    const head = h('div', { class: 'tg-head' }, h('div'), days.map(d => h('div', { class: 'tg-day' + (d === t0 ? ' today' : '') + (A.isHoliday(d) ? ' hol' : ''), title: A.holiday(d).map(x => x.name).join(' · ') }, h('button', { type: 'button', 'aria-label': D.long(d), onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, h('span', { class: 'dn' }, D.DOW3[D.dow(d)]), h('span', { class: 'dd num' }, D.ymd(d).d), D.sec(d) ? h('span', { class: 'sec' }, D.sec(d)) : null))));
+    const allday = h('div', { class: 'tg-allday' }, h('div'), days.map(d => h('div', null, A.holiday(d).map(x => h('span', { class: 'ev-chip hol-chip', title: x.fa, 'data-fa': x.fa }, h('span', { class: 't' }, x.name))), occs.filter(o => o.allDay && o.day === d).map(o => h('button', { type: 'button', class: 'ev-chip', style: A.catStyle(o.cat), onClick: () => E.edit(o.ev) }, h('span', { class: 't' }, o.title))))));
     const hoursCol = h('div', { class: 'tg-hours' }, Array.from({ length: hours }, (_, i) => h('span', { style: { top: i * 100 / hours + '%' } }, i === 0 ? '' : A.hourLabel(H0 + i))));
     const cols = days.map(d => {
-      const col = h('div', { class: 'tg-col' + (d === t0 ? ' today' : '') + (D.dow(d) > 4 ? ' wknd' : ''), 'data-day': d, role: 'group', 'aria-label': D.long(d) });
+      const col = h('div', { class: 'tg-col' + (d === t0 ? ' today' : '') + (A.isWeekend(d) ? ' wknd' : '') + (A.isHoliday(d) ? ' hol' : ''), 'data-day': d, role: 'group', 'aria-label': D.long(d) });
       // outside working hours (view range only)
       layout(occs.filter(o => !o.allDay && o.day === d)).forEach(p => col.append(evEl(p.o, p, H0, bad, hours)));
       return col;
@@ -2538,19 +2630,19 @@ a { color: inherit; }
 
   /* ── month ────────────────────────────────────────────────────────── */
   function month(body) {
-    const S = A.settings(), y = D.ymd(ui.anchor), first = D.num(y.y, y.m, 1), gs = D.weekStart(first, S.weekStart), total = Math.ceil((first - gs + D.daysIn(y.y, y.m)) / 7) * 7, last = gs + total - 1, t0 = D.today();
+    const S = A.settings(), jal = S.calSystem === 'jalali', y = D.ymd(ui.anchor), first = jal ? D.jalaliMonthStart(ui.anchor) : D.num(y.y, y.m, 1), len = jal ? D.jalaliMonthLen(first) : D.daysIn(y.y, y.m), gs = D.weekStart(first, S.weekStart), total = Math.ceil((first - gs + len) / 7) * 7, last = gs + total - 1, t0 = D.today();
     const occs = visible(E.expand(gs, last)), by = {}; occs.forEach(o => (by[o.day] = by[o.day] || []).push(o));
     let sel = ui._sel != null && ui._sel >= gs && ui._sel <= last ? ui._sel : (t0 >= gs && t0 <= last ? t0 : first);
     const dow = h('div', { class: 'mo-dow' }, Array.from({ length: 7 }, (_, i) => h('span', null, D.DOW3[(S.weekStart + i) % 7])));
     const panel = h('div', { class: 'mo-side' });
-    const fill = () => { const L = by[sel] || []; panel.replaceChildren(h('b', null, D.long(sel)), h('div', { class: 'stack', style: { marginTop: '8px' } }, L.length ? L.map(o => evChip(o)) : h('span', { class: 'muted' }, 'Nothing scheduled.'))); };
+    const fill = () => { const L = by[sel] || []; panel.replaceChildren(h('b', null, D.long(sel) + (jal ? ' · ' + D.faDate(sel) : '')), A.holiday(sel).map(x => h('div', { class: 'warn', style: { marginTop: '6px' }, title: x.fa }, A.ico('flag'), h('span', null, x.name))), h('div', { class: 'stack', style: { marginTop: '8px' } }, L.length ? L.map(o => evChip(o)) : h('span', { class: 'muted' }, 'Nothing scheduled.'))); };
     const cells = [];
     const grid = h('div', { class: 'mo-grid' }, Array.from({ length: total }, (_, i) => {
-      const d = gs + i, L = by[d] || [], out = D.ymd(d).m !== y.m;
-      const c = h('button', { type: 'button', class: 'mo-cell' + (out ? ' out' : '') + (d === t0 ? ' today' : '') + (d === sel ? ' sel' : ''), 'aria-label': D.long(d) + ', ' + L.length + ' events', onClick: () => { if (isPhone()) { sel = d; ui._sel = d; cells.forEach((x, j) => x.classList.toggle('sel', gs + j === sel)); fill(); } else { ui.anchor = d; ui.view = 'day'; A.route(); } }, onDblclick: () => E.edit(null, { date: D.iso(d) }) },
-        h('span', { class: 'd' }, h('b', { class: 'num' }, D.ymd(d).d), D.sec(d) ? h('em', null, D.sec(d)) : null),
+      const d = gs + i, L = by[d] || [], out = d < first || d >= first + len, hol = A.holiday(d);
+      const c = h('button', { type: 'button', class: 'mo-cell' + (out ? ' out' : '') + (A.isWeekend(d) && !out ? ' wk' : '') + (hol.length ? ' hol' : '') + (d === t0 ? ' today' : '') + (d === sel ? ' sel' : ''), 'aria-label': D.long(d) + ', ' + L.length + ' events', onClick: () => { if (isPhone()) { sel = d; ui._sel = d; cells.forEach((x, j) => x.classList.toggle('sel', gs + j === sel)); fill(); } else { ui.anchor = d; ui.view = 'day'; A.route(); } }, onDblclick: () => E.edit(null, { date: D.iso(d) }) },
+        h('span', { class: 'd' }, h('b', { class: 'num' }, jal ? D.faDay(d) : D.ymd(d).d), jal ? h('em', null, D.ymd(d).d) : (D.sec(d) ? h('em', null, D.sec(d)) : null)), hol.slice(0, 1).map(x => h('span', { class: 'mo-hol', title: x.fa, 'data-fa': x.fa }, x.name)),
         L.slice(0, 3).map(o => h('span', { class: 'mo-ev', style: A.catStyle(o.cat), dir: 'auto' }, (o.allDay ? '' : A.time(o.start) + ' ') + o.title)), L.length > 3 ? h('span', { class: 'mo-more' }, '+' + (L.length - 3) + ' more') : null,
-        h('span', { class: 'mo-dots' }, L.slice(0, 4).map(o => h('i', { class: 'dot', style: { background: 'var(--b-' + o.cat + ')' } }))));
+        h('span', { class: 'mo-dots' }, hol.length ? h('i', { class: 'dot', style: { background: 'var(--danger)' } }) : null, L.slice(0, 4).map(o => h('i', { class: 'dot', style: { background: 'var(--b-' + o.cat + ')' } }))));
       cells.push(c); return c;
     }));
     fill(); body.append(h('div', { class: 'mo' }, dow, grid), panel);
@@ -2563,7 +2655,7 @@ a { color: inherit; }
     body.append(h('div', { class: 'yr' }, Array.from({ length: 12 }, (_, mi) => {
       const first = D.num(Y, mi + 1, 1), lead = (D.dow(first) - S.weekStart + 7) % 7, n = D.daysIn(Y, mi + 1);
       return h('section', { class: 'mini' }, h('h4', null, h('button', { type: 'button', onClick: () => { ui.anchor = first; ui.view = 'month'; A.route(); } }, D.MON[mi])),
-        h('div', { class: 'mini-grid' }, Array.from({ length: 7 }, (_, i) => h('b', null, D.DOW3[(S.weekStart + i) % 7][0])), Array.from({ length: lead }, () => h('span')), Array.from({ length: n }, (_, i) => { const d = first + i; return h('button', { type: 'button', class: d === t0 ? 'today' : '', style: { '--heat': Math.min(cnt[d] || 0, 6) }, 'aria-label': D.long(d) + ', ' + (cnt[d] || 0) + ' events', onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, i + 1); })));
+        h('div', { class: 'mini-grid' }, Array.from({ length: 7 }, (_, i) => h('b', null, D.DOW3[(S.weekStart + i) % 7][0])), Array.from({ length: lead }, () => h('span')), Array.from({ length: n }, (_, i) => { const d = first + i; return h('button', { type: 'button', class: (d === t0 ? 'today' : '') + (A.isHoliday(d) ? ' hol' : ''), title: A.holiday(d).map(x => x.name).join(' · '), style: { '--heat': Math.min(cnt[d] || 0, 6) }, 'aria-label': D.long(d) + ', ' + (cnt[d] || 0) + ' events', onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, i + 1); })));
     })));
   }
 
@@ -2576,8 +2668,8 @@ a { color: inherit; }
       const term = q.value.trim().toLowerCase(); ui.q = q.value; wrap.replaceChildren();
       const L = term ? occs.filter(o => (o.title + ' ' + (o.ev.people || '') + ' ' + (o.ev.loc || '') + ' ' + (o.ev.notes || '')).toLowerCase().includes(term)) : occs;
       if (!L.length) return wrap.append(A.empty('Nothing here', 'No events in the next 30 days match.'));
-      const g = {}; L.forEach(o => (g[o.day] = g[o.day] || []).push(o));
-      Object.keys(g).sort((a, b) => a - b).forEach(d => { d = +d; wrap.append(h('div', { class: 'ag-day' + (d === t0 ? ' today' : '') }, h('div', { class: 'dl num' }, D.ymd(d).d, h('small', null, D.DOW3[D.dow(d)] + ' · ' + D.MON3[D.ymd(d).m - 1])), h('div', { class: 'list' }, g[d].map(o => { const c = evChip(o); if (bad.has(o.key)) c.append(h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'Conflict')); return c; })))); });
+      const g = {}; L.forEach(o => (g[o.day] = g[o.day] || []).push(o)); if (!term) A.holidays(from, to).forEach(x => { g[x.day] = g[x.day] || []; g[x.day].hol = (g[x.day].hol || []).concat([x]); });
+      Object.keys(g).sort((a, b) => a - b).forEach(d => { d = +d; wrap.append(h('div', { class: 'ag-day' + (d === t0 ? ' today' : '') }, h('div', { class: 'dl num' }, D.ymd(d).d, h('small', null, D.DOW3[D.dow(d)] + ' · ' + D.MON3[D.ymd(d).m - 1])), h('div', { class: 'list' }, (g[d].hol || []).map(x => h('div', { class: 'warn', title: x.fa }, A.ico('flag'), h('span', null, x.name))), g[d].map(o => { const c = evChip(o); if (bad.has(o.key)) c.append(h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'Conflict')); return c; })))); });
     };
     q.addEventListener('input', A.debounce(draw, 120)); body.append(q, wrap); draw();
   }
@@ -2596,7 +2688,7 @@ a { color: inherit; }
     const S = A.settings(), buf = S.buffer == null ? 10 : S.buffer, av = A.db.data.avail, t0 = from == null ? D.today() : from, out = [], nowM = D.nowMin();
     const occs = E.expand(t0, t0 + days);
     for (let d = t0; d < t0 + days; d++) {
-      const dw = D.dow(d), slots = (av[dw] || []).slice().sort((a, b) => a - b); if (!slots.length || E.awayOn(d)) continue;
+      const dw = D.dow(d), slots = (av[dw] || []).slice().sort((a, b) => a - b); if (!slots.length || E.awayOn(d) || (S.holidayBlock !== false && A.isHoliday(d))) continue;
       let ranges = [], s = null, p = null;                                    // contiguous half-hour slots → ranges
       slots.forEach(i => { if (s == null) { s = i; p = i; } else if (i === p + 1) p = i; else { ranges.push([s * 30, (p + 1) * 30]); s = i; p = i; } }); if (s != null) ranges.push([s * 30, (p + 1) * 30]);
       if (d === t0) ranges = ranges.map(([a, b]) => [Math.max(a, Math.ceil((nowM + 15) / 15) * 15), b]).filter(([a, b]) => b > a);
@@ -3060,7 +3152,7 @@ a { color: inherit; }
   document.addEventListener('visibilitychange', () => { if (document.hidden && A.db.data) A.flush(); });
 
   A.start = function () {
-    A.applyTheme(); idle = Date.now(); if (!built) build(); E.startReminders();
+    A.applyTheme(); idle = Date.now(); if (!built) build(); E.startReminders(); if (A.faInit) A.faInit();
     if (!location.hash) history.replaceState(null, '', '#/today'); A.route();
   };
 })();
@@ -5498,10 +5590,10 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       const sz = saved.tamanos || {}; order.forEach(k => { const v = Array.isArray(sz) ? sz[order.indexOf(k)] : sz[k]; if (typeof v === 'number' && SIZE[v]) cards[k].size = SIZE[v]; else if (typeof v === 'string' && /^\dx\d$/.test(v)) cards[k].size = v; });
       const quick = h('input', { type: 'text', dir: 'auto', placeholder: 'Quick add: “Lunch with Sarah tomorrow 1pm 90m”', 'aria-label': 'Quick add event', autocomplete: 'off', class: 'noprint' });
       quick.addEventListener('keydown', ev => { if (ev.key !== 'Enter' || !quick.value.trim()) return; const p = E.parse(quick.value); quick.value = ''; E.edit(null, { title: p.title, date: D.iso(p.day), start: p.start != null ? p.start : undefined, dur: p.dur || undefined, cat: p.cat, allDay: p.cat === 'away' }); });
-      const away = all.find(o => o.allDay && (o.cat === 'away' || o.cat === 'travel'));
+      const away = all.find(o => o.allDay && (o.cat === 'away' || o.cat === 'travel')), hol = A.holiday(t0);
       const board = mkEl('<main class="ac-escena" data-acomodo><header class="ac-cab-pagina"><div class="ac-titulo"><p class="ac-hint"><span class="ac-solo-raton">Drag cards to arrange your day · drag the corner to resize · double-click a card to open it.</span><span class="ac-solo-tactil">Press and hold a card to move it.</span></p></div><div class="ac-acciones"><p class="ac-estado" data-estado="guardado"><span class="ac-estado-ico" aria-hidden="true"><svg class="ac-estado-giro" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="26 18"/></svg><svg class="ac-estado-ok" viewBox="0 0 20 20"><path d="M4.5 10.5l3.4 3.4 7.6-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="ac-estado-tx" data-estado-tx>Saved</span></p><button class="ac-reset is-quieto" type="button" data-restablece aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.5 14a7.5 7.5 0 1 0 2-7.7L4 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Reset</button></div></header><div class="ac-bandeja"><div class="ac-tablero" role="list" aria-label="Board of cards">' + order.map(k => card(cards[k])).join('') + '</div></div><p class="ac-vivo" aria-live="polite" data-vivo></p></main>');
       root.classList.add('mx-wrap');
-      root.append(h('div', { class: 'stack', style: { gap: '12px' } }, quick, away ? h('div', { class: 'warn', style: { background: 'var(--c-travel)', color: 'var(--ink)' } }, A.ico('globe'), h('span', null, 'Executive is away today: ' + away.title)) : null, board));
+      root.append(h('div', { class: 'stack', style: { gap: '12px' } }, quick, hol.length ? h('div', { class: 'warn', title: hol[0].fa }, A.ico('flag'), h('span', null, 'Holiday today: ' + hol.map(x => x.name).join(' · '))) : null, away ? h('div', { class: 'warn', style: { background: 'var(--c-travel)', color: 'var(--ink)' } }, A.ico('globe'), h('span', null, 'Executive is away today: ' + away.title)) : null, board));
       const GO = { month: 'calendar', note: 'notes', timer: 'timer', next: 'calendar', schedule: 'calendar', requests: 'requests', tasks: 'tasks', visitors: 'people', week: 'calendar', free: 'availability', clock: 'timer', overlaps: 'calendar' };
       board.addEventListener('dblclick', e => { const c = e.target.closest('.ac-card'); if (c && GO[c.dataset.id]) location.hash = '#/' + GO[c.dataset.id]; });
       let first = true;
@@ -5590,6 +5682,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       if (on.desktop && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
       Object.assign(S, set); A.save('settings'); A.applyTheme(); return Promise.resolve();
     } });
+    root.append(A.prefCards());
   }
   A.views.settings = {
     title: 'Settings', sub: 'Appearance, preferences, security and backups',
@@ -5750,6 +5843,201 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     actions: () => [h('div', { class: 'seg', role: 'tablist' }, [['themes', 'Themes'], ['colours', 'Colours'], ['fonts', 'Fonts'], ['library', 'Moxen library'], ['guide', 'Style scale']].map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': lab.tab === k, onClick: () => { lab.tab = k; lab.q = ''; A.route(); } }, n)))],
     render(root) { ({ themes: themesTab, colours: coloursTab, fonts: fontsTab, library: libraryTab, guide: guideTab })[lab.tab](root); },
   };
+})();
+
+/* ===== js/farsi.js ===== */
+/* Aide · Description Farsi — Persian help for an English interface (Settings → Description Farsi).
+   1) Hold the mouse (or press and hold on touch) on any word or text: a small box beside the
+      pointer shows its Persian. Built-in dictionary first (instant, private); an optional online
+      fallback (MyMemory, free) covers unknown words and your own text.
+   2) A one-line bar at the bottom explains the hovered section: what it is and how it works. */
+(function () {
+  'use strict';
+  const A = window.Aide, { h } = A;
+
+  /* ── dictionary: words ────────────────────────────────────────────── */
+  const W = {};
+  ('about=درباره|above=بالا|account=حساب|accent=رنگ تأکید|add=افزودن|added=اضافه شد|afternoon=بعدازظهر|again=دوباره|agenda=دستورکار|ago=پیش|agreement=قرارداد|ahead=جلوتر|airport=فرودگاه|all=همه|allow=اجازه دادن|always=همیشه|and=و|annual=سالانه|anyone=هرکس|appearance=ظاهر|application=برنامه|applied=اعمال شد|appointment=قرار ملاقات|approve=تأیید|approved=تأیید شده|april=آوریل|article=مقاله|assistant=دستیار|auto=خودکار|availability=زمان‌های آزاد|available=در دسترس|away=غایب|back=بازگشت|background=پس‌زمینه|backup=پشتیبان|bar=نوار|before=قبل از|behind=عقب|below=پایین|between=بین|block=مسدود کردن|blocked=مسدود|board=تابلو|boardroom=اتاق هیئت‌مدیره|booking=رزرو|brief=خلاصه|briefing=جلسهٔ توجیهی|browser=مرورگر|buffer=فاصلهٔ ایمنی|business=کسب‌وکار|busiest=شلوغ‌ترین|button=دکمه|calendar=تقویم|call=تماس|cancel=لغو|cancelled=لغو شد|card=کارت|category=دسته|categories=دسته‌ها|chair=رئیس|change=تغییر|check=بررسی|check-in=ثبت ورود|checklist=فهرست کارها|chief=ارشد|choose=انتخاب کنید|cities=شهرها|city=شهر|clear=پاک کردن|clock=ساعت|clocks=ساعت‌ها|close=بستن|closing=پایانی|colour=رنگ|colours=رنگ‌ها|color=رنگ|command=فرمان|company=شرکت|complete=تکمیل|completed=انجام شد|confirm=تأیید|confirmed=قطعی|conflict=تداخل|conflicts=تداخل‌ها|contact=مخاطب|contacts=مخاطبین|continue=ادامه|convert=تبدیل|copy=کپی|copied=کپی شد|count=تعداد|countdown=شمارش معکوس|create=ساخت|custom=سفارشی|daily=روزانه|dark=تیره|date=تاریخ|dates=تاریخ‌ها|day=روز|days=روزها|dear=جناب|deadline=مهلت|december=دسامبر|decline=رد کردن|declined=رد شد|default=پیش‌فرض|delegate=واگذاری|delegated=واگذار شده|delete=حذف|deleted=حذف شد|desk=میز کار|desktop=رومیزی|details=جزئیات|device=دستگاه|dinner=شام|discussion=بحث|display=نمایش|done=انجام شد|double=دوبل|download=دانلود|drag=کشیدن|drop=رها کردن|due=سررسید|duplicate=تکثیر|each=هر|edit=ویرایش|editing=در حال ویرایش|email=ایمیل|empty=خالی|encrypted=رمزگذاری‌شده|end=پایان|ends=پایان|enter=ورود|erase=پاک کردن|errands=کارهای بیرون|evening=عصر|event=رویداد|events=رویدادها|every=هر|everything=همه‌چیز|everywhere=همه‌جا|example=مثال|executive=مدیرعامل|expected=مورد انتظار|export=خروجی|expression=عبارت|extend=تمدید|factory=کارخانه|family=خانواده|february=فوریه|file=فایل|filter=فیلتر|finished=تمام شد|first=اول|fixed=ثابت|flexible=انعطاف‌پذیر|flight=پرواز|focus=تمرکز|follow=پیگیری|follow-ups=پیگیری‌ها|font=فونت|fonts=فونت‌ها|for=برای|forecast=پیش‌بینی|forever=برای همیشه|free=آزاد|friday=جمعه|from=از|full=کامل|general=عمومی|give=دادن|good=خوب|grid=شبکه|group=گروه|guide=راهنما|heading=عنوان|headings=عنوان‌ها|hidden=پنهان|hide=پنهان کردن|high=بالا|hijri=هجری قمری|hiring=استخدام|hold=نگه داشتن|holiday=تعطیلی|holidays=تعطیلات|home=خانه|hour=ساعت|hours=ساعت‌ها|how=چگونه|important=مهم|import=ورود اطلاعات|inactivity=عدم فعالیت|inbox=صندوق ورودی|insurance=بیمه|internal=داخلی|interview=مصاحبه|investor=سرمایه‌گذار|investors=سرمایه‌گذاران|invitation=دعوت‌نامه|item=مورد|items=موارد|january=ژانویه|journalist=خبرنگار|july=ژوئیه|june=ژوئن|key=کلید|kind=نوع|label=برچسب|lane=مسیر|lap=دور|last=آخر|later=بعداً|leadership=رهبری|left=باقی‌مانده|legal=حقوقی|length=طول|letters=حروف|library=کتابخانه|light=روشن|line=خط|lines=خط‌ها|list=فهرست|local=محلی|location=مکان|lock=قفل|locked=قفل شد|log=ثبت|london=لندن|look=ظاهر|lunch=ناهار|main=اصلی|make=ساختن|manage=مدیریت|march=مارس|may=مه|meet=ملاقات|meeting=جلسه|meetings=جلسات|memo=یادداشت|mentoring=مربی‌گری|milestone=نقطهٔ عطف|milestones=نقاط عطف|min=دقیقه|minutes=دقیقه|mode=حالت|monday=دوشنبه|month=ماه|monthly=ماهانه|more=بیشتر|morning=صبح|move=جابه‌جایی|moved=جابه‌جا شد|my=من|name=نام|negotiation=مذاکره|neither=هیچ‌کدام|new=جدید|newsletters=خبرنامه‌ها|next=بعدی|night=شب|none=هیچ|normal=معمولی|not=نه|note=یادداشت|notebook=دفترچه یادداشت|notes=یادداشت‌ها|nothing=هیچ‌چیز|notification=اعلان|notifications=اعلان‌ها|november=نوامبر|now=اکنون|october=اکتبر|office=دفتر|offsite=همایش بیرونی|oldest=قدیمی‌ترین|only=فقط|open=باز کردن|opening=افتتاحیه|organisation=سازمان|other=دیگر|out=خارج|overdue=عقب‌افتاده|overlaps=هم‌پوشانی‌ها|own=خودتان|owner=مسئول|pack=بسته|page=صفحه|panel=پنل|partner=شریک|password=رمز عبور|pause=توقف|paused=متوقف|pending=در انتظار|people=افراد|performance=عملکرد|personal=شخصی|phone=تلفن|pick=انتخاب|pin=سنجاق|pinned=سنجاق‌شده|plan=برنامه|play=پخش|please=لطفاً|preferences=ترجیحات|preferred=ترجیحی|prep=آماده‌سازی|press=فشردن|preview=پیش‌نمایش|previous=قبلی|print=چاپ|priorities=اولویت‌ها|priority=اولویت|profile=پروفایل|projects=پروژه‌ها|promise=تعهد|purpose=هدف|quarter=فصل|quarterly=فصلی|quick=سریع|read=خواندن|reception=پذیرش|reminder=یادآور|reminders=یادآورها|remove=حذف|renew=تمدید|repeat=تکرار|repeating=تکراری|repeats=تکرارها|reply=پاسخ|request=درخواست|requests=درخواست‌ها|reschedule=زمان‌بندی مجدد|reservation=رزرو|reset=بازنشانی|restaurant=رستوران|restore=بازیابی|resume=ادامه|retreat=همایش|review=بررسی|roadmap=نقشهٔ راه|role=نقش|room=اتاق|rule=قانون|running=در حال اجرا|sample=نمونه|saturday=شنبه|save=ذخیره|saved=ذخیره شد|saving=در حال ذخیره|scale=مقیاس|schedule=برنامه زمانی|scheduled=زمان‌بندی‌شده|search=جستجو|second=دوم|section=بخش|security=امنیت|see=مشاهده|select=انتخاب|send=ارسال|september=سپتامبر|series=مجموعه|settings=تنظیمات|shadow=سایه|shapes=شکل‌ها|share=اشتراک‌گذاری|short=کوتاه|show=نمایش|side=کنار|sign=امضا|site=سایت|size=اندازه|skip=رد کردن|slot=بازهٔ زمانی|sound=صدا|sounds=صداها|start=شروع|starts=شروع|status=وضعیت|stop=توقف|stopwatch=کرونومتر|student=دانشجو|style=سبک|summit=نشست|sunday=یکشنبه|supplier=تأمین‌کننده|suppliers=تأمین‌کنندگان|surface=سطح|switch=کلید|tab=زبانه|task=کار|tasks=کارها|tea=چای|team=تیم|template=قالب|templates=قالب‌ها|tentative=موقت|text=متن|theme=تم|themes=تم‌ها|third=سوم|thursday=پنجشنبه|time=زمان|timer=تایمر|timers=تایمرها|title=عنوان|today=امروز|tomorrow=فردا|total=مجموع|tour=بازدید|town=شهر|travel=سفر|trip=سفر|tuesday=سه‌شنبه|type=نوع|unlock=باز کردن قفل|untitled=بدون عنوان|upcoming=پیش‌رو|update=به‌روزرسانی|upload=بارگذاری|urgent=فوری|use=استفاده|username=نام کاربری|vault=گاوصندوق|vibrate=لرزش|view=نمایش|violet=بنفش|visa=ویزا|visit=بازدید|visiting=بازدید|visitor=بازدیدکننده|visitors=بازدیدکنندگان|waiting=در انتظار|wednesday=چهارشنبه|week=هفته|weekday=روز کاری|weekdays=روزهای کاری|weekend=آخر هفته|weekends=آخر هفته‌ها|weekly=هفتگی|welcome=خوش آمدید|what=چه|who=چه کسی|with=با|work=کار|world=جهان|year=سال|yearly=سالانه|yesterday=دیروز|your=شما|zone=منطقه|zoom=بزرگ‌نمایی|' +
+    'pink=صورتی|sky=آبی آسمانی|mint=نعنایی|peach=هلویی|sun=زرد|rose=رز|indigo=نیلی|blue=آبی|coral=مرجانی|amber=کهربایی|graphite=گرافیتی|ice=یخی|candy=آبنباتی|midnight=نیمه‌شب|aurora=شفق|lagoon=تالاب|cacao=کاکائو|accent2=تأکید دوم|fill=پرکننده|strong=پررنگ|base=پایه|soft=ملایم|ink=جوهر|glow=درخشش|glows=درخشش‌ها|radius=گردی گوشه|spacing=فاصله|login=ورود|lock=قفل|sign-in=ورود|backups=پشتیبان‌ها|erased=پاک شد|encrypt=رمزگذاری|decrypt=رمزگشایی|passphrase=عبارت رمز|strength=قدرت|weak=ضعیف|fair=متوسط|strong=قوی|tag=برچسب|tags=برچسب‌ها|users=کاربران|value=مقدار|variables=متغیرها|monthly=ماهانه|cat=دسته|clipboard=کلیپ‌بورد|rehearsal=تمرین|decisions=تصمیم‌ها|town hall=نشست عمومی|kick-off=آغاز|programme=برنامه|supplier=تأمین‌کننده|negotiation=مذاکره|offer=پیشنهاد|cities=شهرها|tokyo=توکیو|paris=پاریس|berlin=برلین|dubai=دبی|tehran=تهران|istanbul=استانبول|moscow=مسکو|cairo=قاهره|mumbai=بمبئی|singapore=سنگاپور|sydney=سیدنی|toronto=تورنتو|chicago=شیکاگو|york=نیویورک|angeles=لس‌آنجلس|paulo=سائوپائولو|shanghai=شانگهای|dentist=دندان‌پزشک|errands=کارهای روزمره|follow=پیگیری').split('|').forEach(p => { const i = p.indexOf('='); if (i > 0) W[p.slice(0, i).trim().toLowerCase()] = p.slice(i + 1).trim(); });
+
+  /* ── dictionary: whole labels ─────────────────────────────────────── */
+  const P = {};
+  ('Today=امروز|Calendar=تقویم|Repeats=تکرارها|Roadmap=نقشهٔ راه|Requests=درخواست‌ها|Availability=زمان‌های آزاد|Tasks=کارها|Notebook=دفترچه یادداشت|Timers=تایمرها|People=افراد|Themes=تم‌ها|Settings=تنظیمات|Search=جستجو|Lock=قفل کردن|' +
+    'New event=رویداد جدید|New request=درخواست جدید|New contact=مخاطب جدید|New note=یادداشت جدید|New theme=تم جدید|Daily brief=خلاصهٔ روزانه|Quick add=افزودن سریع|Day=روز|3 Days=سه روز|Week=هفته|Month=ماه|Year=سال|Agenda=دستورکار|' +
+    'Meeting=جلسه|Visit=بازدید|Call=تماس|Travel=سفر|Personal=شخصی|Focus=تمرکز|Out of office=خارج از دفتر|Save=ذخیره|Cancel=لغو|Delete=حذف|Duplicate=تکثیر|Close=بستن|Done=انجام شد|Reset=بازنشانی|Open=باز کردن|Add=افزودن|Edit=ویرایش|Use=استفاده|Import=ورود اطلاعات|Export=خروجی|Download=دانلود|Copy=کپی|Complete=تکمیل|' +
+    'Approve & schedule=تأیید و زمان‌بندی|Suggest times=پیشنهاد زمان|Decline=رد کردن|Pending=در انتظار|Approved=تأیید شده|Declined=رد شده|High priority=اولویت بالا|' +
+    'Weekly visiting hours=ساعت‌های بازدید هفتگی|Free windows=بازه‌های آزاد|Away & blocked days=روزهای غیبت و مسدود|Block dates=مسدود کردن تاریخ‌ها|Copy 6 times=کپی ۶ زمان|' +
+    'Do now=همین حالا|Schedule=برنامه‌ریزی|Delegate=واگذاری|Drop or later=حذف یا بعداً|List=فهرست|Matrix=ماتریس|Overdue=عقب‌افتاده|Upcoming=پیش‌رو|No date=بدون تاریخ|Completed=انجام‌شده|' +
+    'Countdown=شمارش معکوس|Stopwatch=کرونومتر|Meeting=جلسه|World clocks=ساعت‌های جهانی|Start=شروع|Pause=توقف|Resume=ادامه|Lap / Reset=دور / بازنشانی|Next item=مورد بعدی|Start meeting=شروع جلسه|Meeting agenda=دستورکار جلسه|' +
+    'Appearance & preferences=ظاهر و ترجیحات|Profile & data=پروفایل و داده‌ها|Appearance=ظاهر|Reminders=یادآورها|Security=امنیت|General=عمومی|Theme=تم|Accent colour=رنگ تأکید|Text size=اندازهٔ متن|Reset settings=بازنشانی تنظیمات|' +
+    'Themes=تم‌ها|Colours=رنگ‌ها|Fonts=فونت‌ها|Moxen library=کتابخانهٔ موکسن|Style scale=اسکیل طراحی|Built in=آماده|My themes=تم‌های من|Always light=همیشه روشن|Always dark=همیشه تیره|Follow device=مطابق دستگاه|Copy CSS variables=کپی متغیرهای CSS|Copy theme JSON=کپی JSON تم|Make theme=ساخت تم|Use for headings=استفاده برای عنوان‌ها|Use for text=استفاده برای متن|Use theme fonts=فونت‌های تم|' +
+    'Check in=ثبت ورود|Check out=ثبت خروج|Next up=بعدی|Happening now=هم‌اکنون|This week=این هفته|Free slot=زمان آزاد|Visitors=بازدیدکنندگان|Clock=ساعت|Tentative=موقت|Conflict=تداخل|Confirmed=قطعی|Cancelled=لغو شده|All day=تمام روز|Manage items=مدیریت موارد|Today · 23 Oct=امروز|Progress=پیشرفت|Quarter=فصل|' +
+    'Create secure vault=ساخت گاوصندوق امن|Unlock desk=باز کردن میز کار|Restore backup file=بازیابی فایل پشتیبان|Change password=تغییر رمز عبور|Auto-lock after=قفل خودکار پس از|Sign out=خروج|Load sample data=بارگذاری داده نمونه|Erase everything=پاک کردن همه‌چیز|Download backup=دانلود پشتیبان|' +
+    'Description Farsi=توضیحات فارسی|Executive’s name=نام مدیرعامل|Executive’s title=سمت مدیرعامل|Your role / signature=نقش / امضای شما|Week starts on=شروع هفته|Second calendar=تقویم دوم|Day starts at=شروع روز|Day ends at=پایان روز|Default event length=مدت پیش‌فرض رویداد|Buffer between meetings=فاصله بین جلسات|Default reminder=یادآور پیش‌فرض|Time format=قالب ساعت|' +
+    'Repeats every week=هر هفته تکرار می‌شود|Weekdays=روزهای کاری|Weekends=آخر هفته|Every day=هر روز|Daily=روزانه|Weekly=هفتگی|Monthly=ماهانه|Yearly=سالانه|Reminder time=ساعت یادآوری|Next five=پنج بعدی|Next reminder=یادآور بعدی|Expression=عبارت').split('|').forEach(p => { const i = p.indexOf('='); if (i > 0) P[p.slice(0, i).trim().toLowerCase()] = p.slice(i + 1).trim(); });
+  A.fa = { words: W, phrases: P };
+
+  /* ── what each section is (bottom bar) ────────────────────────────── */
+  const HELP = [
+    ['.toasts, .toast', 'پیام کوتاه: نتیجهٔ آخرین کار شما را نشان می‌دهد. گاهی دکمهٔ «Undo» دارد تا کار را برگردانید.'],
+    ['.sheet .lab-edgrid', 'ویرایشگر تم: هر رنگ را عوض کنید؛ صفحه همان لحظه تغییر می‌کند و بقیهٔ رنگ‌ها خودکار از اینها ساخته می‌شوند.'],
+    ['.sheet', 'پنجرهٔ باز: اطلاعات را پر کنید و با «Save» ذخیره یا با «Cancel» ببندید. کلید Esc هم می‌بندد.'],
+    ['.palette, .pal-list', 'جستجوی سراسری: نام رویداد، مخاطب، یادداشت یا کار را بنویسید؛ با فلش‌ها بروید و Enter بزنید.'],
+    ['.login-form', 'ورود: نام کاربری و رمز بسازید یا وارد شوید. اطلاعات فقط روی همین دستگاه و رمزگذاری‌شده می‌ماند؛ رمز فراموش‌شده قابل بازیابی نیست.'],
+    ['.side .nav a[href="#/today"]', 'امروز: نمای کلی روز؛ کارت‌ها را بکشید تا بچینید، گوشهٔ کارت را بکشید تا بزرگ و کوچک شود.'],
+    ['.side .nav a[href="#/calendar"], .tabbar a[href="#/calendar"]', 'تقویم: روز، سه‌روزه، هفته، ماه، سال و دستورکار؛ رویدادها را بسازید، بکشید و تغییر دهید.'],
+    ['.side .nav a[href="#/repeats"]', 'تکرارها: یک جلسهٔ تکراری مثل «اولین دوشنبهٔ هر ماه» را طراحی و به تقویم اضافه کنید.'],
+    ['.side .nav a[href="#/roadmap"]', 'نقشهٔ راه: پروژه‌ها، سفرها و نقاط عطف سه‌ماههٔ جاری روی یک خط زمان.'],
+    ['.side .nav a[href="#/requests"], .tabbar a[href="#/requests"]', 'درخواست‌ها: درخواست‌های ملاقات و بازدید؛ تأیید و زمان‌بندی کنید یا متن آمادهٔ پاسخ بگیرید.'],
+    ['.side .nav a[href="#/availability"]', 'زمان‌های آزاد: ساعت‌های پذیرش مدیرعامل را رنگ کنید؛ بازه‌های واقعی خالی خودکار محاسبه می‌شود.'],
+    ['.side .nav a[href="#/tasks"]', 'کارها: پیگیری‌ها و واگذاری‌ها، به‌صورت فهرست یا ماتریس اولویت.'],
+    ['.side .nav a[href="#/notes"], .tabbar a[href="#/notes"]', 'دفترچه یادداشت: یادداشت، چک‌لیست و ترجیحات؛ خودکار ذخیره می‌شود و متن فارسی هم پشتیبانی می‌شود.'],
+    ['.side .nav a[href="#/timer"]', 'تایمرها: شمارش معکوس، کرونومتر، تایمر دستورکار جلسه و ساعت‌های جهانی.'],
+    ['.side .nav a[href="#/people"]', 'افراد: مخاطبین، افراد مهم (VIP) و سابقهٔ ملاقات‌ها.'],
+    ['.side .nav a[href="#/themes"]', 'تم‌ها: رنگ، فونت و شکل کل سایت را اینجا بسازید، نمونه‌برداری و همه‌جا اعمال کنید.'],
+    ['.side .nav a[href="#/settings"]', 'تنظیمات: ظاهر، ساعت کاری، قفل خودکار، پشتیبان‌گیری، تقویم شمسی و تعطیلات.'],
+    ['.side-foot, .who', 'کاربر فعلی. «Lock» میز کار را قفل می‌کند و برای ورود دوباره رمز لازم است.'],
+    ['.side .btn[onclick], .side > button', 'جستجوی سراسری (Ctrl/⌘ + K).'],
+    ['.tabbar', 'نوار پایین گوشی: برای رفتن بین بخش‌های اصلی؛ «More» بقیهٔ بخش‌ها را باز می‌کند.'],
+    ['.ac-card[data-id="next"]', 'کارت «بعدی»: رویداد بعدی امروز و میزان پیشرفت روز.'],
+    ['.ac-card[data-id="schedule"]', 'کارت «امروز»: فهرست رویدادهای امروز؛ گذشته‌ها تیک خورده‌اند.'],
+    ['.ac-card[data-id="requests"]', 'کارت درخواست‌ها: تعداد درخواست‌های منتظر پاسخ. دابل‌کلیک صفحهٔ درخواست‌ها را باز می‌کند.'],
+    ['.ac-card[data-id="tasks"]', 'کارت کارها: کارهای سررسید امروز یا عقب‌افتاده. دابل‌کلیک صفحهٔ کارها را باز می‌کند.'],
+    ['.ac-card[data-id="visitors"]', 'کارت بازدیدکنندگان: چند نفر امروز می‌آیند و چند نفر ثبت ورود شده‌اند.'],
+    ['.ac-card[data-id="week"]', 'کارت هفته: تعداد رویدادهای هر روز این هفته.'],
+    ['.ac-card[data-id="free"]', 'کارت زمان آزاد: نزدیک‌ترین بازهٔ خالی برای یک ملاقات سی‌دقیقه‌ای.'],
+    ['.ac-card[data-id="clock"]', 'کارت ساعت: ساعت آنالوگ زنده؛ در اندازهٔ بزرگ ساعت شهرهای انتخابی را هم نشان می‌دهد.'],
+    ['.ac-card[data-id="month"]', 'کارت ماه: تقویم کوچک با نقطهٔ رویدادها و امروز پررنگ.'],
+    ['.ac-card[data-id="note"]', 'کارت دفترچه: تعداد یادداشت‌ها و یادداشت سنجاق‌شده.'],
+    ['.ac-card[data-id="timer"]', 'کارت تایمر: وضعیت زنده‌ی شمارش معکوس؛ از صفحهٔ تایمرها شروع می‌شود.'],
+    ['.ac-card[data-id="overlaps"]', 'کارت هم‌پوشانی: تعداد جلسات هم‌زمان این هفته (دوبل‌بوکینگ).'],
+    ['.ac-card', 'کارت قابل‌جابه‌جایی: بکشید تا جایش عوض شود؛ گوشهٔ پایین‌راست را بکشید تا اندازه عوض شود؛ دابل‌کلیک صفحهٔ مربوط را باز می‌کند.'],
+    ['.ac-reset, .ac-estado', 'چیدمان کارت‌ها خودکار ذخیره می‌شود. «Reset» چیدمان اصلی را برمی‌گرداند.'],
+    ['.cal-head .seg', 'نوع نمایش تقویم: روز، سه‌روزه، هفته، ماه، سال یا دستورکار.'],
+    ['.cal-filter .chip', 'فیلتر دسته‌ها: با کلیک، رویدادهای آن دسته را نشان یا پنهان کنید.'],
+    ['.cal-filter input, .quick', 'افزودن سریع: جمله‌ای مثل «Lunch with Sarah tomorrow 1pm 90m» بنویسید و Enter بزنید.'],
+    ['.ev', 'رویداد: بکشید تا جابه‌جا شود، لبهٔ پایین را بکشید تا طولش عوض شود، کلیک کنید تا ویرایش شود. علامت قرمز یعنی تداخل.'],
+    ['.tg-col', 'ستون روز: روی ساعت خالی کلیک کنید یا بکشید تا رویداد جدید بسازید.'],
+    ['.tg-head, .tg-day', 'سرستون روزها: روی روز کلیک کنید تا نمای روز باز شود. زیر هر روز تاریخ شمسی هم نوشته شده است.'],
+    ['.mo-cell', 'روز تقویم ماهانه: کلیک برای دیدن روز؛ دابل‌کلیک برای رویداد جدید. تعطیلات با رنگ قرمز مشخص‌اند.'],
+    ['.mini-grid', 'ماه کوچک: هر روز با رنگ پررنگ‌تر یعنی رویداد بیشتر؛ کلیک برای رفتن به آن روز.'],
+    ['.ag-day', 'دستورکار: فهرست رویدادهای ۳۰ روز آینده به ترتیب زمان.'],
+    ['.av-grid', 'جدول ساعت‌های بازدید: روی خانه‌ها بکشید تا ساعت‌های پذیرش را رنگ یا پاک کنید؛ هر خانه سی‌دقیقه است.'],
+    ['.slot', 'بازهٔ خالی واقعی: ساعت‌های پذیرش منهای جلسات. با «Book» رویداد بسازید.'],
+    ['.req', 'درخواست ملاقات: تأیید و زمان‌بندی، پیشنهاد زمان یا رد با متن آمادهٔ پاسخ.'],
+    ['.matrix, .quad', 'ماتریس اولویت: کارها را با دستگیرهٔ ⋮⋮ بین چهار ناحیه بکشید: همین حالا، برنامه‌ریزی، واگذاری، حذف.'],
+    ['.task', 'کار: دایره را بزنید تا انجام شود؛ روی عنوان بزنید تا ویرایش شود.'],
+    ['.nlist, .nitem', 'فهرست یادداشت‌ها: روی هر یادداشت بزنید تا باز شود؛ یادداشت‌های سنجاق‌شده بالا هستند.'],
+    ['.neditor', 'ویرایشگر یادداشت: هر چه بنویسید خودکار ذخیره می‌شود. دکمه‌های Checklist، Bullet و Time کمک می‌کنند.'],
+    ['.dial', 'صفحهٔ شمارش معکوس: دور آن را بکشید تا دقیقه تنظیم شود؛ «Start» شروع می‌کند.'],
+    ['.clock', 'ساعت جهانی: ساعت و اختلاف با زمان محلی شما.'],
+    ['.hero', 'خلاصهٔ مهم‌ترین چیز بعدی روز شما.'],
+    ['.warn', 'هشدار: موضوعی که باید به آن توجه کنید، مثل تداخل جلسات یا غیبت مدیرعامل.'],
+    ['.lab-card', 'کارت تم: «Use» آن را همه‌جا اعمال می‌کند؛ «Duplicate» نسخهٔ قابل‌ویرایش می‌سازد.'],
+    ['.lab-sw', 'نمونهٔ رنگ: بزنید تا کد رنگ کپی شود.'],
+    ['.lab-font', 'فونت: «Use for headings» برای عنوان‌ها و «Use for text» برای متن‌ها همه‌جا اعمال می‌کند.'],
+    ['.lab-lcard, .lab-lib', 'کتابخانهٔ موکسن: رنگ‌ها و فونت‌های هر قالب؛ «Make theme» آن را به تم قابل‌ویرایش تبدیل می‌کند.'],
+    ['.sp-cards, .sp-card, .sp-lane, .sp-box', 'نمونه‌های اسکیل طراحی با تم فعلی.'],
+    ['.sn-escena', 'تنظیمات ظاهر: تم روشن/تیره، اندازهٔ متن، شروع هفته، قفل خودکار و اعلان‌ها. تغییرات خودکار ذخیره می‌شوند.'],
+    ['.rc-escena', 'طراح تکرار: تناوب را انتخاب کنید، جمله و تقویم پیش‌نمایش همان لحظه عوض می‌شود؛ «Save» رویداد را به تقویم می‌برد.'],
+    ['.it-escena', 'نقشهٔ راه: میله‌ها را بکشید یا از لبه کش بدهید؛ پایین پیشرفت هر مورد را تنظیم کنید.'],
+    ['.sett', 'تنظیمات پروفایل، ساعت کاری، قفل خودکار، پشتیبان و تعطیلات.'],
+    ['.empty', 'در حال حاضر چیزی برای نمایش نیست.'],
+    ['.card', 'کارت اطلاعات.'],
+    ['.topbar', 'نوار عنوان صفحه و دکمه‌های کاری آن.'],
+    ['.main', 'محتوای اصلی صفحه.'],
+  ];
+  A.fa.help = HELP;
+
+  /* ── engine ───────────────────────────────────────────────────────── */
+  const cacheKey = 'aide.fa.cache';
+  let cache = {}; try { cache = JSON.parse(localStorage.getItem(cacheKey) || '{}'); } catch (e) { cache = {}; }
+  const norm = s => s.replace(/\s+/g, ' ').trim();
+  const lookupWord = w => W[w.toLowerCase().replace(/[’']s$/, '')] || W[w.toLowerCase().replace(/(ing|ed|es|s)$/, '')] || null;
+  const lookupPhrase = t => P[norm(t).toLowerCase()] || null;
+  async function online(text) {
+    const k = text.toLowerCase(); if (cache[k]) return cache[k];
+    try {
+      const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.slice(0, 400)) + '&langpair=en|fa'), j = await r.json(), t = j && j.responseData && j.responseData.translatedText;
+      if (t && !/MYMEMORY WARNING|QUERY LENGTH/i.test(t)) { cache[k] = t; const ks = Object.keys(cache); if (ks.length > 800) delete cache[ks[0]]; try { localStorage.setItem(cacheKey, JSON.stringify(cache)); } catch (e) { /* full */ } return t; }
+    } catch (e) { /* offline */ }
+    return null;
+  }
+  const isEnglish = s => /[A-Za-z]{2}/.test(s) && !/[\u0600-\u06FF]/.test(s);
+
+  let tip, bar, enabled = false, timer = 0, lastKey = '', lastHelp = '', token = 0;
+  const ensure = () => {
+    if (!tip) { tip = h('div', { class: 'fa-tip', dir: 'rtl', hidden: true, 'aria-hidden': 'true' }); document.body.append(tip); }
+    if (!bar) { bar = h('div', { class: 'fa-bar', dir: 'rtl', role: 'status' }, h('span', { class: 'fa-bar-t' }, 'توضیحات فارسی: ماوس را روی هر بخش نگه دارید.')); document.body.append(bar); }
+  };
+  A.faEnable = function (on) {
+    enabled = !!on; document.documentElement.classList.toggle('fa-on', enabled); ensure(); bar.hidden = !enabled; if (!enabled) tip.hidden = true;
+    if (enabled) A.loadFont && A.loadFont('Vazirmatn');
+  };
+
+  function wordAt(x, y) {
+    let node = null, off = 0;
+    if (document.caretRangeFromPoint) { const r = document.caretRangeFromPoint(x, y); if (r) { node = r.startContainer; off = r.startOffset; } }
+    else if (document.caretPositionFromPoint) { const p = document.caretPositionFromPoint(x, y); if (p) { node = p.offsetNode; off = p.offset; } }
+    if (!node || node.nodeType !== 3) return null;
+    const t = node.textContent; let a = off, b = off; const isW = c => /[A-Za-z0-9’'-]/.test(c || '');
+    while (a > 0 && isW(t[a - 1])) a--; while (b < t.length && isW(t[b])) b++;
+    const w = t.slice(a, b).replace(/^[-’']+|[-’']+$/g, '');
+    if (!w) return null;
+    const r2 = document.createRange(); r2.setStart(node, a); r2.setEnd(node, b); const bx = r2.getBoundingClientRect();
+    if (x < bx.left - 4 || x > bx.right + 4 || y < bx.top - 4 || y > bx.bottom + 4) return null;       // the pointer is not really on this word
+    return { w, node };
+  }
+  function textOf(el) {
+    for (let e = el; e && e !== document.body; e = e.parentElement) {
+      if (e.matches('input,textarea,select')) return norm(e.placeholder || e.getAttribute('aria-label') || '');
+      const t = norm(e.getAttribute('aria-label') && !e.textContent.trim() ? e.getAttribute('aria-label') : e.textContent || '');
+      if (t && t.length <= 160 && (e.matches('button,a,label,h1,h2,h3,h4,p,li,span,b,small,strong,em,td,th,summary,.pill,.chip,.ev,.t') || e.children.length < 4)) return t;
+    }
+    return '';
+  }
+  function helpFor(el) { for (const [sel, txt] of HELP) { try { const m = el.closest(sel); if (m) return txt; } catch (e) { /* bad selector */ } } return ''; }
+
+  async function show(x, y, el, wd) {
+    const my = ++token, S = A.settings(), lines = [];
+    const phrase = textOf(el);
+    let main = phrase && isEnglish(phrase) ? lookupPhrase(phrase) : null;
+    const word = wd && wd.w, wfa = word ? lookupWord(word) : null;
+    if (!main && phrase && phrase.split(' ').length > 1 && phrase.length <= 160 && isEnglish(phrase) && S.faOnline) { tip.hidden = false; place(x, y, '…'); main = await online(phrase); if (my !== token) return; }
+    if (!wfa && word && isEnglish(word) && S.faOnline && !main) { const w2 = await online(word); if (my !== token) return; if (w2) lines.push(['w', word, w2]); }
+    if (main) lines.push(['p', phrase, main]);
+    if (wfa && (!main || norm(phrase).toLowerCase() !== word.toLowerCase())) lines.push(['w', word, wfa]);
+    if (!lines.length) { if (word && isEnglish(word)) lines.push(['n', word, S.faOnline ? 'ترجمه‌ای پیدا نشد' : 'در فرهنگ لغت نیست — «ترجمهٔ آنلاین» را در تنظیمات روشن کنید']); else { tip.hidden = true; return; } }
+    tip.replaceChildren(...lines.map(([k, en, fa]) => h('div', { class: 'fa-l fa-' + k }, k === 'n' ? fa : h('b', { dir: 'ltr' }, en), k === 'n' ? null : h('span', null, ' ← ' + fa)))); tip.hidden = false; place(x, y);
+  }
+  function place(x, y, txt) {
+    if (txt) tip.replaceChildren(h('div', { class: 'fa-l' }, txt));
+    const w = tip.offsetWidth || 160, hh = tip.offsetHeight || 40; let left = x + 14, top = y + 18;
+    if (left + w > innerWidth - 8) left = Math.max(8, x - w - 12); if (top + hh > innerHeight - 40) top = Math.max(8, y - hh - 14);
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  }
+  function setBar(txt) { if (bar && txt !== lastHelp) { lastHelp = txt; bar.firstChild.textContent = txt || 'توضیحات فارسی: ماوس را روی هر بخش نگه دارید.'; } }
+
+  document.addEventListener('pointermove', e => {
+    if (!enabled || (e.pointerType === 'touch')) return; if (e.target.closest && e.target.closest('.fa-tip,.fa-bar')) return;
+    ensure(); const el = e.target; setBar(helpFor(el));
+    clearTimeout(timer); const x = e.clientX, y = e.clientY, key = Math.round(x / 6) + ':' + Math.round(y / 6); if (key !== lastKey) { tip.hidden = true; token++; lastKey = key; }
+    timer = setTimeout(() => { const wd = wordAt(x, y); show(x, y, el, wd); }, 520);
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => { if (tip) tip.hidden = true; clearTimeout(timer); }, true);
+  document.addEventListener('pointerdown', () => { if (tip) tip.hidden = true; clearTimeout(timer); token++; }, true);
+  document.addEventListener('scroll', () => { if (tip) tip.hidden = true; }, true);
+  // touch: press and hold on plain text
+  let tt = 0;
+  document.addEventListener('touchstart', e => {
+    if (!enabled) return; const t = e.touches[0], el = e.target; ensure(); setBar(helpFor(el));
+    if (el.closest('.ev,.ac-card,input,textarea,select,.tg-col,.av-grid,.dial')) return;
+    clearTimeout(tt); tt = setTimeout(() => show(t.clientX, t.clientY, el, wordAt(t.clientX, t.clientY)).then(() => setTimeout(() => { tip.hidden = true; }, 3500)), 650);
+  }, { passive: true });
+  ['touchend', 'touchmove', 'touchcancel'].forEach(n => document.addEventListener(n, () => clearTimeout(tt), { passive: true }));
+  A.on('theme', () => { /* styles use CSS variables */ });
+  window.addEventListener('hashchange', () => { if (tip) tip.hidden = true; clearTimeout(timer); token++; });
+  A.faInit = () => A.faEnable(A.settings().faOn);
 })();
 
 
