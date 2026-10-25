@@ -122,7 +122,7 @@ input::placeholder, textarea::placeholder { color: var(--faint); opacity: .8; }
 .nav a:hover { background: var(--line-fine); }
 .nav a[aria-current=page] { color: var(--ink); background: var(--canvas); box-shadow: 0 1px 0 var(--rim) inset, 0 8px 16px -10px var(--shadow-soft); }
 .nav a[aria-current=page] .icon { color: var(--accent-ink); }
-.nav .badge { margin-left: auto; }
+.nav .badge { margin-inline-start: auto; }
 .side-foot { margin-top: auto; display: grid; gap: 8px; padding: 12px 8px 2px; border-top: 1px solid var(--line-fine); }
 .who { display: flex; align-items: center; gap: 10px; font-size: 13.5px; } .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--c-focus); color: var(--ink); flex: none; }
 .main { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; border-radius: var(--radius); background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 40px 70px -44px var(--shadow); overflow: hidden; }
@@ -141,10 +141,10 @@ input::placeholder, textarea::placeholder { color: var(--faint); opacity: .8; }
 .row { display: flex; align-items: center; gap: 10px; } .row.wrap { flex-wrap: wrap; } .grow { flex: 1; min-width: 0; } .muted { color: var(--faint); } .small { font-size: 13px; }
 .stack { display: grid; gap: 8px; }
 .empty { display: grid; justify-items: center; gap: 6px; padding: 28px 12px; color: var(--faint); text-align: center; } .empty b { color: var(--soft); font-family: var(--f-display); font-size: 16px; }
-.item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; text-align: left; width: 100%; transition: background .2s; }
+.item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; text-align: start; width: 100%; transition: background .2s; }
 button.item:hover, .item.hov:hover { background: var(--line-fine); }
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--c, var(--line-fine)); color: var(--ink); }
-.ev-chip { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; border-radius: 14px; background: var(--c); border-left: 4px solid var(--b); text-align: left; width: 100%; font-size: 13.5px; }
+.ev-chip { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; border-radius: 14px; background: var(--c); border-left: 4px solid var(--b); text-align: start; width: 100%; font-size: 13.5px; }
 .ev-chip small { color: var(--soft); display: block; font-size: 12px; } .ev-chip .t { font-weight: 700; display: block; }
 .hero { position: relative; padding: 22px; border-radius: 28px; overflow: hidden; color: var(--hero-ink, #fff); background: linear-gradient(135deg, var(--hero-a, #c85428), var(--hero-b, #7c2d0d)); box-shadow: 0 30px 40px -28px var(--shadow); }
 .hero::after { content: ""; position: absolute; right: -40px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,214,170,.5), transparent); pointer-events: none; }
@@ -166,12 +166,12 @@ button.item:hover, .item.hov:hover { background: var(--line-fine); }
 .tg-allday > div { border-left: 1px solid var(--line-fine); padding: 2px; display: grid; gap: 2px; align-content: start; min-width: 0; } .tg-allday .ev-chip { padding: 3px 8px; font-size: 12px; border-radius: 8px; }
 .tg-scroll { flex: 1; min-height: 0; overflow-y: auto; position: relative; overscroll-behavior: contain; }
 .tg { position: relative; display: grid; grid-template-columns: 56px repeat(var(--cols), 1fr); height: calc(var(--hour) * var(--hours)); }
-.tg-hours { position: relative; } .tg-hours span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 11.5px; color: var(--faint); } .tg-hours span:first-child { transform: none; }
+.tg-hours { position: relative; } .tg-hours span { position: absolute; inset-inline-end: 8px; transform: translateY(-50%); font-size: 11.5px; color: var(--faint); } .tg-hours span:first-child { transform: none; }
 .tg-col { position: relative; border-left: 1px solid var(--line-fine); touch-action: pan-y; background-image: linear-gradient(var(--line-fine) 1px, transparent 1px); background-size: 100% var(--hour); }
 .tg-col.today { background-color: var(--today-bg); } .tg-col.wknd { background-color: var(--weekend); }
 .tg-col .off { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(135deg, var(--line-fine) 0 6px, transparent 6px 12px); pointer-events: none; }
 .now-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--accent); z-index: 4; pointer-events: none; } .now-line::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
-.ev { position: absolute; z-index: 2; left: calc(var(--l) * 1%); width: calc(var(--w) * 1% - 3px); padding: 5px 8px; border-radius: 12px; background: var(--c); border-left: 4px solid var(--b); text-align: left; overflow: hidden; font-size: 12.5px; line-height: 1.25; touch-action: pan-y; user-select: none; -webkit-user-select: none; box-shadow: 0 1px 0 var(--rim) inset, 0 6px 12px -8px var(--shadow); cursor: grab; }
+.ev { position: absolute; z-index: 2; inset-inline-start: calc(var(--l) * 1%); width: calc(var(--w) * 1% - 3px); padding: 5px 8px; border-radius: 12px; background: var(--c); border-left: 4px solid var(--b); text-align: start; overflow: hidden; font-size: 12.5px; line-height: 1.25; touch-action: pan-y; user-select: none; -webkit-user-select: none; box-shadow: 0 1px 0 var(--rim) inset, 0 6px 12px -8px var(--shadow); cursor: grab; }
 .ev .t { font-weight: 700; display: block; overflow: hidden; text-overflow: ellipsis; } .ev .m { color: var(--soft); font-size: 11.5px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ev.tent { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.35) 0 5px, transparent 5px 10px); border-left-style: dashed; }
 .ev.conflict { outline: 2px solid var(--danger); outline-offset: -2px; } .ev.conflict::after { content: "!"; position: absolute; right: 6px; top: 4px; width: 16px; height: 16px; border-radius: 50%; font: 800 11px/16px var(--f-text); text-align: center; background: var(--danger); color: var(--canvas); }
@@ -182,7 +182,7 @@ button.item:hover, .item.hov:hover { background: var(--line-fine); }
 /* month */
 .mo { flex: 1; min-height: 0; display: grid; grid-template-rows: auto 1fr; } .mo-dow { display: grid; grid-template-columns: repeat(7,1fr); border-bottom: 1px solid var(--line); } .mo-dow span { padding: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
 .mo-grid { display: grid; grid-template-columns: repeat(7,1fr); grid-auto-rows: minmax(0,1fr); min-height: 0; }
-.mo-cell { position: relative; border-left: 1px solid var(--line-fine); border-bottom: 1px solid var(--line-fine); padding: 4px 5px; text-align: left; min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 2px; transition: background .2s; }
+.mo-cell { position: relative; border-left: 1px solid var(--line-fine); border-bottom: 1px solid var(--line-fine); padding: 4px 5px; text-align: start; min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 2px; transition: background .2s; }
 .mo-cell:hover { background: var(--line-fine); } .mo-cell.out { color: var(--faint); background: var(--weekend); } .mo-cell.sel { background: var(--today-bg); }
 .mo-cell .d { display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; width: 100%; } .mo-cell .d em { font-style: normal; font-weight: 500; font-size: 10.5px; color: var(--faint); margin-left: auto; }
 .mo-cell.today .d b { background: var(--accent); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; }
@@ -225,12 +225,12 @@ dialog::backdrop { background: rgba(40,20,10,.42); backdrop-filter: blur(5px); a
 .req { display: grid; gap: 8px; padding: 14px; border-radius: 18px; background: var(--canvas); border: 1px solid var(--line); box-shadow: 0 14px 22px -18px var(--shadow-soft); } .req b { font-size: 15px; } .req.high { border-left: 4px solid var(--accent); }
 .av-grid { display: grid; grid-template-columns: 52px repeat(7, 1fr); user-select: none; -webkit-user-select: none; touch-action: none; border-radius: 18px; border: 1px solid var(--line); background: var(--canvas); overflow: hidden; }
 .av-grid .hd { padding: 8px 0; text-align: center; font-size: 12px; font-weight: 700; color: var(--faint); border-bottom: 1px solid var(--line); } .av-grid .hr { font-size: 10.5px; color: var(--faint); text-align: right; padding-right: 6px; height: 22px; }
-.av-cell { height: 22px; border-left: 1px solid var(--line-fine); border-top: 1px solid var(--line-fine); } .av-cell.hour { border-top-color: var(--line); } .av-cell.on { background: color-mix(in srgb, var(--b-visit) 55%, transparent); }
+.av-cell { height: var(--avh, 22px); border-left: 1px solid var(--line-fine); border-top: 1px solid var(--line-fine); } .av-cell.hour { border-top-color: var(--line); } .av-cell.on { background: color-mix(in srgb, var(--b-visit) 55%, transparent); }
 .slot { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--c-visit); border-left: 4px solid var(--b-visit); }
 .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .quad { min-height: 150px; padding: 12px; border-radius: 22px; border: 2px dashed var(--line); display: grid; gap: 8px; align-content: start; transition: background .2s, border-color .2s; } .quad.over { background: var(--today-bg); border-color: var(--accent); } .quad h3 { font-size: 14px; } .quad h3 small { display: block; font: 500 12px var(--f-text); color: var(--faint); }
 .task { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 14px; background: var(--canvas); border: 1px solid var(--line); } .task.done .tt { text-decoration: line-through; color: var(--faint); } .task .grip { touch-action: none; cursor: grab; color: var(--faint); } .task.drag { position: fixed; z-index: 70; pointer-events: none; box-shadow: 0 20px 30px -10px var(--shadow); width: 260px; }
 .check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--b-focus); flex: none; display: grid; place-items: center; color: #fff; transition: background .2s, transform .35s var(--spring); } .check[aria-checked=true] { background: var(--b-focus); transform: scale(1.1); } .check svg { width: 14px; height: 14px; stroke-width: 3; opacity: 0; } .check[aria-checked=true] svg { opacity: 1; }
-.notes { display: grid; grid-template-columns: 300px 1fr; gap: 14px; height: 100%; min-height: 0; } .nside { display: grid; grid-template-rows: auto 1fr; gap: 10px; min-height: 0; } .nlist { overflow: auto; display: grid; gap: 6px; align-content: start; } .nitem { padding: 11px 13px; border-radius: 16px; text-align: left; border: 1px solid transparent; background: var(--line-fine); display: grid; gap: 2px; border-left: 4px solid var(--b, var(--line)); } .nitem[aria-current=true] { background: var(--canvas); border-color: var(--line); box-shadow: 0 10px 18px -14px var(--shadow); } .nitem b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .nitem span { color: var(--faint); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notes { display: grid; grid-template-columns: 300px 1fr; gap: 14px; height: 100%; min-height: 0; } .nside { display: grid; grid-template-rows: auto 1fr; gap: 10px; min-height: 0; } .nlist { overflow: auto; display: grid; gap: 6px; align-content: start; } .nitem { padding: 11px 13px; border-radius: 16px; text-align: start; border: 1px solid transparent; background: var(--line-fine); display: grid; gap: 2px; border-left: 4px solid var(--b, var(--line)); } .nitem[aria-current=true] { background: var(--canvas); border-color: var(--line); box-shadow: 0 10px 18px -14px var(--shadow); } .nitem b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .nitem span { color: var(--faint); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .neditor { display: flex; flex-direction: column; gap: 10px; min-height: 0; padding: 16px; border-radius: 24px; background: var(--canvas); border: 1px solid var(--line); } .neditor .ttl { font: 800 24px var(--f-display); border: 0; background: transparent; padding: 0; min-height: 0; box-shadow: none !important; } .neditor textarea { flex: 1; border: 0; background: transparent; resize: none; padding: 0; font-size: 16px; line-height: 1.65; box-shadow: none !important; }
 .dial-wrap { display: grid; place-items: center; padding: 8px; } .dial { width: min(320px, 74vw); aspect-ratio: 1; touch-action: none; user-select: none; -webkit-user-select: none; } .dial .face { fill: var(--canvas); stroke: var(--line); } .dial .arc { fill: none; stroke: var(--accent); stroke-width: 14; stroke-linecap: round; transition: stroke .3s; } .dial .trk { fill: none; stroke: var(--line-fine); stroke-width: 14; } .dial text { font-family: var(--f-display); fill: var(--ink); } .dial .knob { fill: #fff; stroke: var(--accent); stroke-width: 4; cursor: grab; }
 .ring-done { animation: ring .6s ease 3; } @keyframes ring { 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
@@ -252,7 +252,7 @@ dialog::backdrop { background: rgba(40,20,10,.42); backdrop-filter: blur(5px); a
   .tabbar { position: fixed; z-index: 30; left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5,1fr); padding: 6px; border-radius: 26px; background: color-mix(in srgb, var(--paper) 88%, transparent); border: 1px solid var(--line); box-shadow: 0 1px 0 var(--rim) inset, 0 20px 30px -14px var(--shadow); backdrop-filter: blur(18px); }
   .tabbar a, .tabbar button { display: grid; justify-items: center; gap: 2px; padding: 7px 0 5px; border-radius: 20px; font-size: 11px; font-weight: 700; color: var(--faint); text-decoration: none; position: relative; transition: background .2s, color .2s; } .tabbar [aria-current=page] { color: var(--ink); background: var(--canvas); } .tabbar [aria-current=page] .icon { color: var(--accent-ink); } .tabbar .badge { position: absolute; top: 2px; right: 22%; min-width: 17px; height: 17px; font-size: 10.5px; }
   .g2, .g3 { grid-template-columns: 1fr; }
-  .tg-head, .tg-allday, .tg { grid-template-columns: 40px repeat(var(--cols), 1fr); } .tg-hours span { right: 4px; font-size: 10.5px; } .tg-day .dd { width: 32px; height: 32px; font-size: 18px; }
+  .tg-head, .tg-allday, .tg { grid-template-columns: 40px repeat(var(--cols), 1fr); } .tg-hours span { inset-inline-end: 4px; font-size: 10.5px; } .tg-day .dd { width: 32px; height: 32px; font-size: 18px; }
   .mo-dow span { padding: 6px 2px; text-align: center; font-size: 10.5px; } .mo-cell { align-items: center; padding: 4px 2px; } .mo-cell .d em, .mo-ev, .mo-more { display: none; } .mo-dots { display: flex; } .mo-grid { grid-auto-rows: minmax(0,1fr); } .mo-side { display: block; }
   .notes { grid-template-columns: 1fr; } .notes .neditor { display: none; } .notes.editing .nside { display: none; } .notes.editing .neditor { display: flex; }
   .matrix { grid-template-columns: 1fr; } .sheet { width: 100vw; max-height: 94dvh; border-radius: 28px 28px 0 0; } dialog { margin: auto 0 0; width: 100%; } .sheet footer { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
@@ -296,7 +296,7 @@ dialog::backdrop { background: rgba(40,20,10,.42); backdrop-filter: blur(5px); a
 .lab-side { width: 26%; padding: 8px 6px; border-right: 1px solid; display: grid; gap: 5px; align-content: start; } .lab-side i { height: 14px; border-radius: 5px; } .lab-side u { height: 6px; border-radius: 3px; }
 .lab-main { flex: 1; padding: 9px 10px; display: grid; gap: 7px; align-content: start; } .lab-main s { height: 8px; width: 48%; border-radius: 4px; } .lab-chips { display: flex; gap: 4px; } .lab-chips i { width: 16px; height: 12px; border-radius: 5px; border: 1.5px solid; }
 .lab-row { display: flex; align-items: center; gap: 6px; } .lab-row b { font: 700 10px var(--f-display); padding: 4px 8px; border-radius: 999px; } .lab-row em { width: 22px; height: 12px; border-radius: 6px; position: relative; } .lab-row em span { position: absolute; right: 2px; top: 2px; width: 8px; height: 8px; border-radius: 50%; background: #fff; } .lab-row u { height: 6px; flex: 1; border-radius: 3px; }
-.lab-sws { display: flex; flex-wrap: wrap; gap: 10px; } .lab-sw { display: grid; grid-template-columns: 38px auto; grid-template-rows: auto auto; column-gap: 9px; align-items: center; text-align: left; padding: 6px 12px 6px 6px; border-radius: 16px; background: var(--canvas); border: 1px solid var(--line); transition: transform .3s var(--spring); } .lab-sw:hover { transform: translateY(-2px); } .lab-sw:active { transform: scale(.96); }
+.lab-sws { display: flex; flex-wrap: wrap; gap: 10px; } .lab-sw { display: grid; grid-template-columns: 38px auto; grid-template-rows: auto auto; column-gap: 9px; align-items: center; text-align: start; padding: 6px 12px 6px 6px; border-radius: 16px; background: var(--canvas); border: 1px solid var(--line); transition: transform .3s var(--spring); } .lab-sw:hover { transform: translateY(-2px); } .lab-sw:active { transform: scale(.96); }
 .lab-sw i { grid-row: 1 / 3; width: 38px; height: 38px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); } .lab-sw b { font-size: 12.5px; } .lab-sw code { font-size: 11.5px; color: var(--faint); }
 .lab-ramps { display: grid; gap: 12px; } .lab-ramp > b { display: block; margin-bottom: 6px; }
 .lab-fonts { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; } .lab-font, .lab-lcard { padding: 14px 16px; border-radius: 20px; background: var(--canvas); border: 1px solid var(--line); }
@@ -316,6 +316,16 @@ dialog::backdrop { background: rgba(40,20,10,.42); backdrop-filter: blur(5px); a
 html.fa-on .app { height: calc(100vh - 28px); height: calc(100dvh - 28px); } html.fa-on .toasts { bottom: 40px; }
 @media (max-width: 860px) { html.fa-on .app { height: auto; } html.fa-on .main { height: calc(100dvh - 28px); } html.fa-on .tabbar { bottom: calc(36px + env(safe-area-inset-bottom)); } html.fa-on .toasts { bottom: calc(100px + env(safe-area-inset-bottom)); } .fa-bar { padding-bottom: env(safe-area-inset-bottom); height: calc(28px + env(safe-area-inset-bottom)); } }
 @media print { .fa-bar, .fa-tip { display: none !important; } }
+
+/* RTL (Settings → direction). Moxen components keep their own left-to-right design; the app shell, calendar and lists mirror. */
+[dir=rtl] .tg-col, [dir=rtl] .tg-day, [dir=rtl] .tg-allday > div, [dir=rtl] .av-cell { border-left: 0; border-right: 1px solid var(--line-fine); }
+[dir=rtl] .ev, [dir=rtl] .ev-chip { border-left: 0; border-right: 4px solid var(--b, var(--c)); }
+[dir=rtl] .mx-wrap, [dir=rtl] .ac-escena { direction: ltr; } [dir=rtl] .mx-wrap .ac-tit, [dir=rtl] .mx-wrap .ac-etq { direction: ltr; }
+[dir=rtl] .switch::after { left: auto; right: 3px; } [dir=rtl] .side { border-radius: 30px; }
+
+.prefgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; padding: 0 22px 28px; align-items: start; }
+.av-grid .hr { height: var(--avh, 22px); }
+@media (min-width: 900px) and (min-height: 700px) { .page { padding-bottom: 14px; } }
 
 /* Acomodo · Moxen — los estilos del efecto y de la demostración.
    Todos los colores están aquí arriba. Cada tarjeta lleva su color en tres
@@ -1644,6 +1654,15 @@ a { color: inherit; }
   --sn-campo: var(--t-field); --sn-sw-off: var(--t-line-strong); --sn-filo: var(--t-rim); --sn-sombra: var(--t-shadow); --sn-vista: var(--t-group);
 }
 
+/* board fits the screen: wider tray, row height set from JS (--ac-fila) */
+.mx-wrap .ac-bandeja, .mx-wrap .ac-cab-pagina, .mx-wrap .ac-pistas { width: min(1720px, 100%) !important; }
+.mx-wrap .ac-tablero { grid-auto-rows: var(--ac-fila, 170px); }
+.mx-wrap .ac-escena { padding-top: 2px !important; gap: 12px !important; }
+
+/* manager page: board + decisions side by side on desktop */
+.mgr { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; } .mgr-panel { max-height: calc(100vh - 150px); overflow: auto; padding-inline-end: 2px; }
+@media (max-width: 1100px) { .mgr { grid-template-columns: 1fr; } .mgr-panel { max-height: none; } }
+
 </style>
 <script>
   // apply the saved theme before first paint (no flash)
@@ -1796,7 +1815,7 @@ a { color: inherit; }
   A.catStyle = c => ({ '--c': 'var(--c-' + (A.CATS[c] ? c : 'meeting') + ')', '--b': 'var(--b-' + (A.CATS[c] ? c : 'meeting') + ')' });
 
   /* ── store (in memory; vault.js encrypts it to disk) ──────────────── */
-  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 0, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 10, clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15, secondary: 'persian', weekend: 'sat-sun', calSystem: 'gregorian', holidaysOn: true, holidayIntl: false, holidayBlock: true, hijriOffset: 0, customHolidays: [], faOn: false, faOnline: false, themeMode: 'auto', themeLight: 'ice', themeDark: 'aurora', customThemes: [], fontDisplay: '', fontText: '', fontScale: 100, buffer: 10, remindersOn: true, sound: true, vibrate: true, hidePreview: false });
+  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 0, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 60, clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15, secondary: 'persian', weekend: 'sat-sun', calSystem: 'gregorian', holidaysOn: true, holidayIntl: false, holidayBlock: true, hijriOffset: 0, customHolidays: [], faOn: false, faOnline: false, themeMode: 'auto', themeLight: 'ice', themeDark: 'aurora', customThemes: [], fontDisplay: '', fontText: '', fontScale: 100, buffer: 10, remindersOn: true, sound: true, vibrate: true, hidePreview: false });
   A.db = { data: null };
   A.settings = () => (A.db.data && A.db.data.settings) || DEFAULTS();
   A.uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -1815,10 +1834,15 @@ a { color: inherit; }
   };
   A.flush = () => { clearTimeout(saveT); return A.vault && A.db.data ? A.vault.save(A.db.data) : Promise.resolve(); };
   const coll = n => A.db.data[n];
-  A.add = (n, o) => { o.id = o.id || A.uid(); coll(n).push(o); A.save(n); return o; };
+  /* the manager role is read-only, except deciding requests and ticking tasks */
+  A.rtl = () => A.settings().dir === 'rtl'; A.dirIco = n => A.ico(A.rtl() ? ({ chevL: 'chevR', chevR: 'chevL' }[n] || n) : n);
+  A.deny = () => { A.toast('Read-only: manager accounts can look, decide requests and tick tasks.'); return null; };
+  A.canWrite = (n, patch) => !A.readOnly || (n === 'requests' && !!patch) || (n === 'tasks' && !!patch && Object.keys(patch).every(k => k === 'done'));
+  A.add = (n, o) => { if (!A.canWrite(n)) return A.deny() || o; o.id = o.id || A.uid(); coll(n).push(o); A.save(n); return o; };
   A.get = (n, id) => coll(n).find(x => x.id === id);
-  A.patch = (n, id, p) => { const o = A.get(n, id); if (o) { Object.assign(o, p); A.save(n); } return o; };
+  A.patch = (n, id, p) => { if (!A.canWrite(n, p)) return A.deny(); const o = A.get(n, id); if (o) { Object.assign(o, p); A.save(n); } return o; };
   A.del = (n, id, label) => {
+    if (!A.canWrite(n)) return A.deny();
     const i = coll(n).findIndex(x => x.id === id); if (i < 0) return; const [o] = coll(n).splice(i, 1); A.save(n);
     A.toast((label || 'Deleted') + '.', { action: ['Undo', () => { coll(n).splice(Math.min(i, coll(n).length), 0, o); A.save(n); }] });
   };
@@ -1831,13 +1855,18 @@ a { color: inherit; }
     box.append(t); const kill = () => { t.classList.add('out'); setTimeout(() => t.remove(), 300); };
     setTimeout(kill, o.ms || (o.action ? 6000 : 3200));
   };
-  A.modal = function ({ title, body, footer, cls = '', onClose }) {
+  A.modal = function ({ title, body, footer, cls = '', onClose, lockRO }) {
     const dlg = h('dialog', { 'aria-label': title });
     const close = v => { if (!dlg.open) return; dlg.close(); };
     const sheet = h('div', { class: 'sheet ' + cls },
       h('header', null, h('h2', null, title), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Close', onClick: close }, A.ico('x'))),
       h('div', { class: 'body' }, body), footer ? h('footer', null, footer) : null);
     sheet.setAttribute('tabindex', '-1');
+    if (lockRO && A.readOnly) {                 // manager: look, don't touch
+      sheet.querySelectorAll('.body input,.body select,.body textarea,.body button').forEach(x => { x.disabled = true; });
+      sheet.querySelectorAll('footer button').forEach(b => { if (/^(cancel|close)$/i.test(b.textContent.trim())) b.textContent = 'Close'; else b.remove(); });
+      sheet.querySelector('header h2').append(' · view only');
+    }
     dlg.append(sheet); document.body.append(dlg); dlg.showModal();
     sheet.focus({ preventScroll: true });       // not the ✕ button: a held Enter key would otherwise click it
     dlg.addEventListener('close', () => { dlg.remove(); onClose && onClose(); });
@@ -2109,9 +2138,33 @@ a { color: inherit; }
   D.jalaliMonthLen = start => { let e = start; const m = D.jalali(start).m; while (D.jalali(e + 1).m === m) e++; return e - start + 1; };
   D.addJalaliMonths = (n, k) => { let s = D.jalaliMonthStart(n); for (let i = 0; i < Math.abs(k); i++) s = k > 0 ? s + D.jalaliMonthLen(s) : D.jalaliMonthStart(s - 1); return s; };
   const fMonthShort = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { month: 'long', timeZone: 'UTC' });
+  /* ── one calendar for the whole site ──────────────────────────────────
+     S.calSystem 'gregorian' | 'jalali' decides how EVERY view names its days and months (day, week, month, year,
+     agenda, Today). Digits are Latin by default (S.digits 'persian' gives ۱۲۳). Weekday names turn Persian with Shamsi. */
+  const isJ = () => A.settings().calSystem === 'jalali';
+  const fFullL = new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const WN = ['دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه', 'یکشنبه'], WL = ['د', 'س', 'چ', 'پ', 'ج', 'ش', 'ی'];   // D.dow: 0 = Monday
+  D.isJ = isJ;
+  D.dig = x => A.settings().digits === 'persian' ? D.faNum(x) : String(x);
+  D.wname = dow => isJ() ? WN[dow] : D.DOW3[dow];
+  D.wletter = dow => isJ() ? WL[dow] : D.DOW3[dow][0];
+  D.dnum = n => D.dig(isJ() ? D.jalali(n).d : D.ymd(n).d);
+  D.mname = n => isJ() ? fMonthShort.format(new Date(n * 864e5 + 432e5)) : D.MON[D.ymd(n).m - 1];
+  D.mtitle = n => isJ() ? D.mname(n) + ' ' + D.dig(D.jalali(n).y) : D.MON[D.ymd(n).m - 1] + ' ' + D.ymd(n).y;
+  D.longS = n => { if (!isJ()) return D.long(n); const o = {}; fFullL.formatToParts(new Date(n * 864e5 + 432e5)).forEach(p => { o[p.type] = p.value; }); return o.weekday + ' ' + D.dig(o.day) + ' ' + o.month + ' ' + D.dig(o.year); };
+  D.dsec = n => { const s = A.settings().secondary; if (isJ()) { if (s === 'none') return ''; const g = D.ymd(n); return g.d === 1 ? D.MON3[g.m - 1] + ' 1' : String(g.d); } return D.sec(n); };
+  D.rangeTitle = (s, e) => {
+    if (!isJ()) { const f = D.ymd(s), l = D.ymd(e); return f.m === l.m ? D.MON[f.m - 1] + ' ' + f.d + ' – ' + l.d + ', ' + l.y : D.MON3[f.m - 1] + ' ' + f.d + ' – ' + D.MON3[l.m - 1] + ' ' + l.d + ', ' + l.y; }
+    const a = D.jalali(s), b = D.jalali(e); return a.m === b.m ? D.dig(a.d) + ' – ' + D.dig(b.d) + ' ' + D.mname(s) + ' ' + D.dig(a.y) : D.dig(a.d) + ' ' + D.mname(s) + ' – ' + D.dig(b.d) + ' ' + D.mname(e) + ' ' + D.dig(b.y);
+  };
+  D.sMonthStart = n => isJ() ? D.jalaliMonthStart(n) : D.num(D.ymd(n).y, D.ymd(n).m, 1);
+  D.sMonthLen = st => isJ() ? D.jalaliMonthLen(st) : D.daysIn(D.ymd(st).y, D.ymd(st).m);
+  D.sAddMonths = (n, k) => isJ() ? D.addJalaliMonths(n, k) : D.addMonths(n, k);
+  D.sYear = n => isJ() ? D.jalali(n).y : D.ymd(n).y;
+  D.sYearStart = n => { if (!isJ()) return D.num(D.ymd(n).y, 1, 1); let st = D.jalaliMonthStart(n); for (let i = 0; i < 12 && D.jalali(st).m > 1; i++) st = D.jalaliMonthStart(st - 1); return st; };
   D.sec = function (n) {                                              // the small second-calendar label under each day
     const s = A.settings().secondary; if (!s || s === 'none') return '';
-    if (s === 'persian') { const j = D.jalali(n); return j.d === 1 ? D.faDay(n) + ' ' + fMonthShort.format(new Date(n * 864e5 + 432e5)) : D.faDay(n); }
+    if (s === 'persian') { const j = D.jalali(n); return j.d === 1 ? D.dig(j.d) + ' ' + fMonthShort.format(new Date(n * 864e5 + 432e5)) : D.dig(j.d); }
     const hj = D.hijri(n); return hj.d === 1 ? hj.d + '/' + hj.m : String(hj.d);
   };
 
@@ -2147,12 +2200,14 @@ a { color: inherit; }
     const cname = h('input', { type: 'text', dir: 'auto', placeholder: 'Holiday name' }), cdate = h('input', { type: 'date', value: D.iso(D.today()) }), cy = h('input', { type: 'checkbox', checked: true });
     const mine = h('div', { class: 'stack', style: { marginTop: '8px' } }, (S.customHolidays || []).map(c => h('div', { class: 'item', style: { background: 'var(--line-fine)', padding: '6px 10px' } }, h('span', { class: 'grow', dir: 'auto' }, c.name + ' · ' + c.date + (c.yearly ? ' · every year' : '')), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Remove ' + c.name, onClick: () => { S.customHolidays = S.customHolidays.filter(x => x.id !== c.id); A.save('settings'); A.route(); } }, A.ico('trash')))));
     const nextH = A.holidays(D.today(), D.today() + 120).slice(0, 5);
-    return h('div', { class: 'stack', style: { gap: '14px', padding: '0 22px 28px', maxWidth: '880px' }, id: 'prefcards' },
+    return h('div', { class: 'prefgrid', id: 'prefcards' },
       h('section', { class: 'card' }, h('h3', null, 'Description Farsi'), h('div', { class: 'sett' },
         row('Description Farsi', tf('faOn', false), 'Hold the mouse on any word or text to see its Persian beside the pointer (press and hold on touch). A one-line bar at the bottom explains the section under the mouse.'),
         row('Online translation for unknown words', tf('faOnline', false), 'Off by default. When on, words missing from the built-in dictionary — including your own text — are sent to the free MyMemory service to be translated. Keep it off for confidential text.'))),
       h('section', { class: 'card' }, h('h3', null, 'Shamsi calendar & holidays'), h('div', { class: 'sett' },
-        row('Month view calendar', seg('calSystem', [['gregorian', 'Gregorian'], ['jalali', 'Shamsi']]), 'Shamsi shows Persian months and digits, with the Gregorian date small beside each day.'),
+        row('Calendar (all views)', seg('calSystem', [['gregorian', 'Gregorian'], ['jalali', 'Shamsi']]), 'Day, week, month, year, agenda and Today all follow this. Shamsi uses Persian month and weekday names; the Gregorian date stays small beside each day.'),
+        row('Page direction', seg('dir', [['ltr', 'Left to right'], ['rtl', 'Right to left']]), 'Right to left mirrors the menu, calendar and lists for Persian. Language stays English for now; the Moxen boards keep their own layout.'),
+        row('Digits', seg('digits', [['latin', '1 2 3'], ['persian', '۱ ۲ ۳']]), 'Latin digits are easier to read next to English text.'),
         row('Second calendar under each day', seg('secondary', [['persian', 'Shamsi'], ['islamic', 'Hijri'], ['none', 'None']])),
         row('Weekend', seg('weekend', [['sat-sun', 'Sat–Sun'], ['fri', 'Friday'], ['thu-fri', 'Thu–Fri']]), 'Tints the weekend in the calendar.'),
         row('Iranian holidays', tf('holidaysOn', true), 'Fixed Shamsi holidays plus the lunar (Hijri) ones.'),
@@ -2165,122 +2220,174 @@ a { color: inherit; }
 })();
 
 /* ===== js/vault.js ===== */
-/* Aide · vault — sign-in and encrypted storage.
-   HONEST SECURITY NOTE: this site is static (GitHub Pages), so there is no
-   server to check passwords. Instead your data is encrypted in the browser with
-   AES-GCM 256, using a key derived from your password with PBKDF2-SHA256
-   (310,000 rounds). Without the password the saved data is unreadable.
-   The password cannot be recovered — keep a backup file (Settings → Backup). */
+/* Aide · vault — sign-in, users and encrypted storage.
+   HONEST SECURITY NOTE: this site is static (GitHub Pages), so there is no server to check passwords.
+   Everything is encrypted in the browser with AES-GCM 256 under one random data key. Each user has their own
+   password: PBKDF2-SHA256 (310,000 rounds) turns it into a key that wraps the data key, so every user can open the
+   same data with their own password and nobody needs to share one. Roles (admin / manager) are enforced by the
+   interface on this device — they are a convenience, not protection against someone with developer tools.
+   "Stay signed in" keeps a NON-extractable copy of the data key in this browser (IndexedDB) so a reload or an update
+   does not ask for the password again; locking, signing out or the idle timer removes it. Forgotten passwords cannot
+   be recovered (admins can reset other users' passwords) — keep a backup file (Settings → Profile & data). */
 (function () {
   'use strict';
   const A = window.Aide, { h, $ } = A;
   const enc = new TextEncoder(), dec = new TextDecoder();
-  const KEY = 'aide.vault.', USERS = 'aide.users', FAIL = 'aide.fail', ITER = 310000;
+  const KEY = 'aide.vault2', OLD = 'aide.vault.', OLDUSERS = 'aide.users', FAIL = 'aide.fail', LAST = 'aide.lastUser', ITER = 310000, DAYS = 30;
   const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
   const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-  let cur = null;
+  const rnd = n => crypto.getRandomValues(new Uint8Array(n));
+  const WRONG = 'Wrong username or password.';
+  let cur = null;                                           // { user, role, dek, elevated }
+
+  /* ── tiny IndexedDB store for the remembered session ──────────────── */
+  const idb = {
+    db() { return new Promise((res, rej) => { if (!window.indexedDB) return rej(new Error('no idb')); const r = indexedDB.open('aide-session', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+    async get(k) { const d = await this.db(); return new Promise((res, rej) => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+    async set(k, v) { const d = await this.db(); return new Promise((res, rej) => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); },
+    async del(k) { try { const d = await this.db(); return new Promise(res => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').delete(k); t.oncomplete = res; t.onerror = res; }); } catch (e) { /* nothing stored */ } },
+  };
+
+  /* ── crypto helpers ───────────────────────────────────────────────── */
+  const readV = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
+  const writeV = v => { v.t = Date.now(); localStorage.setItem(KEY, JSON.stringify(v)); };
+  async function kekOf(pw, salt, iter) { const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']); return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['wrapKey', 'unwrapKey']); }
+  async function wrap(dek, kek) { const iv = rnd(12), w = await crypto.subtle.wrapKey('raw', dek, kek, { name: 'AES-GCM', iv }); return { wiv: b64(iv), wk: b64(new Uint8Array(w)) }; }
+  const unwrap = (u, kek, extractable) => crypto.subtle.unwrapKey('raw', unb64(u.wk), kek, { name: 'AES-GCM', iv: unb64(u.wiv) }, { name: 'AES-GCM' }, extractable, ['encrypt', 'decrypt']);
+  async function seal(data) { const v = readV(), iv = rnd(12), ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cur.dek, enc.encode(JSON.stringify(data))); v.iv = b64(iv); v.ct = b64(new Uint8Array(ct)); writeV(v); }
+  async function unseal(dek) { const v = readV(), pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(v.iv) }, dek, unb64(v.ct)); return JSON.parse(dec.decode(pt)); }
+  async function newUserRecord(pw, role, dek) { const salt = rnd(16), kek = await kekOf(pw, salt, ITER), w = await wrap(dek, kek); return Object.assign({ role, s: b64(salt), i: ITER, created: Date.now() }, w); }
+  const needAdmin = () => { if (!cur || cur.role !== 'admin') throw new Error('Only an admin can do this.'); };
+  const needDek = () => { if (!cur.elevated) throw new Error('Please confirm your password first.'); };
+  const admins = v => Object.values(v.users).filter(u => u.role === 'admin').length;
+  const legacyUsers = () => { try { return JSON.parse(localStorage.getItem(OLDUSERS) || '[]'); } catch (e) { return []; } };
 
   const V = A.vault = {
     supported: !!(window.crypto && crypto.subtle),
-    users: () => { try { return JSON.parse(localStorage.getItem(USERS) || '[]'); } catch (e) { return []; } },
-    async derive(pw, salt, iter) {
-      const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
-      return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-    },
-    async seal(data) {
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cur.key, enc.encode(JSON.stringify(data)));
-      localStorage.setItem(KEY + cur.user, JSON.stringify({ v: 1, u: cur.user, s: b64(cur.salt), i: cur.iter, iv: b64(iv), ct: b64(new Uint8Array(ct)), t: Date.now() }));
-    },
+    exists: () => !!readV() || legacyUsers().length > 0,
+    users() { const v = readV(); return v ? Object.keys(v.users).map(n => ({ name: n, role: v.users[n].role, created: v.users[n].created })) : []; },
+    user: () => cur && cur.user, role: () => cur && cur.role, isElevated: () => !!(cur && cur.elevated),
+
     async create(user, pw, data) {
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      cur = { user, salt, iter: ITER, key: await V.derive(pw, salt, ITER) };
-      await V.seal(data);
-      const u = V.users(); if (!u.includes(user)) { u.push(user); localStorage.setItem(USERS, JSON.stringify(u)); }
+      const dek = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+      writeV({ v: 2, id: A.uid(), users: { [user]: await newUserRecord(pw, 'admin', dek) } }); cur = { user, role: 'admin', dek, elevated: true }; await seal(data);
     },
     async open(user, pw) {
-      const raw = localStorage.getItem(KEY + user); if (!raw) throw new Error('No such account on this device.');
-      const b = JSON.parse(raw), salt = unb64(b.s), key = await V.derive(pw, salt, b.i);
-      let pt; try { pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(b.iv) }, key, unb64(b.ct)); } catch (e) { throw new Error('Wrong username or password.'); }
-      cur = { user, salt, iter: b.i, key }; return JSON.parse(dec.decode(pt));
+      const v = readV(); if (!v) return migrate(user, pw);
+      const u = v.users[user]; if (!u) throw new Error(WRONG);
+      try { const dek = await unwrap(u, await kekOf(pw, unb64(u.s), u.i), u.role === 'admin'); cur = { user, role: u.role, dek, elevated: u.role === 'admin' }; return await unseal(dek); }
+      catch (e) { cur = null; throw new Error(WRONG); }
     },
-    save: data => cur ? V.seal(data) : Promise.resolve(),
+    save: data => cur ? seal(data) : Promise.resolve(),
+    lock() { cur = null; A.db.data = null; A.role = null; A.readOnly = false; },
+    async wipe() { await idb.del('session'); localStorage.removeItem(KEY); cur = null; A.db.data = null; },
+
+    /* remembered sign-in */
+    async remember(on) {
+      if (!cur) return; if (!on) return idb.del('session');
+      try { const raw = await crypto.subtle.exportKey('raw', cur.dek).catch(() => null); const safe = raw ? await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']) : cur.dek; await idb.set('session', { user: cur.user, role: cur.role, dek: safe, exp: Date.now() + DAYS * 864e5, vault: readV().id }); } catch (e) { /* storage unavailable */ }
+    },
+    forget: () => idb.del('session'),
+    async resume() {
+      try {
+        const s = await idb.get('session'), v = readV(); if (!s || !v || s.exp < Date.now() || s.vault !== v.id || !v.users[s.user]) return null;
+        const data = await unseal(s.dek); cur = { user: s.user, role: v.users[s.user].role, dek: s.dek, elevated: false }; return data;
+      } catch (e) { await idb.del('session'); return null; }
+    },
+    /* confirm the password again to manage users (the stored key cannot be exported) */
+    async elevate(pw) { const v = readV(), u = v && cur && v.users[cur.user]; if (!u) throw new Error('Not signed in.'); try { cur.dek = await unwrap(u, await kekOf(pw, unb64(u.s), u.i), true); cur.elevated = true; } catch (e) { throw new Error('That password is not right.'); } },
+
+    /* users (admin) */
+    async addUser(name, pw, role) { needAdmin(); needDek(); const v = readV(); name = name.trim().toLowerCase(); if (!/^[a-z0-9._-]{2,32}$/.test(name)) throw new Error('Username: 2–32 letters, numbers, dot, dash or underscore.'); if (v.users[name]) throw new Error('That username already exists.'); if (pw.length < 10) throw new Error('Use at least 10 characters.'); v.users[name] = await newUserRecord(pw, role, cur.dek); writeV(v); },
+    async resetPassword(name, pw) { needAdmin(); needDek(); const v = readV(); if (!v.users[name]) throw new Error('No such user.'); if (pw.length < 10) throw new Error('Use at least 10 characters.'); const old = v.users[name]; v.users[name] = Object.assign(await newUserRecord(pw, old.role, cur.dek), { created: old.created }); writeV(v); },
+    setRole(name, role) { needAdmin(); const v = readV(); if (!v.users[name]) throw new Error('No such user.'); if (v.users[name].role === 'admin' && role !== 'admin' && admins(v) < 2) throw new Error('There must be at least one admin.'); v.users[name].role = role; writeV(v); },
+    removeUser(name) { needAdmin(); const v = readV(); if (!v.users[name]) return; if (name === cur.user) throw new Error('You cannot remove the account you are using.'); if (v.users[name].role === 'admin' && admins(v) < 2) throw new Error('There must be at least one admin.'); delete v.users[name]; writeV(v); },
     async changePassword(oldPw, newPw) {
-      const user = cur.user; await V.open(user, oldPw);   // proves the old password
-      const salt = crypto.getRandomValues(new Uint8Array(16)); cur = { user, salt, iter: ITER, key: await V.derive(newPw, salt, ITER) };
-      await V.seal(A.db.data);
+      const v = readV(), u = cur && v.users[cur.user]; if (!u) throw new Error('Not signed in.'); let dek; try { dek = await unwrap(u, await kekOf(oldPw, unb64(u.s), u.i), true); } catch (e) { throw new Error('Current password is wrong.'); }
+      v.users[cur.user] = Object.assign(await newUserRecord(newPw, u.role, dek), { created: u.created }); writeV(v); cur.dek = dek; cur.elevated = true;
     },
-    user: () => cur && cur.user,
-    exportBlob: () => localStorage.getItem(KEY + (cur ? cur.user : '')) || '',
-    importBlob(text) { const b = JSON.parse(text); if (!b || b.v !== 1 || !b.u || !b.ct) throw new Error('This is not an Aide backup file.'); localStorage.setItem(KEY + b.u, text); const u = V.users(); if (!u.includes(b.u)) { u.push(b.u); localStorage.setItem(USERS, JSON.stringify(u)); } return b.u; },
-    lock() { cur = null; A.db.data = null; },
-    wipe() { if (cur) { localStorage.removeItem(KEY + cur.user); localStorage.setItem(USERS, JSON.stringify(V.users().filter(x => x !== cur.user))); } cur = null; A.db.data = null; },
+
+    /* backup */
+    exportBlob: () => localStorage.getItem(KEY) || '',
+    importBlob(text) {
+      const b = JSON.parse(text); if (!b) throw new Error('This is not an Aide backup file.');
+      if (b.v === 2 && b.users && b.ct) { localStorage.setItem(KEY, text); return Object.keys(b.users)[0]; }
+      if (b.v === 1 && b.u && b.ct) { localStorage.setItem(OLD + b.u, text); const u = legacyUsers(); if (!u.includes(b.u)) localStorage.setItem(OLDUSERS, JSON.stringify(u.concat([b.u]))); return b.u; }
+      throw new Error('This is not an Aide backup file.');
+    },
+  };
+  async function migrate(user, pw) {                        // vaults from the first version (one password, one user) become the admin account
+    const raw = localStorage.getItem(OLD + user); if (!raw) throw new Error(WRONG);
+    const b = JSON.parse(raw); let data;
+    try { const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: unb64(b.s), iterations: b.i, hash: 'SHA-256' }, await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']), { name: 'AES-GCM', length: 256 }, false, ['decrypt']); data = JSON.parse(dec.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(b.iv) }, key, unb64(b.ct)))); } catch (e) { throw new Error(WRONG); }
+    await V.create(user, pw, data); localStorage.removeItem(OLD + user); localStorage.setItem(OLDUSERS, JSON.stringify(legacyUsers().filter(x => x !== user))); return data;
+  }
+
+  /* ── boot: resume a remembered session, otherwise the login screen ── */
+  A.enter = function (data) { A.load(data); A.role = V.role(); A.readOnly = A.role === 'manager'; if (A.readOnly && (!location.hash || /^#\/(today|users)$/.test(location.hash))) location.hash = '#/manager'; $('#login').hidden = true; $('#app').hidden = false; A.start(); };
+  A.boot = async function () {
+    if (V.supported && V.exists()) { const d = await V.resume(); if (d) return A.enter(d); }
+    A.showLogin();
   };
 
   /* brute-force slow-down: 3 free tries, then 2^n seconds (max 5 min) */
   const fail = { get() { try { return JSON.parse(localStorage.getItem(FAIL)) || { n: 0, until: 0 }; } catch (e) { return { n: 0, until: 0 }; } }, set(o) { localStorage.setItem(FAIL, JSON.stringify(o)); } };
-
   function strength(pw) {
     let pool = 0; if (/[a-z]/.test(pw)) pool += 26; if (/[A-Z]/.test(pw)) pool += 26; if (/\d/.test(pw)) pool += 10; if (/[^A-Za-z0-9]/.test(pw)) pool += 32;
-    const bits = pw.length * Math.log2(pool || 1); let s = Math.min(1, bits / 70);
-    if (/^(.)\1+$/.test(pw) || /^(password|12345678|qwertyui)/i.test(pw)) s = Math.min(s, .15);
+    const bits = pw.length * Math.log2(pool || 1); let s = Math.min(1, bits / 70); if (/^(.)\1+$/.test(pw) || /^(password|12345678|qwertyui)/i.test(pw)) s = Math.min(s, .15);
     return { s, label: s < .35 ? 'Weak' : s < .6 ? 'Fair' : s < .85 ? 'Good' : 'Strong', bar: s < .35 ? 'var(--danger)' : s < .6 ? 'var(--b-travel)' : 'var(--b-visit)' };
   }
 
   /* ── the login screen ─────────────────────────────────────────────── */
   A.showLogin = function (msg) {
     const root = $('#login'); root.hidden = false; $('#app').hidden = true; root.replaceChildren();
-    const users = V.users(); let mode = users.length ? 'in' : 'up';
-    const draw = () => {
-      const up = mode === 'up';
-      const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: true, value: users.length === 1 && !up ? users[0] : '', placeholder: 'e.g. alex' });
-      const pw = h('input', { type: up ? 'password' : 'password', autocomplete: up ? 'new-password' : 'current-password', required: true, placeholder: up ? 'At least 10 characters' : 'Your password' });
-      const pw2 = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'Repeat password' });
-      const eye = h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Show password', onClick: () => { pw.type = pw.type === 'password' ? 'text' : 'password'; } }, A.ico('eye'));
-      const meter = h('div', { class: 'meter', hidden: !up }, h('i')), mlabel = h('span', { class: 'note' });
-      const sample = h('input', { type: 'checkbox', checked: true }), err = h('div', { class: 'warn', role: 'alert', hidden: true });
-      const go = h('button', { class: 'btn primary', type: 'submit' }, up ? 'Create secure vault' : 'Unlock desk');
-      pw.addEventListener('input', () => { if (!up) return; const r = strength(pw.value); meter.firstChild.style.setProperty('--s', r.s); meter.firstChild.style.setProperty('--bar', r.bar); mlabel.textContent = pw.value ? 'Strength: ' + r.label : ''; });
-      const show = t => { err.textContent = t; err.hidden = !t; form.classList.remove('shake'); void form.offsetWidth; if (t) form.classList.add('shake'); };
-      const form = h('form', { class: 'login-form', novalidate: true, onSubmit: async e => {
-        e.preventDefault(); show('');
-        const u = user.value.trim().toLowerCase(), p = pw.value;
-        if (!V.supported) return show('This browser blocks encryption. Open the site over https:// (GitHub Pages) or localhost.');
-        if (!u || !p) return show('Enter a username and password.');
-        const f = fail.get(); if (!up && f.until > Date.now()) return show('Too many attempts. Try again in ' + Math.ceil((f.until - Date.now()) / 1000) + ' s.');
-        go.disabled = true; go.textContent = 'Working…';
-        try {
-          if (up) {
-            if (!/^[a-z0-9._-]{2,32}$/.test(u)) throw new Error('Username: 2–32 letters, numbers, dot, dash or underscore.');
-            if (p.length < 10) throw new Error('Use at least 10 characters. A passphrase of 3–4 words works well.');
-            if (p !== pw2.value) throw new Error('The two passwords do not match.');
-            if (V.users().includes(u)) throw new Error('That username already exists on this device.');
-            const data = sample.checked ? A.sample() : { settings: {} };
-            await V.create(u, p, data); A.load(data);
-          } else { const data = await V.open(u, p); A.load(data); fail.set({ n: 0, until: 0 }); }
-          root.hidden = true; $('#app').hidden = false; A.start();
-        } catch (ex) {
-          if (!up) { const n = f.n + 1; fail.set({ n, until: n > 3 ? Date.now() + Math.min(300, Math.pow(2, n - 3)) * 1000 : 0 }); }
-          show(ex.message || 'Something went wrong.'); go.disabled = false; go.textContent = up ? 'Create secure vault' : 'Unlock desk';
-        }
-      } },
-        h('div', null, h('h1', null, up ? 'Create your desk' : 'Welcome back'), h('p', { class: 'muted' }, up ? 'One private vault for the schedule, notes and contacts.' : (msg || 'Sign in to open the executive desk.'))),
-        A.field('Username', user), A.field('Password', h('div', { class: 'pw' }, pw, eye)),
-        up ? [A.field('Repeat password', pw2), h('div', null, meter, mlabel), h('label', { class: 'row small' }, sample, h('span', null, 'Start with sample data so I can explore'))] : null,
-        err, go,
-        h('p', { class: 'note' }, up ? 'Your data is encrypted in this browser with your password. It never leaves this device, and the password cannot be recovered — keep a backup file.' : 'Data stays encrypted on this device.'),
-        h('div', { class: 'row wrap' },
-          users.length || up === false ? h('button', { type: 'button', class: 'btn sm', onClick: () => { mode = up ? 'in' : 'up'; draw(); } }, up ? 'I already have a vault' : 'Create a new vault') : null,
-          h('label', { class: 'btn sm' }, 'Restore backup file', h('input', { type: 'file', accept: '.aide,.json,application/json', class: 'sr', onChange: async e => { const f = e.target.files[0]; if (!f) return; try { const name = V.importBlob(await f.text()); users.splice(0, users.length, ...V.users()); mode = 'in'; draw(); A.toast('Backup restored for “' + name + '”. Sign in with its password.'); } catch (ex) { show(ex.message); } } }))));
-      root.replaceChildren(h('div', { class: 'login-card' },
-        h('div', { class: 'login-art' },
-          h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Executive Desk'))),
-          h('div', null, h('h2', null, 'Every meeting, visit and promise — in one calm place.'), h('p', null, 'Built for the person who runs the executive’s day.')),
-          h('ul', null, h('li', null, 'Day, week, month and year calendars'), h('li', null, 'Visitor and meeting requests with ready replies'), h('li', null, 'Visiting hours, notes and meeting timers'), h('li', null, 'Works offline on phone and desktop'))),
-        form));
-      (up ? user : (users.length === 1 ? pw : user)).focus({ preventScroll: true });
-    };
-    draw();
+    const up = !V.exists();
+    const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: true, value: up ? '' : (localStorage.getItem(LAST) || ''), placeholder: 'e.g. alex' });
+    const pw = h('input', { type: 'password', autocomplete: up ? 'new-password' : 'current-password', required: true, placeholder: up ? 'At least 10 characters' : 'Your password' });
+    const pw2 = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'Repeat password' });
+    const eye = h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Show password', onClick: () => { pw.type = pw.type === 'password' ? 'text' : 'password'; } }, A.ico('eye'));
+    const meter = h('div', { class: 'meter', hidden: !up }, h('i')), mlabel = h('span', { class: 'note' });
+    const sample = h('input', { type: 'checkbox', checked: true }), stay = h('input', { type: 'checkbox', checked: true }), err = h('div', { class: 'warn', role: 'alert', hidden: true });
+    const go = h('button', { class: 'btn primary', type: 'submit' }, up ? 'Create secure vault' : 'Unlock desk');
+    pw.addEventListener('input', () => { if (!up) return; const r = strength(pw.value); meter.firstChild.style.setProperty('--s', r.s); meter.firstChild.style.setProperty('--bar', r.bar); mlabel.textContent = pw.value ? 'Strength: ' + r.label : ''; });
+    const show = t => { err.textContent = t; err.hidden = !t; form.classList.remove('shake'); void form.offsetWidth; if (t) form.classList.add('shake'); };
+    const form = h('form', { class: 'login-form', novalidate: true, onSubmit: async e => {
+      e.preventDefault(); show('');
+      const u = user.value.trim().toLowerCase(), p = pw.value;
+      if (!V.supported) return show('This browser blocks encryption. Open the site over https:// (GitHub Pages) or localhost.');
+      if (!u || !p) return show('Enter a username and password.');
+      const f = fail.get(); if (!up && f.until > Date.now()) return show('Too many attempts. Try again in ' + Math.ceil((f.until - Date.now()) / 1000) + ' s.');
+      go.disabled = true; go.textContent = 'Working…';
+      try {
+        let data;
+        if (up) {
+          if (!/^[a-z0-9._-]{2,32}$/.test(u)) throw new Error('Username: 2–32 letters, numbers, dot, dash or underscore.');
+          if (p.length < 10) throw new Error('Use at least 10 characters. A passphrase of 3–4 words works well.');
+          if (p !== pw2.value) throw new Error('The two passwords do not match.');
+          data = sample.checked ? A.sample() : { settings: {} }; await V.create(u, p, data);
+        } else { data = await V.open(u, p); fail.set({ n: 0, until: 0 }); }
+        localStorage.setItem(LAST, u); await V.remember(stay.checked);
+        if (V.role() === 'manager' && !location.hash) location.hash = '#/manager';
+        A.enter(data);
+      } catch (ex) {
+        if (!up) { const n = f.n + 1; fail.set({ n, until: n > 3 ? Date.now() + Math.min(300, Math.pow(2, n - 3)) * 1000 : 0 }); }
+        show(ex.message || 'Something went wrong.'); go.disabled = false; go.textContent = up ? 'Create secure vault' : 'Unlock desk';
+      }
+    } },
+      h('div', null, h('h1', null, up ? 'Create your desk' : 'Welcome back'), h('p', { class: 'muted' }, up ? 'The first account is the admin. You can add a manager account later.' : (msg || 'Sign in to open the executive desk.'))),
+      A.field('Username', user), A.field('Password', h('div', { class: 'pw' }, pw, eye)),
+      up ? [A.field('Repeat password', pw2), h('div', null, meter, mlabel), h('label', { class: 'row small' }, sample, h('span', null, 'Start with sample data so I can explore'))] : null,
+      h('label', { class: 'row small' }, stay, h('span', null, 'Stay signed in on this device (30 days, until you lock)')),
+      err, go,
+      h('p', { class: 'note' }, up ? 'Your data is encrypted in this browser with your password. It never leaves this device, and a forgotten password cannot be recovered — keep a backup file.' : 'Data stays encrypted on this device.'),
+      h('div', { class: 'row wrap' }, h('label', { class: 'btn sm' }, 'Restore backup file', h('input', { type: 'file', accept: '.aide,.json,application/json', class: 'sr', onChange: async e => { const f = e.target.files[0]; if (!f) return; try { const name = V.importBlob(await f.text()); A.toast('Backup restored. Sign in as “' + name + '” (or any user in that backup).'); A.showLogin(); } catch (ex) { show(ex.message); } } }))));
+    root.replaceChildren(h('div', { class: 'login-card' },
+      h('div', { class: 'login-art' },
+        h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Executive Desk'))),
+        h('div', null, h('h2', null, 'Every meeting, visit and promise — in one calm place.'), h('p', null, 'Built for the person who runs the executive’s day.')),
+        h('ul', null, h('li', null, 'Day, week, month and year calendars'), h('li', null, 'Visitor and meeting requests with ready replies'), h('li', null, 'Visiting hours, notes and meeting timers'), h('li', null, 'Works offline on phone and desktop'))),
+      form));
+    (up ? user : (user.value ? pw : user)).focus({ preventScroll: true });
   };
 })();
 
@@ -2422,7 +2529,7 @@ a { color: inherit; }
     };
     const ics = () => A.download((e.title || 'event').replace(/[^\w-]+/g, '_') + '.ics', A.ics([Object.assign(e, { title: title.value || e.title })], 'Aide'), 'text/calendar');
     const log = e.log && e.log[date.value]; const logLine = h('span', { class: 'small muted' }, log ? 'In ' + (log.ci != null ? A.time(log.ci) : '—') + (log.co != null ? ' · Out ' + A.time(log.co) : '') : '');
-    const m = A.modal({
+    const m = A.modal({ lockRO: true,
       title: isNew ? 'New event' : 'Edit event', cls: '',
       body: [A.field('Title', title), cats,
         h('div', { class: 'two' }, A.field('Date', date), h('div', { class: 'field' }, h('span', null, 'All day'), h('div', { class: 'row', style: { minHeight: '42px' } }, sw))),
@@ -2487,22 +2594,22 @@ a { color: inherit; }
       if (!ui.view) ui.view = isPhone() ? 'day' : 'week';
       const view = ui.view, S = A.settings(), ws = S.weekStart;
       const seg = h('div', { class: 'seg', role: 'tablist', 'aria-label': 'Calendar view' }, VIEWS.map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': k === view, onClick: () => { ui.view = k; localStorage.setItem('aide.ui', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('aide.ui') || '{}'), { calView: k }))); A.route(); } }, n)));
-      const move = dir => { const v = view; ui.anchor = v === 'day' ? ui.anchor + dir : v === '3day' ? ui.anchor + 3 * dir : v === 'week' ? ui.anchor + 7 * dir : v === 'year' ? D.addMonths(ui.anchor, 12 * dir) : v === 'agenda' ? ui.anchor + 14 * dir : (S.calSystem === 'jalali' ? D.addJalaliMonths(ui.anchor, dir) : D.addMonths(ui.anchor, dir)); A.route(); };
+      const move = dir => { const v = view; ui.anchor = v === 'day' ? ui.anchor + dir : v === '3day' ? ui.anchor + 3 * dir : v === 'week' ? ui.anchor + 7 * dir : v === 'year' ? D.sAddMonths(ui.anchor, 12 * dir) : v === 'agenda' ? ui.anchor + 14 * dir : D.sAddMonths(ui.anchor, dir); A.route(); };
       const a = ui.anchor, y = D.ymd(a);
       let title, sub = '';
-      if (view === 'day') { title = D.long(a); sub = D.sec(a) ? D.sec(a) : ''; }
-      else if (view === '3day' || view === 'week') { const n = view === 'week' ? 7 : 3, s = view === 'week' ? D.weekStart(a, ws) : a, f = D.ymd(s), l = D.ymd(s + n - 1); title = f.m === l.m ? D.MON[f.m - 1] + ' ' + f.d + ' – ' + l.d + ', ' + l.y : D.MON3[f.m - 1] + ' ' + f.d + ' – ' + D.MON3[l.m - 1] + ' ' + l.d + ', ' + l.y; }
-      else if (view === 'month') { if (S.calSystem === 'jalali') { const fs = D.jalaliMonthStart(a); title = D.faMonth(fs); sub = D.MON[D.ymd(fs).m - 1] + ' – ' + D.MON[D.ymd(fs + D.jalaliMonthLen(fs) - 1).m - 1] + ' ' + D.ymd(fs).y; } else title = D.MON[y.m - 1] + ' ' + y.y; } else if (view === 'year') title = String(y.y); else title = 'Next 30 days';
+      if (view === 'day') { title = D.longS(a); sub = D.isJ() ? D.long(a) : (D.sec(a) || ''); }
+      else if (view === '3day' || view === 'week') { const n = view === 'week' ? 7 : 3, s = view === 'week' ? D.weekStart(a, ws) : a; title = D.rangeTitle(s, s + n - 1); }
+      else if (view === 'month') { const fs = D.sMonthStart(a); title = D.mtitle(fs); sub = D.isJ() ? D.MON[D.ymd(fs).m - 1] + ' – ' + D.MON[D.ymd(fs + D.sMonthLen(fs) - 1).m - 1] + ' ' + D.ymd(fs).y : ''; } else if (view === 'year') title = D.dig(D.sYear(a)); else title = 'Next 30 days';
       const quick = h('input', { type: 'text', class: 'quick', placeholder: 'Quick add: “Call Sarah tomorrow 3pm 30m”', 'aria-label': 'Quick add', autocomplete: 'off', dir: 'auto', style: { maxWidth: '360px', minWidth: '180px', flex: '1 1 220px', minHeight: '34px', padding: '4px 14px', borderRadius: '999px' } });
       quick.addEventListener('keydown', ev => { if (ev.key !== 'Enter' || !quick.value.trim()) return; const p = E.parse(quick.value); quick.value = ''; E.edit(null, { title: p.title, date: D.iso(p.day), start: p.start != null ? p.start : undefined, dur: p.dur || undefined, cat: p.cat, allDay: p.cat === 'away' }); });
       const nav = h('div', { class: 'row' },
-        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Previous', onClick: () => move(-1) }, A.ico('chevL')),
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Previous', onClick: () => move(-1) }, A.dirIco('chevL')),
         h('button', { class: 'btn sm', type: 'button', onClick: () => { ui.anchor = D.today(); A.route(); } }, 'Today'),
-        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Next', onClick: () => move(1) }, A.ico('chevR')));
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Next', onClick: () => move(1) }, A.dirIco('chevR')));
       const head = h('div', { class: 'cal-head' }, nav, h('div', { class: 'cal-title', 'aria-live': 'polite' }, title, sub ? h('small', null, sub) : null), h('span', { class: 'grow' }),
-        seg, h('button', { class: 'btn primary', type: 'button', onClick: () => E.edit(null, { date: D.iso(view === 'day' ? a : D.today()) }) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New')));
+        seg, A.readOnly ? null : h('button', { class: 'btn primary', type: 'button', onClick: () => E.edit(null, { date: D.iso(view === 'day' ? a : D.today()) }) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New')));
       const body = h('div', { class: 'cal-body view-enter' });
-      root.append(head, catFilter(quick), body);
+      root.append(head, catFilter(A.readOnly ? h('span') : quick), body);
       ({ day: timeGrid, '3day': timeGrid, week: timeGrid, month, year, agenda })[view](body, view);
       A.keys = ev => { if (ev.target.matches('input,textarea,select')) return false; if (ev.key === 'ArrowLeft' && !ev.target.closest('.ev')) { move(-1); return true; } if (ev.key === 'ArrowRight' && !ev.target.closest('.ev')) { move(1); return true; } if (ev.key === 't') { ui.anchor = D.today(); A.route(); return true; } if (ev.key === 'n') { E.edit(null, {}); return true; } return false; };
     },
@@ -2522,7 +2629,7 @@ a { color: inherit; }
     const H0 = Math.max(0, Math.min(S.dayStart, 12)), H1 = Math.min(24, Math.max(S.dayEnd, H0 + 4)), hours = H1 - H0;
     body.style.setProperty('--cols', n); body.style.setProperty('--hours', hours);
     const occs = visible(E.expand(first, first + n - 1)), bad = E.conflictKeys(occs);
-    const head = h('div', { class: 'tg-head' }, h('div'), days.map(d => h('div', { class: 'tg-day' + (d === t0 ? ' today' : '') + (A.isHoliday(d) ? ' hol' : ''), title: A.holiday(d).map(x => x.name).join(' · ') }, h('button', { type: 'button', 'aria-label': D.long(d), onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, h('span', { class: 'dn' }, D.DOW3[D.dow(d)]), h('span', { class: 'dd num' }, D.ymd(d).d), D.sec(d) ? h('span', { class: 'sec' }, D.sec(d)) : null))));
+    const head = h('div', { class: 'tg-head' }, h('div'), days.map(d => h('div', { class: 'tg-day' + (d === t0 ? ' today' : '') + (A.isHoliday(d) ? ' hol' : ''), title: A.holiday(d).map(x => x.name).join(' · ') }, h('button', { type: 'button', 'aria-label': D.longS(d), onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, h('span', { class: 'dn' }, D.wname(D.dow(d))), h('span', { class: 'dd num' }, D.dnum(d)), D.dsec(d) ? h('span', { class: 'sec' }, D.dsec(d)) : null))));
     const allday = h('div', { class: 'tg-allday' }, h('div'), days.map(d => h('div', null, A.holiday(d).map(x => h('span', { class: 'ev-chip hol-chip', title: x.fa, 'data-fa': x.fa }, h('span', { class: 't' }, x.name))), occs.filter(o => o.allDay && o.day === d).map(o => h('button', { type: 'button', class: 'ev-chip', style: A.catStyle(o.cat), onClick: () => E.edit(o.ev) }, h('span', { class: 't' }, o.title))))));
     const hoursCol = h('div', { class: 'tg-hours' }, Array.from({ length: hours }, (_, i) => h('span', { style: { top: i * 100 / hours + '%' } }, i === 0 ? '' : A.hourLabel(H0 + i))));
     const cols = days.map(d => {
@@ -2568,10 +2675,11 @@ a { color: inherit; }
     document.addEventListener('touchmove', blockTouch, { passive: false });
     grid.addEventListener('pointerdown', ev => {
       const evEl = ev.target.closest('.ev'), col = ev.target.closest('.tg-col'); if (ev.button > 0 || !col) return;
+      if (A.readOnly && !evEl) return;
       if (evEl) {
-        const o = evEl._o, resize = !!ev.target.closest('.rz'), touch = ev.pointerType === 'touch';
-        drag = { type: resize ? 'resize' : 'move', el: evEl, o, x0: ev.clientX, y0: ev.clientY, id: ev.pointerId, on: false, armed: !touch || resize, col, day: o.day, start: o.start, dur: o.dur, moved: false };
-        if (touch && !resize) drag.timer = setTimeout(() => { drag.armed = true; drag.on = true; evEl.classList.add('drag'); if (navigator.vibrate) navigator.vibrate(12); }, 380);
+        const o = evEl._o, resize = !A.readOnly && !!ev.target.closest('.rz'), touch = ev.pointerType === 'touch';
+        drag = { type: resize ? 'resize' : 'move', el: evEl, o, x0: ev.clientX, y0: ev.clientY, id: ev.pointerId, on: false, armed: !A.readOnly && (!touch || resize), col, day: o.day, start: o.start, dur: o.dur, moved: false };
+        if (touch && !resize && !A.readOnly) drag.timer = setTimeout(() => { drag.armed = true; drag.on = true; evEl.classList.add('drag'); if (navigator.vibrate) navigator.vibrate(12); }, 380);
         if (resize) drag.on = true;
       } else if (ev.pointerType !== 'touch') {
         const m0 = Math.max(H0 * 60, Math.min(H0 * 60 + hours * 60 - SNAP, Math.floor(minAt(ev.clientY, col) / SNAP) * SNAP));
@@ -2588,7 +2696,7 @@ a { color: inherit; }
       if (!drag.on) return;
       const hp = px();
       if (drag.type === 'move') {
-        const dm = snap(dy / hp * 60), cw = grid.querySelector('.tg-col').getBoundingClientRect().width, dd = Math.round(dx / cw);
+        const dm = snap(dy / hp * 60), cw = grid.querySelector('.tg-col').getBoundingClientRect().width, dd = Math.round(dx / cw) * (A.rtl() ? -1 : 1);
         drag.start = Math.max(H0 * 60, Math.min(H0 * 60 + hours * 60 - drag.dur, snap(drag.o.start + dm))); drag.day = Math.max(days[0], Math.min(days[days.length - 1], drag.o.day + dd));
         drag.el.style.transform = 'translate(' + (dx) + 'px,' + ((drag.start - drag.o.start) / 60 * hp) + 'px)';
         say(ev.clientX, ev.clientY, D.DOW3[D.dow(drag.day)] + ' ' + A.time(drag.start) + ' – ' + A.time(drag.start + drag.dur));
@@ -2630,17 +2738,17 @@ a { color: inherit; }
 
   /* ── month ────────────────────────────────────────────────────────── */
   function month(body) {
-    const S = A.settings(), jal = S.calSystem === 'jalali', y = D.ymd(ui.anchor), first = jal ? D.jalaliMonthStart(ui.anchor) : D.num(y.y, y.m, 1), len = jal ? D.jalaliMonthLen(first) : D.daysIn(y.y, y.m), gs = D.weekStart(first, S.weekStart), total = Math.ceil((first - gs + len) / 7) * 7, last = gs + total - 1, t0 = D.today();
+    const S = A.settings(), jal = D.isJ(), first = D.sMonthStart(ui.anchor), len = D.sMonthLen(first), gs = D.weekStart(first, S.weekStart), total = Math.ceil((first - gs + len) / 7) * 7, last = gs + total - 1, t0 = D.today();
     const occs = visible(E.expand(gs, last)), by = {}; occs.forEach(o => (by[o.day] = by[o.day] || []).push(o));
     let sel = ui._sel != null && ui._sel >= gs && ui._sel <= last ? ui._sel : (t0 >= gs && t0 <= last ? t0 : first);
-    const dow = h('div', { class: 'mo-dow' }, Array.from({ length: 7 }, (_, i) => h('span', null, D.DOW3[(S.weekStart + i) % 7])));
+    const dow = h('div', { class: 'mo-dow' }, Array.from({ length: 7 }, (_, i) => h('span', null, D.wname((S.weekStart + i) % 7))));
     const panel = h('div', { class: 'mo-side' });
-    const fill = () => { const L = by[sel] || []; panel.replaceChildren(h('b', null, D.long(sel) + (jal ? ' · ' + D.faDate(sel) : '')), A.holiday(sel).map(x => h('div', { class: 'warn', style: { marginTop: '6px' }, title: x.fa }, A.ico('flag'), h('span', null, x.name))), h('div', { class: 'stack', style: { marginTop: '8px' } }, L.length ? L.map(o => evChip(o)) : h('span', { class: 'muted' }, 'Nothing scheduled.'))); };
+    const fill = () => { const L = by[sel] || []; panel.replaceChildren(h('b', null, D.longS(sel) + (jal ? ' · ' + D.long(sel) : '')), A.holiday(sel).map(x => h('div', { class: 'warn', style: { marginTop: '6px' }, title: x.fa }, A.ico('flag'), h('span', null, x.name))), h('div', { class: 'stack', style: { marginTop: '8px' } }, L.length ? L.map(o => evChip(o)) : h('span', { class: 'muted' }, 'Nothing scheduled.'))); };
     const cells = [];
     const grid = h('div', { class: 'mo-grid' }, Array.from({ length: total }, (_, i) => {
       const d = gs + i, L = by[d] || [], out = d < first || d >= first + len, hol = A.holiday(d);
       const c = h('button', { type: 'button', class: 'mo-cell' + (out ? ' out' : '') + (A.isWeekend(d) && !out ? ' wk' : '') + (hol.length ? ' hol' : '') + (d === t0 ? ' today' : '') + (d === sel ? ' sel' : ''), 'aria-label': D.long(d) + ', ' + L.length + ' events', onClick: () => { if (isPhone()) { sel = d; ui._sel = d; cells.forEach((x, j) => x.classList.toggle('sel', gs + j === sel)); fill(); } else { ui.anchor = d; ui.view = 'day'; A.route(); } }, onDblclick: () => E.edit(null, { date: D.iso(d) }) },
-        h('span', { class: 'd' }, h('b', { class: 'num' }, jal ? D.faDay(d) : D.ymd(d).d), jal ? h('em', null, D.ymd(d).d) : (D.sec(d) ? h('em', null, D.sec(d)) : null)), hol.slice(0, 1).map(x => h('span', { class: 'mo-hol', title: x.fa, 'data-fa': x.fa }, x.name)),
+        h('span', { class: 'd' }, h('b', { class: 'num' }, D.dnum(d)), D.dsec(d) ? h('em', null, D.dsec(d)) : null), hol.slice(0, 1).map(x => h('span', { class: 'mo-hol', title: x.fa, 'data-fa': x.fa }, x.name)),
         L.slice(0, 3).map(o => h('span', { class: 'mo-ev', style: A.catStyle(o.cat), dir: 'auto' }, (o.allDay ? '' : A.time(o.start) + ' ') + o.title)), L.length > 3 ? h('span', { class: 'mo-more' }, '+' + (L.length - 3) + ' more') : null,
         h('span', { class: 'mo-dots' }, hol.length ? h('i', { class: 'dot', style: { background: 'var(--danger)' } }) : null, L.slice(0, 4).map(o => h('i', { class: 'dot', style: { background: 'var(--b-' + o.cat + ')' } }))));
       cells.push(c); return c;
@@ -2651,11 +2759,12 @@ a { color: inherit; }
 
   /* ── year ─────────────────────────────────────────────────────────── */
   function year(body) {
-    const S = A.settings(), Y = D.ymd(ui.anchor).y, t0 = D.today(), occs = visible(E.expand(D.num(Y, 1, 1), D.num(Y, 12, 31))), cnt = {}; occs.forEach(o => cnt[o.day] = (cnt[o.day] || 0) + 1);
-    body.append(h('div', { class: 'yr' }, Array.from({ length: 12 }, (_, mi) => {
-      const first = D.num(Y, mi + 1, 1), lead = (D.dow(first) - S.weekStart + 7) % 7, n = D.daysIn(Y, mi + 1);
-      return h('section', { class: 'mini' }, h('h4', null, h('button', { type: 'button', onClick: () => { ui.anchor = first; ui.view = 'month'; A.route(); } }, D.MON[mi])),
-        h('div', { class: 'mini-grid' }, Array.from({ length: 7 }, (_, i) => h('b', null, D.DOW3[(S.weekStart + i) % 7][0])), Array.from({ length: lead }, () => h('span')), Array.from({ length: n }, (_, i) => { const d = first + i; return h('button', { type: 'button', class: (d === t0 ? 'today' : '') + (A.isHoliday(d) ? ' hol' : ''), title: A.holiday(d).map(x => x.name).join(' · '), style: { '--heat': Math.min(cnt[d] || 0, 6) }, 'aria-label': D.long(d) + ', ' + (cnt[d] || 0) + ' events', onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, i + 1); })));
+    const S = A.settings(), t0 = D.today(), y0 = D.sYearStart(ui.anchor), months = []; { let st = y0; for (let i = 0; i < 12; i++) { months.push(st); st += D.sMonthLen(st); } }
+    const end = months[11] + D.sMonthLen(months[11]) - 1, occs = visible(E.expand(y0, end)), cnt = {}; occs.forEach(o => cnt[o.day] = (cnt[o.day] || 0) + 1);
+    body.append(h('div', { class: 'yr' }, months.map(first => {
+      const lead = (D.dow(first) - S.weekStart + 7) % 7, n = D.sMonthLen(first);
+      return h('section', { class: 'mini' }, h('h4', null, h('button', { type: 'button', onClick: () => { ui.anchor = first; ui.view = 'month'; A.route(); } }, D.mname(first))),
+        h('div', { class: 'mini-grid' }, Array.from({ length: 7 }, (_, i) => h('b', null, D.wletter((S.weekStart + i) % 7))), Array.from({ length: lead }, () => h('span')), Array.from({ length: n }, (_, i) => { const d = first + i; return h('button', { type: 'button', class: (d === t0 ? 'today' : '') + (A.isHoliday(d) ? ' hol' : ''), title: A.holiday(d).map(x => x.name).join(' · '), style: { '--heat': Math.min(cnt[d] || 0, 5) / 5 }, 'aria-label': D.longS(d), onClick: () => { ui.anchor = d; ui.view = 'day'; A.route(); } }, D.dnum(d)); })));
     })));
   }
 
@@ -2669,7 +2778,7 @@ a { color: inherit; }
       const L = term ? occs.filter(o => (o.title + ' ' + (o.ev.people || '') + ' ' + (o.ev.loc || '') + ' ' + (o.ev.notes || '')).toLowerCase().includes(term)) : occs;
       if (!L.length) return wrap.append(A.empty('Nothing here', 'No events in the next 30 days match.'));
       const g = {}; L.forEach(o => (g[o.day] = g[o.day] || []).push(o)); if (!term) A.holidays(from, to).forEach(x => { g[x.day] = g[x.day] || []; g[x.day].hol = (g[x.day].hol || []).concat([x]); });
-      Object.keys(g).sort((a, b) => a - b).forEach(d => { d = +d; wrap.append(h('div', { class: 'ag-day' + (d === t0 ? ' today' : '') }, h('div', { class: 'dl num' }, D.ymd(d).d, h('small', null, D.DOW3[D.dow(d)] + ' · ' + D.MON3[D.ymd(d).m - 1])), h('div', { class: 'list' }, (g[d].hol || []).map(x => h('div', { class: 'warn', title: x.fa }, A.ico('flag'), h('span', null, x.name))), g[d].map(o => { const c = evChip(o); if (bad.has(o.key)) c.append(h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'Conflict')); return c; })))); });
+      Object.keys(g).sort((a, b) => a - b).forEach(d => { d = +d; wrap.append(h('div', { class: 'ag-day' + (d === t0 ? ' today' : '') }, h('div', { class: 'dl num' }, D.dnum(d), h('small', null, D.wname(D.dow(d)) + ' · ' + (D.isJ() ? D.mname(d) : D.MON3[D.ymd(d).m - 1]))), h('div', { class: 'list' }, (g[d].hol || []).map(x => h('div', { class: 'warn', title: x.fa }, A.ico('flag'), h('span', null, x.name))), g[d].map(o => { const c = evChip(o); if (bad.has(o.key)) c.append(h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'Conflict')); return c; })))); });
     };
     q.addEventListener('input', A.debounce(draw, 120)); body.append(q, wrap); draw();
   }
@@ -2724,10 +2833,10 @@ a { color: inherit; }
       if (!list.length) return root.append(A.empty(reqUI.tab === 'pending' ? 'Inbox zero' : 'Nothing here yet', reqUI.tab === 'pending' ? 'No pending requests. New ones appear here.' : '', 'inbox'));
       root.append(h('div', { class: 'grid g2' }, list.map(r => h('article', { class: 'req' + (r.pri === 'high' ? ' high' : '') },
         h('div', { class: 'row' }, h('div', { class: 'avatar' }, A.initials(r.who)), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, r.who), h('div', { class: 'small muted', dir: 'auto' }, [r.org, 'asked ' + D.rel(r.created).toLowerCase()].filter(Boolean).join(' · '))), r.pri === 'high' ? h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'High priority') : null),
-        h('p', { dir: 'auto' }, r.purpose), h('div', { class: 'row wrap small muted' }, h('span', null, A.dur(r.dur || 30)), r.pref ? h('span', null, '· ' + r.pref) : null, r.status === 'approved' && r.when ? h('span', null, '· Booked ' + r.when) : null),
+        h('p', { dir: 'auto' }, r.purpose), A.mgrChip ? A.mgrChip(r) : null, h('div', { class: 'row wrap small muted' }, h('span', null, A.dur(r.dur || 30)), r.pref ? h('span', null, '· ' + r.pref) : null, r.status === 'approved' && r.when ? h('span', null, '· Booked ' + r.when) : null),
         h('div', { class: 'row wrap' },
-          r.status === 'pending' ? [h('button', { class: 'btn sm primary', type: 'button', onClick: () => approve(r) }, 'Approve & schedule'), h('button', { class: 'btn sm', type: 'button', onClick: () => propose(r) }, 'Suggest times'), h('button', { class: 'btn sm', type: 'button', onClick: () => decline(r) }, 'Decline')] : h('button', { class: 'btn sm', type: 'button', onClick: () => { A.patch('requests', r.id, { status: 'pending' }); A.route(); } }, 'Move back to pending'),
-          h('span', { class: 'grow' }), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Edit request', onClick: () => editReq(r) }, A.ico('settings')), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete request', onClick: () => { A.del('requests', r.id, 'Request deleted'); A.route(); } }, A.ico('trash')))))));
+          A.readOnly ? (r.status === 'pending' ? A.mgrButtons(r) : null) : r.status === 'pending' ? [h('button', { class: 'btn sm primary', type: 'button', onClick: () => approve(r) }, 'Approve & schedule'), h('button', { class: 'btn sm', type: 'button', onClick: () => propose(r) }, 'Suggest times'), h('button', { class: 'btn sm', type: 'button', onClick: () => decline(r) }, 'Decline')] : h('button', { class: 'btn sm', type: 'button', onClick: () => { A.patch('requests', r.id, { status: 'pending' }); A.route(); } }, 'Move back to pending'),
+          h('span', { class: 'grow' }), A.readOnly ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Edit request', onClick: () => editReq(r) }, A.ico('settings')), A.readOnly ? null : h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete request', onClick: () => { A.del('requests', r.id, 'Request deleted'); A.route(); } }, A.ico('trash')))))));
     },
   };
   function editReq(r) {
@@ -2758,8 +2867,8 @@ a { color: inherit; }
     actions: () => [h('button', { class: 'btn', type: 'button', onClick: () => E.edit(null, { cat: 'away', allDay: true, title: 'Out of office' }) }, A.ico('calendar'), 'Block dates')],
     render(root) {
       const S = A.settings(), av = A.db.data.avail, ws = S.weekStart, H0 = Math.min(S.dayStart, 12), H1 = Math.max(S.dayEnd, H0 + 4), rows = (H1 - H0) * 2;
-      const order = Array.from({ length: 7 }, (_, i) => (ws + i) % 7), on = (dw, i) => (av[dw] || []).includes(i);
-      const grid = h('div', { class: 'av-grid', role: 'application', 'aria-label': 'Weekly visiting hours. Drag to add or remove.' }, h('div', { class: 'hd' }), order.map(dw => h('div', { class: 'hd' }, D.DOW3[dw])));
+      const order = Array.from({ length: 7 }, (_, i) => (ws + i) % 7), on = (dw, i) => (av[dw] || []).includes(i), rh = innerWidth >= 900 ? Math.max(13, Math.min(22, Math.floor((innerHeight - 250) / (rows + 1)))) : 22;
+      const grid = h('div', { class: 'av-grid', style: { '--avh': rh + 'px' }, role: 'application', 'aria-label': 'Weekly visiting hours. Drag to add or remove.' }, h('div', { class: 'hd' }), order.map(dw => h('div', { class: 'hd' }, D.DOW3[dw])));
       for (let r = 0; r < rows; r++) { const slot = H0 * 2 + r; A.put(grid, h('div', { class: 'hr' }, r % 2 === 0 ? A.hourLabel(H0 + r / 2).replace(':00', '') : ''), order.map(dw => h('div', { class: 'av-cell' + (r % 2 === 0 ? ' hour' : '') + (on(dw, slot) ? ' on' : ''), 'data-dw': dw, 'data-slot': slot }))); }
       let mode = null;
       const paint = el => { if (!el || !el.classList || !el.classList.contains('av-cell')) return; const dw = +el.dataset.dw, s = +el.dataset.slot; const list = av[dw] = av[dw] || []; const has = list.includes(s); if (mode === 'add' && !has) list.push(s); else if (mode === 'del' && has) list.splice(list.indexOf(s), 1); else return; el.classList.toggle('on', mode === 'add'); };
@@ -2889,7 +2998,7 @@ a { color: inherit; }
       const drawList = () => { nUI.q = q.value; const t = q.value.trim().toLowerCase(); list.replaceChildren(); const L = sorted().filter(n => !t || (n.title + ' ' + n.body).toLowerCase().includes(t)); if (!L.length) list.append(A.empty('No notes', 'Create one to get started.', 'notes')); L.forEach(n => list.append(h('button', { type: 'button', class: 'nitem', 'aria-current': n.id === nUI.sel, style: { '--b': 'var(--b-' + (n.color || 'meeting') + ')' }, 'data-id': n.id, onClick: () => { nUI.sel = n.id; wrap.classList.add('editing'); A.$$('.nitem', list).forEach(x => x.setAttribute('aria-current', x.dataset.id === n.id)); drawEd(); } }, h('b', { dir: 'auto' }, (n.pinned ? '📌 ' : '') + (n.title || 'Untitled')), h('span', { dir: 'auto' }, ago(n.updated) + ' · ' + (n.body.split('\n')[0] || 'Empty'))))); };
       const drawEd = () => {
         const n = nUI.sel && A.get('notes', nUI.sel); ed.replaceChildren(); if (!n) { ed.append(A.empty('Select a note', '', 'notes')); return; }
-        const ttl = h('input', { class: 'ttl', type: 'text', dir: 'auto', value: n.title, placeholder: 'Title', 'aria-label': 'Note title' }), body = h('textarea', { dir: 'auto', placeholder: 'Start typing…', 'aria-label': 'Note text' }), count = h('span', { class: 'small muted' });
+        const ttl = h('input', { class: 'ttl', type: 'text', dir: 'auto', readOnly: A.readOnly, value: n.title, placeholder: 'Title', 'aria-label': 'Note title' }), body = h('textarea', { dir: 'auto', readOnly: A.readOnly, placeholder: 'Start typing…', 'aria-label': 'Note text' }), count = h('span', { class: 'small muted' });
         body.value = n.body; const words = () => { const w = body.value.trim() ? body.value.trim().split(/\s+/).length : 0; count.textContent = w + ' words · saved'; };
         const save = A.debounce(() => { A.patch('notes', n.id, { title: ttl.value, body: body.value, updated: Date.now() }); words(); const it = A.$('.nitem[data-id="' + n.id + '"]', list); if (it) { it.firstChild.textContent = (n.pinned ? '📌 ' : '') + (ttl.value || 'Untitled'); it.lastChild.textContent = 'just now · ' + (body.value.split('\n')[0] || 'Empty'); } }, 350);
         [ttl, body].forEach(x => x.addEventListener('input', () => { count.textContent = 'Saving…'; save(); }));
@@ -3008,8 +3117,9 @@ a { color: inherit; }
 (function () {
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
-  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['settings', 'Settings', 'settings']];
-  const TABS = ['today', 'calendar', 'requests', 'notes'];
+  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
+  const tabsFor = () => A.role === 'manager' ? ['manager', 'calendar', 'requests', 'tasks'] : ['today', 'calendar', 'requests', 'notes'];
+  const navFor = () => NAV.filter(([id]) => id !== 'users' || A.role === 'admin');
   A.current = null;
   let built = false, view = null;
 
@@ -3020,33 +3130,34 @@ a { color: inherit; }
     const side = h('aside', { class: 'side', 'aria-label': 'Main' },
       h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Executive Desk'))),
       h('button', { class: 'btn', type: 'button', style: { margin: '0 4px 10px', justifyContent: 'flex-start' }, onClick: () => A.palette() }, A.ico('search'), 'Search', h('span', { class: 'grow' }), h('small', { class: 'muted' }, '⌘K')),
-      h('nav', { class: 'nav' }, NAV.map(([id, n, ic]) => h('a', { href: '#/' + id, 'data-id': id }, A.ico(ic), n, id === 'requests' ? h('span', { class: 'badge', 'data-badge': 'requests', hidden: true }) : null))),
-      h('div', { class: 'side-foot' }, h('div', { class: 'who' }, h('div', { class: 'avatar' }, A.initials(S.name || A.vault.user())), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, S.name || A.vault.user()), h('div', { class: 'small muted' }, S.title || 'Executive'))),
+      h('nav', { class: 'nav' }, navFor().map(([id, n, ic]) => h('a', { href: '#/' + id, 'data-id': id }, A.ico(ic), n, id === 'requests' ? h('span', { class: 'badge', 'data-badge': 'requests', hidden: true }) : null))),
+      h('div', { class: 'side-foot' }, h('div', { class: 'who' }, h('div', { class: 'avatar' }, A.initials(S.name || A.vault.user())), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, S.name || A.vault.user()), h('div', { class: 'small muted' }, (A.role === 'manager' ? 'Manager account · ' : '') + (S.title || 'Executive')))),
         h('div', { class: 'row' }, h('button', { class: 'btn sm grow', type: 'button', onClick: lock }, A.ico('lock'), 'Lock'), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Sign out', onClick: lock }, A.ico('logout')))));
     const main = h('main', { class: 'main', id: 'main' });
-    const tabs = h('nav', { class: 'tabbar', 'aria-label': 'Main' }, TABS.map(id => { const n = NAV.find(x => x[0] === id); return h('a', { href: '#/' + id, 'data-id': id }, A.ico(n[2]), n[1], id === 'requests' ? h('span', { class: 'badge', 'data-badge': 'requests', hidden: true }) : null); }), h('button', { type: 'button', 'data-id': 'more', onClick: more }, A.ico('more'), 'More'));
+    const tabs = h('nav', { class: 'tabbar', 'aria-label': 'Main' }, tabsFor().map(id => { const n = NAV.find(x => x[0] === id); return h('a', { href: '#/' + id, 'data-id': id }, A.ico(n[2]), n[1], id === 'requests' ? h('span', { class: 'badge', 'data-badge': 'requests', hidden: true }) : null); }), h('button', { type: 'button', 'data-id': 'more', onClick: more }, A.ico('more'), 'More'));
     app.append(side, main, tabs); built = true;
   }
   function more() {
-    const list = h('div', { class: 'stack' }, NAV.filter(x => !TABS.includes(x[0])).map(([id, n, ic]) => h('a', { href: '#/' + id, class: 'item hov', style: { textDecoration: 'none', color: 'inherit' }, onClick: () => m.close() }, A.ico(ic), n)),
+    const list = h('div', { class: 'stack' }, navFor().filter(x => !tabsFor().includes(x[0])).map(([id, n, ic]) => h('a', { href: '#/' + id, class: 'item hov', style: { textDecoration: 'none', color: 'inherit' }, onClick: () => m.close() }, A.ico(ic), n)),
       h('button', { type: 'button', class: 'item hov', onClick: () => { m.close(); A.palette(); } }, A.ico('search'), 'Search everything'), h('button', { type: 'button', class: 'item hov', onClick: () => { m.close(); lock(); } }, A.ico('lock'), 'Lock the desk'));
     const m = A.modal({ title: 'More', body: list });
   }
-  function lock(msg) { A.flush().finally(() => { A.vault.lock(); document.title = 'Aide · Executive Desk'; clearInterval(E._t); view && view.destroy && view.destroy(); view = null; built = false; A.showLogin(typeof msg === 'string' ? msg : 'Locked. Enter your password to continue.'); }); }
+  function lock(msg) { A.flush().finally(() => { A.vault.forget(); A.vault.lock(); document.title = 'Aide · Executive Desk'; clearInterval(E._t); view && view.destroy && view.destroy(); view = null; built = false; A.showLogin(typeof msg === 'string' ? msg : 'Locked. Enter your password to continue.'); }); }
 
   /* ── router ───────────────────────────────────────────────────────── */
   A.route = function () {
-    if (!A.db.data) return; const id = (location.hash.replace(/^#\//, '') || 'today').split('?')[0], v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
+    document.documentElement.dir = A.settings().dir === 'rtl' ? 'rtl' : 'ltr';
+    if (!A.db.data) return; let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0]; if (id === 'users' && A.role !== 'admin') id = A.role === 'manager' ? 'manager' : 'today'; const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
     const main = $('#main'); if (!main) return;
     const prev = main.querySelector('.page'), keep = prev && A.current === key ? prev.scrollTop : 0;
     view && view.destroy && view.destroy(); view = v; const changed = A.current !== key; A.current = key;
     main.replaceChildren(); main.classList.toggle('notop', !!v.noTop);
-    if (!v.noTop) { const acts = v.actions ? v.actions() : []; main.append(h('div', { class: 'topbar' }, h('div', null, h('h1', null, typeof v.title === 'function' ? v.title() : v.title), v.sub ? h('div', { class: 'sub' }, typeof v.sub === 'function' ? v.sub() : v.sub) : null), h('span', { class: 'grow' }), acts)); }
+    if (!v.noTop) { const acts = v.actions && (!A.readOnly || v.roActions) ? v.actions() : []; main.append(h('div', { class: 'topbar' }, h('div', null, h('h1', null, typeof v.title === 'function' ? v.title() : v.title), v.sub ? h('div', { class: 'sub' }, typeof v.sub === 'function' ? v.sub() : v.sub) : null), h('span', { class: 'grow' }), acts)); }
     const page = h('div', { class: 'page' + (v.flush ? ' flush' : ''), id: 'page', role: 'region', 'aria-label': v.title }); main.append(page);
     try { v.render(page); } catch (e) { console.error(e); page.append(A.empty('Something went wrong', e.message, 'x')); }
     if (changed) page.classList.add('view-enter'); else page.scrollTop = keep;
     A.$$('[data-id]').forEach(a => { if (a.tagName === 'A') { a.toggleAttribute('aria-current', a.dataset.id === key); if (a.dataset.id === key) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); } });
-    const more = A.$('.tabbar [data-id=more]'); if (more) { if (!TABS.includes(key)) more.setAttribute('aria-current', 'page'); else more.removeAttribute('aria-current'); }
+    const more = A.$('.tabbar [data-id=more]'); if (more) { if (!tabsFor().includes(key)) more.setAttribute('aria-current', 'page'); else more.removeAttribute('aria-current'); }
     badges();
   };
   function badges() { const n = A.db.data.requests.filter(r => r.status === 'pending').length; A.$$('[data-badge=requests]').forEach(b => { b.hidden = !n; b.textContent = n; }); }
@@ -3251,7 +3362,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   const CLAVES = ['1x1', '2x1', '2x2'];
   const COLORES = ['ac-coral', 'ac-cielo', 'ac-limon', 'ac-menta', 'ac-lila'];
   // cuántas columnas caben: en el móvil dos, en una tableta cuatro, y seis en grande
-  const columnasSegunAncho = ancho => ancho >= 820 ? 6 : ancho >= 520 ? 4 : 2;
+  const columnasSegunAncho = ancho => ancho >= 940 ? 8 : ancho >= 820 ? 6 : ancho >= 520 ? 4 : 2;
   const PULSACION = 280;        // ms de pulsación para levantar con el dedo (así no estorba al desplazar la página)
 
   function Acomodo(raiz, opc) {
@@ -3276,7 +3387,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       c.res = [c.x, c.y, c.w, c.h, c.lift, c.rot, c.ent];
       // el asa de la esquina y la etiqueta de la medida
       el.insertAdjacentHTML('beforeend',
-        '<button class="ac-asa" type="button" tabindex="-1" aria-label="Cambiar el tamaño de ' + c.nombre + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11.5V19h-7.5M5 12.5V5h7.5"/></svg></button>' +
+        '<button class="ac-asa" type="button" tabindex="-1" aria-label="Resize ' + c.nombre + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11.5V19h-7.5M5 12.5V5h7.5"/></svg></button>' +
         '<span class="ac-medida" aria-hidden="true"></span>');
       c.asa = el.querySelector('.ac-asa');
       c.medida = el.querySelector('.ac-medida');
@@ -3346,7 +3457,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
           arranca();
         };
         if (escalonado && !quieto()) timers.push(setTimeout(aplica, i * 38)); else aplica();
-        c.el.setAttribute('aria-label', c.nombre + ', posición ' + (i + 1) + ' de ' + orden.length + ', tamaño ' + TAMS[c.tam].n);
+        c.el.setAttribute('aria-label', c.nombre + ', position ' + (i + 1) + ' of ' + orden.length + ', size ' + TAMS[c.tam].n);
       });
       if (arrastra) { const r = arrastra.slot; hu.x.meta = r.x; hu.y.meta = r.y; hu.w.meta = r.w; hu.h.meta = r.h; }
       arranca();
@@ -3414,11 +3525,11 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     function guarda() {
       chip.dataset.estado = 'guardando';
       chip.classList.remove('is-nuevo');
-      chipTx.textContent = 'Guardando…';
+      chipTx.textContent = 'Saving…';
       clearTimeout(tEstado);
       tEstado = setTimeout(() => {
         chip.dataset.estado = 'guardado';
-        chipTx.textContent = 'Guardado';
+        chipTx.textContent = 'Saved';
         void chip.offsetWidth;
         chip.classList.add('is-nuevo');      // el ✓ se vuelve a dibujar
       }, quieto() ? 0 : 750);
@@ -3440,7 +3551,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       o.addEventListener('animationend', quita);
       setTimeout(quita, 1200);
     }
-    function posicionTxt(c) { return c.nombre + ', posición ' + (orden.indexOf(c.id) + 1) + ' de ' + orden.length; }
+    function posicionTxt(c) { return c.nombre + ', position ' + (orden.indexOf(c.id) + 1) + ' of ' + orden.length; }
 
     /* ── levantar, llevar y soltar ──────────────────────────────────── */
     function snapshot() { antes = { orden: orden.slice(), tams: cartas.map(c => c.tam) }; }
@@ -3449,7 +3560,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       c.el.classList.add('is-alzada', 'is-reciente');
       c.reciente = true;
       c.lift.meta = 1;
-      if (porTeclado) { alzadaT = c; anuncia(c.nombre + ' levantada. Flechas para moverla, Espacio para soltarla, Escape para cancelar.'); }
+      if (porTeclado) { alzadaT = c; anuncia(c.nombre + ' picked up. Arrow keys to move, Space to drop, Escape to cancel.'); }
       else {
         arrastra = c;
         c.x.k = c.y.k = MUELLES.mano.k; c.x.c = c.y.c = MUELLES.mano.c;
@@ -3458,7 +3569,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
         hu.x.x = hu.x.meta = r.x; hu.y.x = hu.y.meta = r.y; hu.w.x = hu.w.meta = r.w; hu.h.x = hu.h.meta = r.h;
         hu.a.meta = 1;
         document.documentElement.classList.add('ac-arrastrando');
-        anuncia(c.nombre + ' levantada');
+        anuncia(c.nombre + ' picked up');
       }
       arranca();
     }
@@ -3471,8 +3582,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       hu.a.meta = 0;
       document.documentElement.classList.remove('ac-arrastrando');
       reacomoda();
-      if (cambio) { onda(c); guarda(); anuncia(posicionTxt(c) + (cambio ? '. Guardado' : '')); }
-      else anuncia(c.nombre + ' soltada en su sitio');
+      if (cambio) { onda(c); guarda(); anuncia(posicionTxt(c) + (cambio ? '. Saved' : '')); }
+      else anuncia(c.nombre + ' dropped in place');
       antes = null;
     }
     function cancela() {
@@ -3488,7 +3599,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       hu.a.meta = 0;
       document.documentElement.classList.remove('ac-arrastrando');
       reacomoda();
-      anuncia(c.nombre + ' vuelve a su sitio');
+      anuncia(c.nombre + ' returns to its place');
     }
     // dónde caería la tarjeta: la posición que deja su centro más cerca de donde está (con un poco de inercia para no vibrar)
     function elige() {
@@ -3587,7 +3698,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       reacomoda();
       const cambio = cartas.some((k, i) => k.tam !== antes.tams[i]);
       antes = null;
-      if (cambio && !cancelando) { onda(R.c); guarda(); anuncia(R.c.nombre + ', tamaño ' + TAMS[R.c.tam].n + '. Guardado'); }
+      if (cambio && !cancelando) { onda(R.c); guarda(); anuncia(R.c.nombre + ', size ' + TAMS[R.c.tam].n + '. Saved'); }
     }
     cartas.forEach(c => {
       c.asa.addEventListener('pointerdown', e => {
@@ -3627,7 +3738,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       const hay = !!antes;
       if (!hay) snapshot();
       ponTam(c, n);
-      anuncia(c.nombre + ', tamaño ' + TAMS[n].n);
+      anuncia(c.nombre + ', size ' + TAMS[n].n);
       if (!alzadaT) { onda(c); guarda(); antes = null; }
     }
 
@@ -3652,7 +3763,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     }
     function mueveTecla(c, tecla) {
       const cur = orden.indexOf(c.id), nuevo = destinoTecla(c, tecla);
-      if (nuevo === cur) { anuncia('No se puede mover más en esa dirección'); return; }
+      if (nuevo === cur) { anuncia('Cannot move further that way'); return; }
       orden.splice(cur, 1); orden.splice(nuevo, 0, c.id);
       reacomoda();
       anuncia(posicionTxt(c));
@@ -5552,22 +5663,23 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   /* ── Anaquel-style widgets: analog clock, mini month, timer ───────── */
   const clockSvg = () => { let t = ''; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6, r1 = i % 3 ? 31 : 28; t += '<line x1="' + (60 + Math.sin(a) * r1).toFixed(1) + '" y1="' + (50 - Math.cos(a) * r1).toFixed(1) + '" x2="' + (60 + Math.sin(a) * 35).toFixed(1) + '" y2="' + (50 - Math.cos(a) * 35).toFixed(1) + '" stroke="var(--ac-tinta)" stroke-opacity="' + (i % 3 ? .35 : .8) + '" stroke-width="' + (i % 3 ? 1.6 : 2.6) + '" stroke-linecap="round"/>'; }
     return '<circle cx="60" cy="50" r="40" fill="var(--ac-papel)" stroke="var(--ac-linea)" stroke-width="2"/>' + t + '<line data-hand="h" x1="60" y1="50" x2="60" y2="34" stroke="var(--ac-tinta)" stroke-width="4.2" stroke-linecap="round"/><line data-hand="m" x1="60" y1="50" x2="60" y2="21" stroke="var(--ac-tinta)" stroke-width="2.8" stroke-linecap="round"/><line data-hand="s" x1="60" y1="56" x2="60" y2="18" stroke="var(--a)" stroke-width="1.6" stroke-linecap="round"/><circle cx="60" cy="50" r="3.4" fill="var(--a)"/>'; };
-  const monthSvg = (y, m, ws, cnt, today) => { const first = D.num(y, m, 1), lead = (D.dow(first) - ws + 7) % 7, n = D.daysIn(y, m); let o = '<g class="ac-svg-dia" text-anchor="middle">' + Array.from({ length: 7 }, (_, i) => '<text x="' + (10 + i * 16.7).toFixed(1) + '" y="9">' + D.DOW3[(ws + i) % 7][0] + '</text>').join('') + '</g>';
-    for (let i = 0; i < n; i++) { const c = (lead + i) % 7, r = Math.floor((lead + i) / 7), x = 10 + c * 16.7, yy = 25 + r * 14.4, d = first + i, k = cnt[d] || 0; if (d === today) o += '<circle cx="' + x.toFixed(1) + '" cy="' + (yy - 3) + '" r="6.4" fill="var(--a)"/>'; else if (k) o += '<circle cx="' + x.toFixed(1) + '" cy="' + (yy - 3) + '" r="6.4" fill="var(--a)" opacity="' + Math.min(.5, .16 + k * .09) + '"/>'; o += '<text x="' + x.toFixed(1) + '" y="' + yy + '" text-anchor="middle" font-size="8" font-weight="700" fill="' + (d === today ? 'var(--ac-papel)' : 'var(--ac-tinta)') + '">' + (i + 1) + '</text>'; }
+  const monthSvg = (y, m, ws, cnt, today) => { const first = D.sMonthStart(today), lead = (D.dow(first) - ws + 7) % 7, n = D.sMonthLen(first); let o = '<g class="ac-svg-dia" text-anchor="middle">' + Array.from({ length: 7 }, (_, i) => '<text x="' + (10 + i * 16.7).toFixed(1) + '" y="9">' + D.wletter((ws + i) % 7) + '</text>').join('') + '</g>';
+    for (let i = 0; i < n; i++) { const c = (lead + i) % 7, r = Math.floor((lead + i) / 7), x = 10 + c * 16.7, yy = 25 + r * 14.4, d = first + i, k = cnt[d] || 0; if (d === today) o += '<circle cx="' + x.toFixed(1) + '" cy="' + (yy - 3) + '" r="6.4" fill="var(--a)"/>'; else if (k) o += '<circle cx="' + x.toFixed(1) + '" cy="' + (yy - 3) + '" r="6.4" fill="var(--a)" opacity="' + Math.min(.5, .16 + k * .09) + '"/>'; o += '<text x="' + x.toFixed(1) + '" y="' + yy + '" text-anchor="middle" font-size="8" font-weight="700" fill="' + (d === today ? 'var(--ac-papel)' : 'var(--ac-tinta)') + '">' + D.dig(i + 1) + '</text>'; }
     return o; };
   const timerState = () => { try { return (JSON.parse(sessionStorage.getItem('aide.timers') || '{}').cd) || null; } catch (e) { return null; } };
 
   A.views.today = {
     title: () => { const S = A.settings(), hr = new Date().getHours(), g = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening'; return g + (S.name ? ', ' + S.name.split(' ')[0] : ''); },
-    sub: () => D.long(D.today()) + (D.sec(D.today()) ? ' · ' + D.sec(D.today()) : ''),
-    actions: () => [h('button', { class: 'btn noprint', type: 'button', onClick: () => window.print() }, A.ico('print'), h('span', { class: 'hide-sm' }, 'Daily brief')), h('button', { class: 'btn primary noprint', type: 'button', onClick: () => E.edit(null, {}) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New event'))],
-    render(root) {
-      const S = A.settings(), t0 = D.today(), now = D.nowMin(), all = E.day(t0), todays = all.filter(o => !(o.allDay && o.cat === 'away')), timed = todays.filter(o => !o.allDay);
+    sub: () => D.longS(D.today()) + (D.isJ() ? ' · ' + D.long(D.today()) : (D.sec(D.today()) ? ' · ' + D.sec(D.today()) : '')),
+    destroy() { A.views.today._off && A.views.today._off(); A.views.today._off = null; },
+    actions: () => [h('button', { class: 'btn noprint', type: 'button', onClick: () => A.widgetPicker('board') }, A.ico('list'), h('span', { class: 'hide-sm' }, 'Widgets')), h('button', { class: 'btn noprint', type: 'button', onClick: () => window.print() }, A.ico('print'), h('span', { class: 'hide-sm' }, 'Daily brief')), A.readOnly ? null : h('button', { class: 'btn primary noprint', type: 'button', onClick: () => E.edit(null, {}) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New event'))],
+    render(root, opt) {
+      opt = opt || {}; const S = A.settings(), t0 = D.today(), now = D.nowMin(), all = E.day(t0), todays = all.filter(o => !(o.allDay && o.cat === 'away')), timed = todays.filter(o => !o.allDay);
       const upcoming = timed.find(o => o.end > now), done = timed.filter(o => o.end <= now).length, week0 = D.weekStart(t0, S.weekStart), wocc = E.expand(week0, week0 + 6), bad = E.conflictKeys(wocc);
       const pend = A.db.data.requests.filter(r => r.status === 'pending'), tasks = A.db.data.tasks.filter(t => !t.done), iso0 = D.iso(t0), due = tasks.filter(t => t.due && t.due <= iso0), over = tasks.filter(t => t.due && t.due < iso0);
       const visits = todays.filter(o => o.cat === 'visit'), vin = visits.filter(o => { const l = o.ev.log && o.ev.log[iso0]; return l && l.ci != null; }).length;
       const win = A.windows(30, 7)[0], clocks = A.clockRows(), counts = Array.from({ length: 7 }, (_, i) => wocc.filter(o => o.day === week0 + i).length);
-      const mm = D.ymd(t0), mcnt = {}; E.expand(D.num(mm.y, mm.m, 1), D.num(mm.y, mm.m, D.daysIn(mm.y, mm.m))).forEach(o => { mcnt[o.day] = (mcnt[o.day] || 0) + 1; });
+      const mm = D.ymd(t0), m0 = D.sMonthStart(t0), mcnt = {}; E.expand(m0, m0 + D.sMonthLen(m0) - 1).forEach(o => { mcnt[o.day] = (mcnt[o.day] || 0) + 1; });
       const pin = A.db.data.notes.filter(n => n.pinned)[0] || A.db.data.notes[0];
       const oldest = pend.length ? Math.max(...pend.map(r => t0 - r.created)) : 0, nBad = [...bad].filter(k => +k.split('@')[1] >= t0).length;
       const cards = {
@@ -5581,26 +5693,40 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
         free: { id: 'free', color: 'cielo', size: '1x1', icon: 'clock', title: 'Free slot', value: win ? A.time(win.from) : '—', label: win ? D.rel(win.day) + ' · 30 min+' : 'none in 7 days', viz: '<circle cx="60" cy="50" r="30" fill="none" stroke="var(--a)" stroke-width="8"/><path d="M60 32v19l12 8" fill="none" stroke="var(--a)" stroke-width="7" stroke-linecap="round"/>', extra: [go('availability', 'Availability')] },
         clock: { id: 'clock', color: 'lila', size: '1x1', icon: 'globe', title: 'Clock', value: A.time(now), label: clocks[0] ? A.esc(clocks[0].city) + ' ' + clocks[0].time : 'local time', viz: clockSvg(),
           list: '<div class="ac-viz ac-solochica"><svg viewBox="0 0 120 100" aria-hidden="true" focusable="false">' + clockSvg() + '</svg></div><ul class="ac-viz ac-nochica ac-lista">' + (clocks.slice(0, 5).map(r => '<li><i></i><span>' + A.esc(r.city) + ' · ' + r.time + '</span></li>').join('') || '<li><i></i><span>Add cities in Timers</span></li>') + '</ul>', extra: [li('Local', A.time(now))] },
-        month: { id: 'month', color: 'cielo', size: '2x2', icon: 'calendar', title: D.MON[D.ymd(t0).m - 1], value: String(Object.values(mcnt).reduce((a, b) => a + b, 0)), label: 'events this month', viz: monthSvg(D.ymd(t0).y, D.ymd(t0).m, S.weekStart, mcnt, t0), extra: [li('Today', todays.length), li('Week', counts.reduce((a, b) => a + b, 0))] },
+        month: { id: 'month', color: 'cielo', size: '2x2', icon: 'calendar', title: D.mname(t0), value: String(Object.values(mcnt).reduce((a, b) => a + b, 0)), label: 'events this month', viz: monthSvg(D.ymd(t0).y, D.ymd(t0).m, S.weekStart, mcnt, t0), extra: [li('Today', todays.length), li('Week', counts.reduce((a, b) => a + b, 0))] },
         note: { id: 'note', color: 'menta', size: '2x1', icon: 'notes', title: 'Notebook', value: String(A.db.data.notes.length), label: pin ? A.esc(pin.title || 'Untitled').slice(0, 36) : 'no notes yet', viz: '<g fill="var(--a)"><rect x="14" y="22" width="92" height="8" rx="4" opacity=".7"/><rect x="14" y="40" width="70" height="8" rx="4" opacity=".5"/><rect x="14" y="58" width="82" height="8" rx="4" opacity=".4"/><rect x="14" y="76" width="44" height="8" rx="4" opacity=".3"/></g>', extra: [li('Pinned', A.db.data.notes.filter(n => n.pinned).length)] },
         timer: { id: 'timer', color: 'coral', size: '1x1', icon: 'timer', title: 'Timer', value: '<span data-timer-val>--:--</span>', label: '<span data-timer-lab>ready</span>', viz: '<circle cx="60" cy="50" r="32" fill="none" stroke="var(--ac-tinta)" stroke-opacity=".12" stroke-width="9"/><circle data-timer-ring cx="60" cy="50" r="32" fill="none" stroke="var(--a)" stroke-width="9" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="0" transform="rotate(-90 60 50)"/>', extra: [go('timer', 'Open')] },
         overlaps: { id: 'overlaps', color: 'limon', size: '1x1', icon: 'bell', title: 'Overlaps', value: String(nBad), label: nBad ? 'double bookings' : 'all clear', viz: '<rect x="22" y="26" width="56" height="30" rx="9" fill="var(--a)" opacity=".55"/><rect x="42" y="44" width="56" height="30" rx="9" fill="var(--a)" opacity=".9"/>', extra: [go('calendar', 'Review')] },
       };
-      const saved = S.board || {}, base = (saved.orden || []).filter(k => cards[k]), order = base.concat(Object.keys(cards).filter(k => !base.includes(k)));
+      const bk = opt.boardKey || 'board'; Object.keys(cards).forEach(k => { if ((opt.keys && !opt.keys.includes(k)) || (S.hidden || {})[bk + ':' + k]) delete cards[k]; });
+      const saved = S[bk] || {}, base = (saved.orden || []).filter(k => cards[k]), order = base.concat(Object.keys(cards).filter(k => !base.includes(k)));
       const sz = saved.tamanos || {}; order.forEach(k => { const v = Array.isArray(sz) ? sz[order.indexOf(k)] : sz[k]; if (typeof v === 'number' && SIZE[v]) cards[k].size = SIZE[v]; else if (typeof v === 'string' && /^\dx\d$/.test(v)) cards[k].size = v; });
       const quick = h('input', { type: 'text', dir: 'auto', placeholder: 'Quick add: “Lunch with Sarah tomorrow 1pm 90m”', 'aria-label': 'Quick add event', autocomplete: 'off', class: 'noprint' });
       quick.addEventListener('keydown', ev => { if (ev.key !== 'Enter' || !quick.value.trim()) return; const p = E.parse(quick.value); quick.value = ''; E.edit(null, { title: p.title, date: D.iso(p.day), start: p.start != null ? p.start : undefined, dur: p.dur || undefined, cat: p.cat, allDay: p.cat === 'away' }); });
       const away = all.find(o => o.allDay && (o.cat === 'away' || o.cat === 'travel')), hol = A.holiday(t0);
       const board = mkEl('<main class="ac-escena" data-acomodo><header class="ac-cab-pagina"><div class="ac-titulo"><p class="ac-hint"><span class="ac-solo-raton">Drag cards to arrange your day · drag the corner to resize · double-click a card to open it.</span><span class="ac-solo-tactil">Press and hold a card to move it.</span></p></div><div class="ac-acciones"><p class="ac-estado" data-estado="guardado"><span class="ac-estado-ico" aria-hidden="true"><svg class="ac-estado-giro" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="26 18"/></svg><svg class="ac-estado-ok" viewBox="0 0 20 20"><path d="M4.5 10.5l3.4 3.4 7.6-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="ac-estado-tx" data-estado-tx>Saved</span></p><button class="ac-reset is-quieto" type="button" data-restablece aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.5 14a7.5 7.5 0 1 0 2-7.7L4 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Reset</button></div></header><div class="ac-bandeja"><div class="ac-tablero" role="list" aria-label="Board of cards">' + order.map(k => card(cards[k])).join('') + '</div></div><p class="ac-vivo" aria-live="polite" data-vivo></p></main>');
       root.classList.add('mx-wrap');
-      root.append(h('div', { class: 'stack', style: { gap: '12px' } }, quick, hol.length ? h('div', { class: 'warn', title: hol[0].fa }, A.ico('flag'), h('span', null, 'Holiday today: ' + hol.map(x => x.name).join(' · '))) : null, away ? h('div', { class: 'warn', style: { background: 'var(--c-travel)', color: 'var(--ink)' } }, A.ico('globe'), h('span', null, 'Executive is away today: ' + away.title)) : null, board));
+      root.append(h('div', { class: 'stack', style: { gap: '12px' } }, A.readOnly || opt.noQuick ? null : quick, hol.length ? h('div', { class: 'warn', title: hol[0].fa }, A.ico('flag'), h('span', null, 'Holiday today: ' + hol.map(x => x.name).join(' · '))) : null, away ? h('div', { class: 'warn', style: { background: 'var(--c-travel)', color: 'var(--ink)' } }, A.ico('globe'), h('span', null, 'Executive is away today: ' + away.title)) : null, board));
       const GO = { month: 'calendar', note: 'notes', timer: 'timer', next: 'calendar', schedule: 'calendar', requests: 'requests', tasks: 'tasks', visitors: 'people', week: 'calendar', free: 'availability', clock: 'timer', overlaps: 'calendar' };
       board.addEventListener('dblclick', e => { const c = e.target.closest('.ac-card'); if (c && GO[c.dataset.id]) location.hash = '#/' + GO[c.dataset.id]; });
       let first = true;
       const live = () => { if (!board.isConnected) return clearInterval(iv); const n = new Date(), mi = n.getMinutes() + n.getSeconds() / 60, hr = (n.getHours() % 12) + mi / 60, set = (k, deg) => board.querySelectorAll('[data-hand=' + k + ']').forEach(e => e.setAttribute('transform', 'rotate(' + deg.toFixed(1) + ' 60 50)')); set('h', hr * 30); set('m', mi * 6); set('s', n.getSeconds() * 6);
         const cd = timerState(), v = board.querySelector('[data-timer-val]'), l = board.querySelector('[data-timer-lab]'), r = board.querySelector('[data-timer-ring]'); if (v) { const left = cd ? (cd.end ? Math.max(0, (cd.end - Date.now()) / 1000) : (cd.left != null ? cd.left : cd.total)) : 25 * 60, tot = cd ? cd.total : 25 * 60, ss = Math.ceil(left); v.textContent = A.pad(Math.floor(ss / 60)) + ':' + A.pad(ss % 60); l.textContent = cd && cd.end ? 'running' : cd && cd.left != null ? 'paused' : 'ready'; if (r) r.setAttribute('stroke-dashoffset', (201 * (1 - (cd && (cd.end || cd.left != null) ? left / tot : 1))).toFixed(1)); } };
       const iv = setInterval(live, 1000); live();
-      Acomodo(board, { alCambiar: st => { if (first) { first = false; } S.board = { orden: st.orden, tamanos: st.tamanos }; A.save('board'); } });
+      /* desktop: size the rows so every card fits on screen without scrolling */
+      const tab = board.querySelector('.ac-tablero');
+      if (innerWidth >= 900 && !opt.noFit) {
+        const tw = tab.clientWidth, cols = tw >= 940 ? 8 : tw >= 820 ? 6 : 4, cells = Object.values(cards).reduce((a, c) => a + (+c.size[0]) * (+c.size[2]), 0), rows = Math.max(3, Math.ceil(cells / cols * 1.12)), budget = innerHeight - board.getBoundingClientRect().top - 118;
+        tab.style.setProperty('--ac-fila', Math.max(96, Math.min(200, Math.floor((budget - (rows - 1) * 14) / rows))) + 'px');
+      }
+      Acomodo(board, { alCambiar: st => { if (first) { first = false; } S[bk] = { orden: st.orden, tamanos: st.tamanos }; A.save('board'); } });
+      /* live: redraw when data changes, every 30 s (for "next up"), and when the tab comes back — never while a card is being dragged */
+      let t = 0; const busy = () => board.querySelector('.is-alzada,.is-redim') || (document.activeElement && document.activeElement.tagName === 'INPUT' && document.activeElement.value);
+      const redo = () => { if (!board.isConnected) return; if (busy()) { t = setTimeout(redo, 1500); return; } A.route(); };
+      const kick = () => { clearTimeout(t); t = setTimeout(redo, 350); };
+      const offs = [A.on('change', k => { if (k !== 'board' && k !== 'settings') kick(); }), A.on('settings', kick)], ivr = setInterval(() => { if (!document.hidden) kick(); }, 30000), vis = () => { if (!document.hidden) kick(); };
+      document.addEventListener('visibilitychange', vis); window.addEventListener('resize', kick);
+      A.views.today._off = () => { offs.forEach(f => f()); clearInterval(ivr); clearTimeout(t); document.removeEventListener('visibilitychange', vis); window.removeEventListener('resize', kick); };
     },
   };
 
@@ -5682,12 +5808,100 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       if (on.desktop && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
       Object.assign(S, set); A.save('settings'); A.applyTheme(); return Promise.resolve();
     } });
-    root.append(A.prefCards());
   }
   A.views.settings = {
     title: 'Settings', sub: 'Appearance, preferences, security and backups',
-    actions: () => [h('div', { class: 'seg', role: 'tablist' }, [['look', 'Appearance & preferences'], ['data', 'Profile & data']].map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': stab.v === k, onClick: () => { stab.v = k; A.route(); } }, n)))],
-    render(root) { stab.v === 'look' ? sintonia(root) : oldSettings.render(root); },
+    actions: () => [h('div', { class: 'seg', role: 'tablist' }, [['look', 'Appearance'], ['prefs', 'Calendars & help'], ['data', 'Profile & data']].map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': stab.v === k, onClick: () => { stab.v = k; A.route(); } }, n)))],
+    render(root) { stab.v === 'look' ? sintonia(root) : stab.v === 'prefs' ? root.append(A.prefCards()) : oldSettings.render(root); },
+  };
+})();
+
+/* ===== js/admin.js ===== */
+/* Aide · admin — the Manager page, user management, the widget picker and the manager's decisions.
+   Roles live in the vault (see vault.js). "admin" = the assistant who runs the desk; "manager" = the executive, who
+   sees the same board, decides requests and ticks tasks, but cannot edit anything else. */
+(function () {
+  'use strict';
+  const A = window.Aide, { h, date: D } = A;
+
+  /* ── which cards are on a board ───────────────────────────────────── */
+  const CARDS = { next: 'Next up', schedule: 'Today', requests: 'Requests', tasks: 'Tasks', visitors: 'Visitors', week: 'This week', free: 'Free slot', clock: 'Clock', month: 'Month', note: 'Notebook', timer: 'Timer', overlaps: 'Overlaps' };
+  const MGR_KEYS = ['next', 'schedule', 'requests', 'tasks', 'visitors', 'week', 'free', 'overlaps'];
+  A.widgetPicker = function (bk) {
+    const S = A.settings(), keys = bk === 'boardMgr' ? MGR_KEYS : Object.keys(CARDS), hid = Object.assign({}, S.hidden);
+    const rows = keys.map(k => { const cb = h('input', { type: 'checkbox', checked: !hid[bk + ':' + k] }); cb.addEventListener('change', () => { if (cb.checked) delete hid[bk + ':' + k]; else hid[bk + ':' + k] = true; }); return h('label', { class: 'row item hov' }, cb, h('span', { class: 'grow' }, CARDS[k])); });
+    const m = A.modal({ title: 'Widgets on this page', body: [h('p', { class: 'muted small' }, 'Choose the cards to show. The remaining cards grow to fill the screen.'), h('div', { class: 'stack' }, rows)], footer: [h('button', { class: 'btn', type: 'button', onClick: () => { Object.keys(hid).forEach(k => { if (k.startsWith(bk + ':')) delete hid[k]; }); S.hidden = hid; A.save('settings'); m.close(); A.route(); } }, 'Show all'), h('span', { class: 'grow' }), h('button', { class: 'btn primary', type: 'button', onClick: () => { S.hidden = hid; A.save('settings'); m.close(); A.route(); } }, 'Done')] });
+  };
+
+  /* ── a manager's decision on a request ────────────────────────────── */
+  const MGR = { approved: ['Approved', 'var(--b-visit)'], declined: ['Declined', 'var(--danger-bg)'], info: ['Needs more information', 'var(--c-travel)'] };
+  A.decide = function (r, v, note) { A.patch('requests', r.id, { mgr: v, mgrNote: note || '', mgrBy: A.vault.user(), mgrAt: Date.now() }); };
+  A.mgrChip = r => r.mgr && MGR[r.mgr] ? h('div', { class: 'warn', style: { background: MGR[r.mgr][1], color: 'var(--ink)' } }, A.ico('flag'), h('span', null, 'Manager: ' + MGR[r.mgr][0] + (r.mgrNote ? ' — ' + r.mgrNote : ''))) : null;
+  A.mgrButtons = function (r) {
+    const note = h('input', { type: 'text', dir: 'auto', placeholder: 'Optional note', 'aria-label': 'Note', value: r.mgrNote || '', style: { flex: '1 1 140px' } }), go = v => () => { A.decide(r, v, note.value.trim()); A.route(); };
+    return h('div', { class: 'row wrap', style: { width: '100%' } }, note, h('button', { class: 'btn sm primary', type: 'button', onClick: go('approved') }, 'Approve'), h('button', { class: 'btn sm', type: 'button', onClick: go('info') }, 'Ask for info'), h('button', { class: 'btn sm', type: 'button', onClick: go('declined') }, 'Decline'));
+  };
+
+  /* ── MANAGER page: the same board, plus what needs a decision ─────── */
+  A.views.manager = {
+    title: 'Manager', sub: () => 'Your day at a glance · ' + D.long(D.today()), roActions: true,
+    actions: () => [h('button', { class: 'btn noprint', type: 'button', onClick: () => A.widgetPicker('boardMgr') }, A.ico('list'), h('span', { class: 'hide-sm' }, 'Widgets')), h('button', { class: 'btn noprint', type: 'button', onClick: () => window.print() }, A.ico('print'), h('span', { class: 'hide-sm' }, 'Daily brief'))],
+    destroy() { A.views.today.destroy(); },
+    render(root) {
+      const R = A.db.data.requests, T = A.db.data.tasks, iso = D.iso(D.today() + 7);
+      const pend = R.filter(r => r.status === 'pending').sort((a, b) => (b.pri === 'high') - (a.pri === 'high') || b.created - a.created);
+      const decided = R.filter(r => r.mgr && r.mgrAt).sort((a, b) => b.mgrAt - a.mgrAt).slice(0, 4);
+      const tasks = T.filter(t => !t.done && (t.pri === 'now' || (t.due && t.due <= iso))).sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1).slice(0, 8);
+      const host = h('div', { class: 'mx-wrap', style: { minWidth: 0 } });
+      const req = pend.length ? pend.slice(0, 5).map(r => h('article', { class: 'req' + (r.pri === 'high' ? ' high' : '') },
+        h('div', { class: 'row' }, h('div', { class: 'avatar' }, A.initials(r.who)), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, r.who), h('div', { class: 'small muted', dir: 'auto' }, [r.org, A.dur(r.dur || 30), r.pref].filter(Boolean).join(' · '))), r.pri === 'high' ? h('span', { class: 'pill', style: { '--c': 'var(--danger-bg)', color: 'var(--danger)' } }, 'High') : null),
+        h('p', { dir: 'auto', style: { margin: '6px 0' } }, r.purpose), A.mgrChip(r), A.mgrButtons(r))) : [A.empty('Nothing to decide', 'New requests appear here.', 'inbox')];
+      const panel = h('aside', { class: 'mgr-panel stack', style: { gap: '12px' } },
+        h('div', { class: 'card' }, h('h3', null, 'Needs your decision', h('span', { class: 'grow' }), h('span', { class: 'pill' }, String(pend.length))), h('div', { class: 'stack' }, req), pend.length > 5 ? h('a', { href: '#/requests', class: 'small' }, 'See all ' + pend.length + ' requests') : null),
+        h('div', { class: 'card' }, h('h3', null, 'To check', h('span', { class: 'grow' }), h('a', { href: '#/tasks', class: 'small' }, 'All tasks')), tasks.length ? h('div', { class: 'stack' }, tasks.map(t => h('label', { class: 'row item hov' }, (() => { const cb = h('input', { type: 'checkbox' }); cb.addEventListener('change', () => { A.patch('tasks', t.id, { done: true }); }); return cb; })(), h('span', { class: 'grow', dir: 'auto' }, t.title), t.due ? h('span', { class: 'small muted' }, D.rel(D.parse(t.due))) : null))) : h('p', { class: 'muted small' }, 'No tasks due this week. 🎉')),
+        decided.length ? h('div', { class: 'card' }, h('h3', null, 'Recently decided'), h('div', { class: 'stack' }, decided.map(r => h('div', { class: 'row small' }, h('b', { dir: 'auto' }, r.who), h('span', { class: 'grow' }), h('span', { class: 'pill', style: { '--c': MGR[r.mgr][1] } }, MGR[r.mgr][0]))))) : null);
+      root.append(h('div', { class: 'mgr' }, host, panel));
+      A.views.today.render(host, { keys: MGR_KEYS, boardKey: 'boardMgr', noQuick: true });
+    },
+  };
+
+  /* ── USERS page (admin) ───────────────────────────────────────────── */
+  const ROLE = { admin: ['Admin · assistant', 'Full access: edits everything, manages users.'], manager: ['Manager · executive', 'Sees everything, decides requests, ticks tasks. Cannot edit.'] };
+  function askPassword(why) {
+    return new Promise(res => {
+      const pw = h('input', { type: 'password', autocomplete: 'current-password', placeholder: 'Your password' }), err = h('div', { class: 'warn', hidden: true });
+      const go = async () => { try { await A.vault.elevate(pw.value); m.close(); res(true); } catch (e) { err.textContent = e.message; err.hidden = false; } };
+      pw.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+      const m = A.modal({ title: 'Confirm your password', body: [h('p', { class: 'muted small' }, why || 'To change users, confirm your own password once.'), A.field('Password', pw), err], footer: [h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: go }, 'Confirm')], onClose: () => res(false) });
+      setTimeout(() => pw.focus(), 50);
+    });
+  }
+  const guard = async why => A.vault.isElevated() || askPassword(why);
+  function userForm(u) {
+    const isNew = !u, name = h('input', { type: 'text', autocapitalize: 'none', spellcheck: 'false', placeholder: 'e.g. sara', value: u ? u.name : '', disabled: !isNew }), pw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'At least 10 characters' });
+    const role = h('select', null, Object.entries(ROLE).map(([k, v]) => h('option', { value: k, selected: u ? u.role === k : k === 'manager' }, v[0]))), err = h('div', { class: 'warn', hidden: true });
+    const m = A.modal({ title: isNew ? 'Add a user' : 'Reset password · ' + u.name, body: [isNew ? A.field('Username', name) : null, A.field(isNew ? 'Password' : 'New password', pw), isNew ? A.field('Role', role) : null, isNew ? h('p', { class: 'note' }, ROLE.manager[1]) : null, h('p', { class: 'note' }, 'Tell them the password in person. They can change it in Settings → Profile & data.'), err],
+      footer: [h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: async () => { try { if (isNew) await A.vault.addUser(name.value, pw.value, role.value); else await A.vault.resetPassword(u.name, pw.value); m.close(); A.toast(isNew ? 'User added.' : 'Password reset.'); A.route(); } catch (e) { err.textContent = e.message; err.hidden = false; } } }, isNew ? 'Add user' : 'Reset')] });
+    setTimeout(() => (isNew ? name : pw).focus(), 50);
+  }
+  A.views.users = {
+    title: 'Users', sub: 'Who can sign in to this desk',
+    actions: () => [h('button', { class: 'btn primary', type: 'button', onClick: async () => { if (await guard('Adding a user needs your password once.')) userForm(null); } }, A.ico('plus'), 'Add user')],
+    render(root) {
+      const me = A.vault.user(), list = A.vault.users();
+      root.append(h('div', { class: 'grid g2' }, list.map(u => h('article', { class: 'card' },
+        h('div', { class: 'row' }, h('div', { class: 'avatar' }, A.initials(u.name)), h('div', { class: 'grow' }, h('b', null, u.name, u.name === me ? h('span', { class: 'pill', style: { marginInlineStart: '8px' } }, 'You') : null), h('div', { class: 'small muted' }, 'Added ' + (u.created ? new Date(u.created).toLocaleDateString() : '—')))),
+        h('p', { class: 'small muted', style: { margin: '8px 0' } }, ROLE[u.role][1]),
+        h('div', { class: 'row wrap' },
+          h('select', { 'aria-label': 'Role', onChange: async e => { try { A.vault.setRole(u.name, e.target.value); A.toast('Role changed.'); A.route(); } catch (x) { A.toast(x.message); A.route(); } } }, Object.entries(ROLE).map(([k, v]) => h('option', { value: k, selected: u.role === k }, v[0]))),
+          h('button', { class: 'btn sm', type: 'button', onClick: async () => { if (await guard('Resetting a password needs your password once.')) userForm(u); } }, 'Reset password'),
+          u.name === me ? null : h('button', { class: 'btn sm', type: 'button', onClick: async () => { if (!await A.confirm('Remove ' + u.name + '?', 'They will no longer be able to sign in. The data stays.', 'Remove')) return; try { A.vault.removeUser(u.name); A.toast('User removed.'); A.route(); } catch (x) { A.toast(x.message); } } }, 'Remove'))))));
+      root.append(h('div', { class: 'card', style: { marginTop: '14px' } }, h('h3', null, 'How this works'), h('ul', { class: 'small muted', style: { margin: 0, paddingInlineStart: '18px' } },
+        h('li', null, 'All users open the same encrypted data on this device; each has their own password.'),
+        h('li', null, 'The Manager role is enforced by the app. It keeps the executive from changing things by accident; it is not protection against someone with developer tools.'),
+        h('li', null, 'To use the desk on another device: Settings → Profile & data → download the backup, then “Restore backup file” on the sign-in screen. Everyone keeps their own password.'),
+        h('li', null, 'Forgotten admin password with no other admin = data cannot be recovered. Keep a backup and a second admin.'))));
+    },
   };
 })();
 
@@ -6043,7 +6257,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
 
   </script>
   <script>
-    Aide.showLogin();
+    Aide.boot();
   </script>
 </body>
 </html>
