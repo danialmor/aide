@@ -327,6 +327,16 @@ html.fa-on .app { height: calc(100vh - 28px); height: calc(100dvh - 28px); } htm
 .av-grid .hr { height: var(--avh, 22px); }
 @media (min-width: 900px) and (min-height: 700px) { .page { padding-bottom: 14px; } }
 
+/* fitted pages: no scrollbars on desktop (scrolling still works where a list is longer than the window) */
+.page.fitted { overflow: hidden; } .fitbox { transform-origin: top; }
+@media (min-width: 900px) { * { scrollbar-width: none; } *::-webkit-scrollbar { display: none; }
+  .yr { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); overflow: hidden; gap: 12px 18px; padding: 12px 22px; align-content: stretch; } .yr .mini { min-height: 0; overflow: hidden; } }
+html.lang-fa body, html.lang-fa button, html.lang-fa input, html.lang-fa select, html.lang-fa textarea { font-family: 'Vazirmatn', var(--font-text, system-ui), sans-serif; }
+html.lang-fa .num, html.lang-fa .ac-valor strong { font-family: 'Vazirmatn', var(--font-display, system-ui), sans-serif; }
+.lang-btn { font-weight: 800; font-size: 13px; width: auto; min-width: 38px; padding: 0 8px; border-radius: 12px; }
+
+@media (min-width: 900px) and (max-height: 780px) { .mx-wrap .ac-titulo { display: none; } .mx-wrap .ac-cab-pagina { justify-content: flex-end; } }
+
 /* Acomodo · Moxen — los estilos del efecto y de la demostración.
    Todos los colores están aquí arriba. Cada tarjeta lleva su color en tres
    variables que pone su clase (.ac-coral, .ac-cielo, .ac-limon, .ac-menta,
@@ -2185,8 +2195,10 @@ a { color: inherit; }
     }
     if (S.holidayIntl) { const g = D.ymd(n), c = INTL[g.m + '-' + g.d]; if (c) out.push({ name: c[0], fa: c[1], kind: 'intl' }); }
     (S.customHolidays || []).forEach(c => { const g = D.ymd(n), p = D.parse(c.date); if (p == null) return; const q = D.ymd(p); if (p === n || (c.yearly && q.m === g.m && q.d === g.d)) out.push({ name: c.name, fa: c.name, kind: 'custom' }); });
+    if (S.lang === 'fa') out.forEach(x => { if (x.fa) x.name = x.fa; });
     cache.set(n, out); return out;
   };
+  A.clearHolidayCache = () => cache.clear();
   A.holidays = (from, to) => { const o = []; for (let d = from; d <= to; d++) A.holiday(d).forEach(x => o.push(Object.assign({ day: d }, x))); return o; };
   A.isHoliday = n => A.holiday(n).length > 0;
 
@@ -2201,6 +2213,7 @@ a { color: inherit; }
     const mine = h('div', { class: 'stack', style: { marginTop: '8px' } }, (S.customHolidays || []).map(c => h('div', { class: 'item', style: { background: 'var(--line-fine)', padding: '6px 10px' } }, h('span', { class: 'grow', dir: 'auto' }, c.name + ' · ' + c.date + (c.yearly ? ' · every year' : '')), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Remove ' + c.name, onClick: () => { S.customHolidays = S.customHolidays.filter(x => x.id !== c.id); A.save('settings'); A.route(); } }, A.ico('trash')))));
     const nextH = A.holidays(D.today(), D.today() + 120).slice(0, 5);
     return h('div', { class: 'prefgrid', id: 'prefcards' },
+      h('section', { class: 'card' }, h('h3', null, 'Language'), h('div', { class: 'sett' }, row('Language', h('div', { class: 'seg', 'data-nofa': '' }, [['en', 'English'], ['fa', 'فارسی']].map(([v, n]) => h('button', { type: 'button', 'aria-pressed': (S.lang || 'en') === v, onClick: () => A.setLang(v) }, n))), 'فارسی: the whole desk turns Persian — right-to-left, Shamsi calendar, Saturday week start. Your own text is never translated.'))),
       h('section', { class: 'card' }, h('h3', null, 'Description Farsi'), h('div', { class: 'sett' },
         row('Description Farsi', tf('faOn', false), 'Hold the mouse on any word or text to see its Persian beside the pointer (press and hold on touch). A one-line bar at the bottom explains the section under the mouse.'),
         row('Online translation for unknown words', tf('faOnline', false), 'Off by default. When on, words missing from the built-in dictionary — including your own text — are sent to the free MyMemory service to be translated. Keep it off for confidential text.'))),
@@ -2648,7 +2661,7 @@ a { color: inherit; }
     const nowLine = () => { A.$$('.now-line', grid).forEach(x => x.remove()); const m = D.nowMin(); if (!days.includes(t0) || m < H0 * 60 || m > H1 * 60) return; const col = cols[days.indexOf(t0)]; col.append(h('div', { class: 'now-line', style: { top: (m - H0 * 60) / (hours * 60) * 100 + '%' } })); };
     nowLine(); clearInterval(ui._t); ui._t = setInterval(nowLine, 30000);
     // scroll to the first event or to "now"
-    requestAnimationFrame(() => { const px = hourPx(), todayShown = days.includes(t0), firstMin = occs.filter(o => !o.allDay).reduce((m, o) => Math.min(m, o.start), 1e9); const target = todayShown ? Math.max(H0 * 60, D.nowMin() - 90) : Math.max(H0 * 60, Math.min(firstMin === 1e9 ? S.dayStart * 60 : firstMin, 14 * 60) - 30); scroll.scrollTop = (target - H0 * 60) / 60 * px; });
+    requestAnimationFrame(() => { if (innerWidth >= 900) { const sc = body.querySelector('.tg-scroll'); if (sc) { body.style.setProperty('--hour', Math.max(26, sc.clientHeight / hours) + 'px'); sc.style.overflowY = sc.clientHeight / hours >= 26 ? 'hidden' : 'auto'; } } const px = hourPx(), todayShown = days.includes(t0), firstMin = occs.filter(o => !o.allDay).reduce((m, o) => Math.min(m, o.start), 1e9); const target = todayShown ? Math.max(H0 * 60, D.nowMin() - 90) : Math.max(H0 * 60, Math.min(firstMin === 1e9 ? S.dayStart * 60 : firstMin, 14 * 60) - 30); scroll.scrollTop = (target - H0 * 60) / 60 * px; });
     interact(grid, cols, days, H0, hours, bad, occs);
   }
 
@@ -3118,8 +3131,8 @@ a { color: inherit; }
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
   const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
-  const tabsFor = () => A.role === 'manager' ? ['manager', 'calendar', 'requests', 'tasks'] : ['today', 'calendar', 'requests', 'notes'];
-  const navFor = () => NAV.filter(([id]) => id !== 'users' || A.role === 'admin');
+  const tabsFor = () => A.role === 'manager' ? ['manager', 'settings'] : ['today', 'calendar', 'requests', 'notes'];
+  const navFor = () => A.role === 'manager' ? NAV.filter(([id]) => id === 'manager' || id === 'settings') : NAV.filter(([id]) => id !== 'users' || A.role === 'admin');
   A.current = null;
   let built = false, view = null;
 
@@ -3131,8 +3144,8 @@ a { color: inherit; }
       h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Executive Desk'))),
       h('button', { class: 'btn', type: 'button', style: { margin: '0 4px 10px', justifyContent: 'flex-start' }, onClick: () => A.palette() }, A.ico('search'), 'Search', h('span', { class: 'grow' }), h('small', { class: 'muted' }, '⌘K')),
       h('nav', { class: 'nav' }, navFor().map(([id, n, ic]) => h('a', { href: '#/' + id, 'data-id': id }, A.ico(ic), n, id === 'requests' ? h('span', { class: 'badge', 'data-badge': 'requests', hidden: true }) : null))),
-      h('div', { class: 'side-foot' }, h('div', { class: 'who' }, h('div', { class: 'avatar' }, A.initials(S.name || A.vault.user())), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, S.name || A.vault.user()), h('div', { class: 'small muted' }, (A.role === 'manager' ? 'Manager account · ' : '') + (S.title || 'Executive')))),
-        h('div', { class: 'row' }, h('button', { class: 'btn sm grow', type: 'button', onClick: lock }, A.ico('lock'), 'Lock'), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Sign out', onClick: lock }, A.ico('logout')))));
+      h('div', { class: 'side-foot' }, h('div', { class: 'who' }, h('div', { class: 'avatar' }, A.initials(S.name || A.vault.user())), h('div', { class: 'grow' }, h('b', { dir: 'auto' }, S.name || A.vault.user()), h('div', { class: 'small muted' }, A.role === 'manager' ? h('span', null, 'Manager account · ') : null, h('bdi', { dir: 'auto' }, S.title || 'Executive')))),
+        h('div', { class: 'row' }, h('button', { class: 'btn sm grow', type: 'button', onClick: lock }, A.ico('lock'), 'Lock'), A.langButton ? A.langButton() : null, h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Sign out', onClick: lock }, A.ico('logout')))));
     const main = h('main', { class: 'main', id: 'main' });
     const tabs = h('nav', { class: 'tabbar', 'aria-label': 'Main' }, tabsFor().map(id => { const n = NAV.find(x => x[0] === id); return h('a', { href: '#/' + id, 'data-id': id }, A.ico(n[2]), n[1], id === 'requests' ? h('span', { class: 'badge', 'data-badge': 'requests', hidden: true }) : null); }), h('button', { type: 'button', 'data-id': 'more', onClick: more }, A.ico('more'), 'More'));
     app.append(side, main, tabs); built = true;
@@ -3146,8 +3159,8 @@ a { color: inherit; }
 
   /* ── router ───────────────────────────────────────────────────────── */
   A.route = function () {
-    document.documentElement.dir = A.settings().dir === 'rtl' ? 'rtl' : 'ltr';
-    if (!A.db.data) return; let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0]; if (id === 'users' && A.role !== 'admin') id = A.role === 'manager' ? 'manager' : 'today'; const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
+    document.documentElement.dir = A.settings().dir === 'rtl' ? 'rtl' : 'ltr'; A.applyLang && A.applyLang();
+    if (!A.db.data) return; let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0]; if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && id !== 'manager' && id !== 'settings')) id = A.role === 'manager' ? 'manager' : 'today'; const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
     const main = $('#main'); if (!main) return;
     const prev = main.querySelector('.page'), keep = prev && A.current === key ? prev.scrollTop : 0;
     view && view.destroy && view.destroy(); view = v; const changed = A.current !== key; A.current = key;
@@ -3155,11 +3168,27 @@ a { color: inherit; }
     if (!v.noTop) { const acts = v.actions && (!A.readOnly || v.roActions) ? v.actions() : []; main.append(h('div', { class: 'topbar' }, h('div', null, h('h1', null, typeof v.title === 'function' ? v.title() : v.title), v.sub ? h('div', { class: 'sub' }, typeof v.sub === 'function' ? v.sub() : v.sub) : null), h('span', { class: 'grow' }), acts)); }
     const page = h('div', { class: 'page' + (v.flush ? ' flush' : ''), id: 'page', role: 'region', 'aria-label': v.title }); main.append(page);
     try { v.render(page); } catch (e) { console.error(e); page.append(A.empty('Something went wrong', e.message, 'x')); }
+    if (v.fit && innerWidth >= 900) A.fitPage(page);
     if (changed) page.classList.add('view-enter'); else page.scrollTop = keep;
     A.$$('[data-id]').forEach(a => { if (a.tagName === 'A') { a.toggleAttribute('aria-current', a.dataset.id === key); if (a.dataset.id === key) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); } });
     const more = A.$('.tabbar [data-id=more]'); if (more) { if (!tabsFor().includes(key)) more.setAttribute('aria-current', 'page'); else more.removeAttribute('aria-current'); }
     badges();
   };
+  A.changePw = () => changePw();
+  A.rebuild = () => { built = false; $('#app').replaceChildren(); build(); built = true; A.route(); };
+  /* make a page fit the window without scrolling: wrap it and zoom the wrapper (down if too tall, up if there is room) */
+  A.fitPage = function (page) {
+    const box = h('div', { class: 'fitbox' }); while (page.firstChild) box.append(page.firstChild); page.append(box); page.classList.add('fitted');
+    const cs = getComputedStyle(page), availH = page.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 20, availW = page.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    let z = 1;
+    for (let i = 0; i < 5; i++) {
+      box.style.zoom = z; const r = box.getBoundingClientRect(), hh = r.height, ww = box.scrollWidth * z;
+      const k = Math.min(availH / hh, ww > availW + 2 ? availW / ww : 9); if (Math.abs(k - 1) < 0.015) break;
+      z = Math.max(0.5, Math.min(1.7, z * k));
+    }
+    box.style.zoom = z;
+  };
+  let rsz = 0; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (view && (view.fit || view === A.views.calendar) && A.db.data) A.route(); }, 300); });
   function badges() { const n = A.db.data.requests.filter(r => r.status === 'pending').length; A.$$('[data-badge=requests]').forEach(b => { b.hidden = !n; b.textContent = n; }); }
   window.addEventListener('hashchange', () => A.db.data && A.route());
   A.on('change', badges);
@@ -5656,7 +5685,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   const ring = (p, txt) => { const r = 34, c = 2 * Math.PI * r; return '<circle cx="60" cy="50" r="' + r + '" fill="none" stroke="var(--ac-tinta)" stroke-opacity=".12" stroke-width="10"/><circle cx="60" cy="50" r="' + r + '" fill="none" stroke="var(--a)" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + (c * (1 - Math.max(0, Math.min(1, p)))).toFixed(1) + '" transform="rotate(-90 60 50)"/><text x="60" y="57" text-anchor="middle" class="ac-svg-num">' + txt + '</text>'; };
   const bars = (vals, labels, hot) => { const max = Math.max(1, ...vals); return vals.map((v, i) => { const hh = 6 + v / max * 52; return '<rect x="' + (9 + i * 17) + '" y="' + (78 - hh) + '" width="11" height="' + hh + '" rx="4" fill="var(--a)" opacity="' + (i === hot ? 1 : .5) + '"/>'; }).join('') + '<g class="ac-svg-dia" text-anchor="middle">' + labels.map((l, i) => '<text x="' + (14.5 + i * 17) + '" y="96"' + (i === hot ? ' class="ac-hoy"' : '') + '>' + l + '</text>').join('') + '</g>'; };
   const dots = (n, done) => Array.from({ length: Math.min(n, 12) }, (_, i) => '<circle cx="' + (16 + (i % 6) * 18) + '" cy="' + (36 + Math.floor(i / 6) * 26) + '" r="7" fill="var(--a)" opacity="' + (i < done ? 1 : .3) + '"/>').join('');
-  const li = (k, v) => k + ' <b>' + A.esc(v) + '</b>';
+  const li = (k, v) => k + ' <b>' + A.esc(v) + '</b>', bd = v => '<bdi dir="auto">' + A.esc(v) + '</bdi>';
   const go = (hash, txt) => '<a class="mx-go" href="#/' + hash + '">' + txt + ' ›</a>';
 
 
@@ -5683,16 +5712,16 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       const pin = A.db.data.notes.filter(n => n.pinned)[0] || A.db.data.notes[0];
       const oldest = pend.length ? Math.max(...pend.map(r => t0 - r.created)) : 0, nBad = [...bad].filter(k => +k.split('@')[1] >= t0).length;
       const cards = {
-        next: { id: 'next', color: 'coral', size: '2x2', icon: 'clock', title: 'Next up', value: upcoming ? (upcoming.start <= now ? 'Now' : A.time(upcoming.start)) : '—', label: upcoming ? A.esc(upcoming.title).slice(0, 48) : 'nothing else today', viz: ring(timed.length ? done / timed.length : 1, done + '/' + timed.length), extra: [li('At', ((upcoming && upcoming.ev.loc) || '—').slice(0, 12)), li('With', ((upcoming && upcoming.ev.people) || '—').slice(0, 10))] },
+        next: { id: 'next', color: 'coral', size: '2x2', icon: 'clock', title: 'Next up', value: upcoming ? (upcoming.start <= now ? 'Now' : A.time(upcoming.start)) : '—', label: upcoming ? bd(upcoming.title.slice(0, 48)) : 'nothing else today', viz: ring(timed.length ? done / timed.length : 1, done + '/' + timed.length), extra: [li('At', ((upcoming && upcoming.ev.loc) || '—').slice(0, 12)).replace(/<b>(.*)<\/b>/, (m, x) => '<b>' + bd(x) + '</b>'), li('With', ((upcoming && upcoming.ev.people) || '—').slice(0, 10)).replace(/<b>(.*)<\/b>/, (m, x) => '<b>' + bd(x) + '</b>')] },
         schedule: { id: 'schedule', color: 'limon', size: '2x2', icon: 'calendar', title: 'Today', value: String(todays.length), label: todays.length === 1 ? 'item today' : 'items today',
-          list: '<div class="ac-viz ac-solochica"><svg viewBox="0 0 120 100" aria-hidden="true" focusable="false">' + dots(todays.length, done) + '</svg></div><ul class="ac-viz ac-nochica ac-lista">' + (todays.slice(0, 5).map(o => '<li' + (!o.allDay && o.end <= now ? ' class="ac-hecho"' : '') + '><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2l2.4 2.4 4.6-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>' + (o.allDay ? '' : A.time(o.start) + ' ') + A.esc(o.title) + '</span></li>').join('') || '<li><i></i><span>A free day</span></li>') + '</ul>', extra: [li('Done', done), li('Left', timed.length - done)] },
+          list: '<div class="ac-viz ac-solochica"><svg viewBox="0 0 120 100" aria-hidden="true" focusable="false">' + dots(todays.length, done) + '</svg></div><ul class="ac-viz ac-nochica ac-lista">' + (todays.slice(0, 5).map(o => '<li' + (!o.allDay && o.end <= now ? ' class="ac-hecho"' : '') + '><i><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2l2.4 2.4 4.6-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span>' + (o.allDay ? '' : A.time(o.start) + ' ') + bd(o.title) + '</span></li>').join('') || '<li><i></i><span>A free day</span></li>') + '</ul>', extra: [li('Done', done), li('Left', timed.length - done)] },
         requests: { id: 'requests', color: 'cielo', size: '2x1', icon: 'inbox', title: 'Requests', value: String(pend.length), label: 'waiting for a reply', viz: Array.from({ length: Math.min(pend.length, 6) }, (_, i) => '<rect x="' + (12 + i * 17) + '" y="' + (62 - (i % 3) * 10) + '" width="12" height="' + (24 + (i % 3) * 10) + '" rx="5" fill="var(--a)" opacity="' + (.45 + .1 * i) + '"/>').join('') || '<circle cx="60" cy="50" r="22" fill="none" stroke="var(--a)" stroke-width="6"/>', extra: [li('High priority', pend.filter(r => r.pri === 'high').length), li('Oldest', oldest + ' d'), go('requests', 'Open')] },
         tasks: { id: 'tasks', color: 'coral', size: '2x1', icon: 'tasks', title: 'Tasks', value: String(due.length), label: 'due today or overdue', viz: bars(['now', 'plan', 'delegate', 'drop'].map(k => tasks.filter(t => t.pri === k).length), ['N', 'P', 'D', 'X'], -1), extra: [li('Overdue', over.length), li('Open', tasks.length), go('tasks', 'Open')] },
         visitors: { id: 'visitors', color: 'lila', size: '2x1', icon: 'people', title: 'Visitors', value: String(visits.length), label: 'expected today', viz: dots(visits.length, vin), extra: [li('Checked in', vin), li('Waiting', visits.length - vin), go('people', 'People')] },
         week: { id: 'week', color: 'menta', size: '2x1', icon: 'calendar', title: 'This week', value: String(counts.reduce((a, b) => a + b, 0)), label: 'events scheduled', viz: bars(counts, [0, 1, 2, 3, 4, 5, 6].map(i => D.DOW3[(S.weekStart + i) % 7][0]), t0 - week0), extra: [li('Busiest', D.DOW3[(S.weekStart + counts.indexOf(Math.max(...counts))) % 7]), li('Overlaps', nBad)] },
         free: { id: 'free', color: 'cielo', size: '1x1', icon: 'clock', title: 'Free slot', value: win ? A.time(win.from) : '—', label: win ? D.rel(win.day) + ' · 30 min+' : 'none in 7 days', viz: '<circle cx="60" cy="50" r="30" fill="none" stroke="var(--a)" stroke-width="8"/><path d="M60 32v19l12 8" fill="none" stroke="var(--a)" stroke-width="7" stroke-linecap="round"/>', extra: [go('availability', 'Availability')] },
-        clock: { id: 'clock', color: 'lila', size: '1x1', icon: 'globe', title: 'Clock', value: A.time(now), label: clocks[0] ? A.esc(clocks[0].city) + ' ' + clocks[0].time : 'local time', viz: clockSvg(),
-          list: '<div class="ac-viz ac-solochica"><svg viewBox="0 0 120 100" aria-hidden="true" focusable="false">' + clockSvg() + '</svg></div><ul class="ac-viz ac-nochica ac-lista">' + (clocks.slice(0, 5).map(r => '<li><i></i><span>' + A.esc(r.city) + ' · ' + r.time + '</span></li>').join('') || '<li><i></i><span>Add cities in Timers</span></li>') + '</ul>', extra: [li('Local', A.time(now))] },
+        clock: { id: 'clock', color: 'lila', size: '1x1', icon: 'globe', title: 'Clock', value: A.time(now), label: clocks[0] ? bd(clocks[0].city) + ' ' + clocks[0].time : 'local time', viz: clockSvg(),
+          list: '<div class="ac-viz ac-solochica"><svg viewBox="0 0 120 100" aria-hidden="true" focusable="false">' + clockSvg() + '</svg></div><ul class="ac-viz ac-nochica ac-lista">' + (clocks.slice(0, 5).map(r => '<li><i></i><span>' + bd(r.city) + ' · ' + r.time + '</span></li>').join('') || '<li><i></i><span>Add cities in Timers</span></li>') + '</ul>', extra: [li('Local', A.time(now))] },
         month: { id: 'month', color: 'cielo', size: '2x2', icon: 'calendar', title: D.mname(t0), value: String(Object.values(mcnt).reduce((a, b) => a + b, 0)), label: 'events this month', viz: monthSvg(D.ymd(t0).y, D.ymd(t0).m, S.weekStart, mcnt, t0), extra: [li('Today', todays.length), li('Week', counts.reduce((a, b) => a + b, 0))] },
         note: { id: 'note', color: 'menta', size: '2x1', icon: 'notes', title: 'Notebook', value: String(A.db.data.notes.length), label: pin ? A.esc(pin.title || 'Untitled').slice(0, 36) : 'no notes yet', viz: '<g fill="var(--a)"><rect x="14" y="22" width="92" height="8" rx="4" opacity=".7"/><rect x="14" y="40" width="70" height="8" rx="4" opacity=".5"/><rect x="14" y="58" width="82" height="8" rx="4" opacity=".4"/><rect x="14" y="76" width="44" height="8" rx="4" opacity=".3"/></g>', extra: [li('Pinned', A.db.data.notes.filter(n => n.pinned).length)] },
         timer: { id: 'timer', color: 'coral', size: '1x1', icon: 'timer', title: 'Timer', value: '<span data-timer-val>--:--</span>', label: '<span data-timer-lab>ready</span>', viz: '<circle cx="60" cy="50" r="32" fill="none" stroke="var(--ac-tinta)" stroke-opacity=".12" stroke-width="9"/><circle data-timer-ring cx="60" cy="50" r="32" fill="none" stroke="var(--a)" stroke-width="9" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="0" transform="rotate(-90 60 50)"/>', extra: [go('timer', 'Open')] },
@@ -5716,8 +5745,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       /* desktop: size the rows so every card fits on screen without scrolling */
       const tab = board.querySelector('.ac-tablero');
       if (innerWidth >= 900 && !opt.noFit) {
-        const tw = tab.clientWidth, cols = tw >= 940 ? 8 : tw >= 820 ? 6 : 4, cells = Object.values(cards).reduce((a, c) => a + (+c.size[0]) * (+c.size[2]), 0), rows = Math.max(3, Math.ceil(cells / cols * 1.12)), budget = innerHeight - board.getBoundingClientRect().top - 118;
-        tab.style.setProperty('--ac-fila', Math.max(96, Math.min(200, Math.floor((budget - (rows - 1) * 14) / rows))) + 'px');
+        const tw = tab.clientWidth, cols = tw >= 940 ? 8 : tw >= 820 ? 6 : 4, cells = Object.values(cards).reduce((a, c) => a + (+c.size[0]) * (+c.size[2]), 0), rows = Math.max(3, Math.ceil(cells / cols * 1.12)), budget = innerHeight - board.getBoundingClientRect().top - 134;
+        tab.style.setProperty('--ac-fila', Math.max(64, Math.min(300, Math.floor((budget - (rows - 1) * 14) / rows))) + 'px');
       }
       Acomodo(board, { alCambiar: st => { if (first) { first = false; } S[bk] = { orden: st.orden, tamanos: st.tamanos }; A.save('board'); } });
       /* live: redraw when data changes, every 30 s (for "next up"), and when the tab comes back — never while a card is being dragged */
@@ -5743,6 +5772,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     return d.roadmap;
   }
   A.views.roadmap = {
+    fit: true,
     title: 'Roadmap', sub: 'Projects, trips and milestones for the quarter',
     actions: () => [h('button', { class: 'btn', type: 'button', onClick: manageRoadmap }, A.ico('list'), 'Manage items')],
     render(root) {
@@ -5767,6 +5797,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   const h24 = R => (R.h % 12) + (R.pm ? 12 : 0);
   A.ruleText = R => ({ diaria: R.sinFin ? 'Every weekday' : 'Every day', semanal: 'Weekly on ' + R.dias.map((v, i) => v ? D.DOW3[i] : '').filter(Boolean).join(', '), mensual: R.modoMes === 'dia' ? 'Monthly on day ' + R.diaMes : 'Monthly on the ' + ['first', 'second', 'third', 'fourth', 'last'][R.ord] + ' ' + D.DOWL[R.diaSem], anual: 'Yearly on ' + D.MON[R.mes] + ' ' + R.diaAnual }[R.freq]);
   A.views.repeats = {
+    fit: true,
     title: 'Repeats', sub: 'Design a repeating meeting, then add it to the calendar',
     render(root) {
       const t0 = D.today(), y = D.ymd(t0), now = D.nowMin(), scene = mkEl(tpl.recurrencia); root.classList.add('mx-wrap'); root.append(scene);
@@ -5811,8 +5842,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   }
   A.views.settings = {
     title: 'Settings', sub: 'Appearance, preferences, security and backups',
-    actions: () => [h('div', { class: 'seg', role: 'tablist' }, [['look', 'Appearance'], ['prefs', 'Calendars & help'], ['data', 'Profile & data']].map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': stab.v === k, onClick: () => { stab.v = k; A.route(); } }, n)))],
-    render(root) { stab.v === 'look' ? sintonia(root) : stab.v === 'prefs' ? root.append(A.prefCards()) : oldSettings.render(root); },
+    actions: () => [h('div', { class: 'seg', role: 'tablist' }, [['look', 'Appearance'], ['prefs', 'Calendars & help'], ['data', A.readOnly ? 'Account' : 'Profile & data']].map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': stab.v === k, onClick: () => { stab.v = k; A.route(); } }, n)))],
+    render(root) { stab.v === 'look' ? sintonia(root) : stab.v === 'prefs' ? root.append(A.prefCards()) : A.readOnly ? A.managerAccount(root) : oldSettings.render(root); },
   };
 })();
 
@@ -5863,6 +5894,15 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       root.append(h('div', { class: 'mgr' }, host, panel));
       A.views.today.render(host, { keys: MGR_KEYS, boardKey: 'boardMgr', noQuick: true });
     },
+  };
+
+  /* the manager's own, small settings page: who am I + change my password */
+  A.managerAccount = function (root) {
+    const u = A.vault.user();
+    root.append(h('div', { class: 'card', style: { margin: '0 22px', maxWidth: '520px' } }, h('h3', null, 'Your account'),
+      h('div', { class: 'row' }, h('div', { class: 'avatar' }, A.initials(u)), h('div', { class: 'grow' }, h('b', null, u), h('div', { class: 'small muted' }, 'Manager · executive'))),
+      h('p', { class: 'small muted' }, 'You can look at everything, decide requests and tick tasks. Ask the assistant (admin) for anything else.'),
+      h('div', { class: 'row wrap' }, h('button', { class: 'btn', type: 'button', onClick: () => A.changePw() }, 'Change password'))));
   };
 
   /* ── USERS page (admin) ───────────────────────────────────────────── */
@@ -6252,6 +6292,199 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   A.on('theme', () => { /* styles use CSS variables */ });
   window.addEventListener('hashchange', () => { if (tip) tip.hidden = true; clearTimeout(timer); token++; });
   A.faInit = () => A.faEnable(A.settings().faOn);
+})();
+
+/* ===== js/lang-dict.js ===== */
+/* Aide · Persian interface — exact phrases that the word list in farsi.js cannot translate well.
+   Keys are the English text exactly as the app writes it (matching ignores letter case). Anything not found here is
+   translated word by word with the dictionary in farsi.js, and names, numbers and your own text are left alone. */
+(function () {
+  'use strict';
+  const A = window.Aide;
+  const U = {
+    /* sign-in */
+    'Aide': 'آید', 'Executive Desk': 'میز مدیریت', 'Aide · Executive Desk': 'آید · میز مدیریت',
+    'Every meeting, visit and promise — in one calm place.': 'همهٔ جلسه‌ها، ملاقات‌ها و قول‌ها — در یک جای آرام.',
+    'Built for the person who runs the executive’s day.': 'ساخته‌شده برای کسی که روز مدیرعامل را اداره می‌کند.',
+    'Day, week, month and year calendars': 'تقویم روز، هفته، ماه و سال', 'Visitor and meeting requests with ready replies': 'درخواست ملاقات و جلسه با پاسخ‌های آماده',
+    'Visiting hours, notes and meeting timers': 'ساعت‌های ملاقات، یادداشت و زمان‌سنج جلسه', 'Works offline on phone and desktop': 'بدون اینترنت روی گوشی و رایانه کار می‌کند',
+    'Create your desk': 'میز کار خود را بسازید', 'Welcome back': 'خوش آمدید', 'Sign in to open the executive desk.': 'برای باز کردن میز مدیریت وارد شوید.',
+    'The first account is the admin. You can add a manager account later.': 'حساب اول، ادمین است. بعداً می‌توانید حساب مدیر اضافه کنید.',
+    'Username': 'نام کاربری', 'Password': 'رمز عبور', 'Repeat password': 'تکرار رمز عبور', 'e.g. alex': 'مثلاً alex', 'e.g. sara': 'مثلاً sara',
+    'At least 10 characters': 'دست‌کم ۱۰ نویسه', 'Your password': 'رمز شما', 'Show password': 'نمایش رمز',
+    'Start with sample data so I can explore': 'با داده‌های نمونه شروع کن تا بگردم',
+    'Stay signed in on this device (30 days, until you lock)': 'در این دستگاه وارد بمان (۳۰ روز، تا زمانی که قفل کنید)',
+    'Create secure vault': 'ساخت گاوصندوق امن', 'Unlock desk': 'باز کردن میز', 'Working…': 'در حال انجام…',
+    'Your data is encrypted in this browser with your password. It never leaves this device, and a forgotten password cannot be recovered — keep a backup file.': 'داده‌های شما در همین مرورگر با رمزتان رمزگذاری می‌شود و از این دستگاه بیرون نمی‌رود. رمز فراموش‌شده بازیابی نمی‌شود — یک فایل پشتیبان نگه دارید.',
+    'Data stays encrypted on this device.': 'داده‌ها روی این دستگاه رمزگذاری‌شده می‌مانند.', 'Restore backup file': 'بازگردانی فایل پشتیبان',
+    'Wrong username or password.': 'نام کاربری یا رمز عبور درست نیست.', 'Enter a username and password.': 'نام کاربری و رمز عبور را وارد کنید.',
+    'The two passwords do not match.': 'دو رمز عبور یکسان نیستند.', 'Strength: Weak': 'قدرت: ضعیف', 'Strength: Fair': 'قدرت: متوسط', 'Strength: Good': 'قدرت: خوب', 'Strength: Strong': 'قدرت: قوی',
+    /* shell */
+    'Today': 'امروز', 'Calendar': 'تقویم', 'Repeats': 'تکرارها', 'Roadmap': 'نقشهٔ راه', 'Requests': 'درخواست‌ها', 'Availability': 'ساعت‌های آزاد', 'Tasks': 'کارها', 'Notebook': 'دفترچه یادداشت',
+    'Timers': 'زمان‌سنج‌ها', 'People': 'افراد', 'Themes': 'تم‌ها', 'Manager': 'مدیر', 'Users': 'کاربران', 'Settings': 'تنظیمات', 'Search': 'جستجو', 'Lock': 'قفل', 'Sign out': 'خروج', 'More': 'بیشتر',
+    'Search everything': 'جستجو در همه‌چیز', 'Main': 'اصلی', 'Chief Executive Officer': 'مدیرعامل', 'Executive': 'مدیرعامل', 'Manager account · ': 'حساب مدیر · ',
+    'Search events, people, notes, tasks — or type a command': 'جستجوی رویداد، فرد، یادداشت، کار — یا دستور بنویسید',
+    'Read-only: manager accounts can look, decide requests and tick tasks.': 'فقط‌خواندنی: حساب مدیر می‌تواند ببیند، درخواست‌ها را تصمیم بگیرد و کارها را تیک بزند.',
+    /* today */
+    'Widgets': 'ویجت‌ها', 'Daily brief': 'خلاصهٔ روزانه', 'New event': 'رویداد جدید', 'Widgets on this page': 'ویجت‌های این صفحه',
+    'Choose the cards to show. The remaining cards grow to fill the screen.': 'کارت‌هایی را که می‌خواهید ببینید انتخاب کنید. بقیه بزرگ می‌شوند تا صفحه پر شود.',
+    'Show all': 'نمایش همه', 'Done': 'تمام',
+    'Drag cards to arrange your day · drag the corner to resize · double-click a card to open it.': 'کارت‌ها را بکشید تا روزتان را بچینید · گوشه را بکشید تا اندازه عوض شود · دوبار کلیک کنید تا باز شود.',
+    'Press and hold a card to move it.': 'برای جابه‌جایی، کارت را نگه دارید.', 'Board of cards': 'تابلوی کارت‌ها', 'Saved': 'ذخیره شد', 'Reset': 'بازنشانی',
+    'Next up': 'بعدی', 'nothing else today': 'امروز دیگر چیزی نیست', 'At': 'محل', 'With': 'با', 'Now': 'اکنون', 'items today': 'مورد امروز', 'item today': 'مورد امروز', 'Left': 'مانده', 'Done ': 'انجام‌شده',
+    'A free day': 'یک روز آزاد', 'waiting for a reply': 'منتظر پاسخ', 'High priority': 'اولویت بالا', 'Oldest': 'قدیمی‌ترین', 'Open': 'باز', 'due today or overdue': 'سررسید امروز یا گذشته',
+    'Overdue': 'گذشته', 'expected today': 'امروز انتظار می‌رود', 'Checked in': 'ثبت‌ورود شد', 'Waiting': 'در انتظار', 'events scheduled': 'رویداد برنامه‌ریزی‌شده', 'This week': 'این هفته',
+    'Busiest': 'شلوغ‌ترین', 'Overlaps': 'همپوشانی', 'Free slot': 'زمان آزاد', 'none in 7 days': 'تا ۷ روز آینده نیست', 'Clock': 'ساعت', 'local time': 'وقت محلی', 'Local': 'محلی',
+    'Add cities in Timers': 'شهرها را در زمان‌سنج‌ها اضافه کنید', 'events this month': 'رویداد این ماه', 'Notebook ': 'دفترچه یادداشت', 'no notes yet': 'هنوز یادداشتی نیست', 'Pinned': 'سنجاق‌شده',
+    'Timer': 'زمان‌سنج', 'ready': 'آماده', 'running': 'در حال اجرا', 'paused': 'متوقف', 'double bookings': 'رزرو دوگانه', 'all clear': 'همه‌چیز روشن', 'Review': 'بررسی', 'Visitors': 'ملاقات‌کنندگان',
+    'Quick add: “Lunch with Sarah tomorrow 1pm 90m”': 'افزودن سریع (انگلیسی): “Lunch with Sarah tomorrow 1pm 90m”', 'Quick add: “Call Sarah tomorrow 3pm 30m”': 'افزودن سریع (انگلیسی): “Call Sarah tomorrow 3pm 30m”',
+    'Add a task… try “Send pack to Elena tomorrow”': 'کاری اضافه کنید… (انگلیسی) “Send pack to Elena tomorrow”',
+    'Holiday today: ': 'تعطیلی امروز: ', 'Executive is away today: ': 'مدیرعامل امروز نیست: ',
+    /* calendar */
+    'Calendar view': 'نمای تقویم', 'Day': 'روز', '3 Days': '۳ روز', 'Week': 'هفته', 'Month': 'ماه', 'Year': 'سال', 'Agenda': 'دستورکار', 'Next 30 days': '۳۰ روز آینده', 'New': 'جدید',
+    'Previous': 'قبلی', 'Next': 'بعدی', 'Quick add': 'افزودن سریع', 'Filter agenda…': 'فیلتر دستورکار…', 'Nothing scheduled.': 'چیزی برنامه‌ریزی نشده.', 'All day': 'تمام روز', 'Tentative': 'موقت',
+    'Meeting': 'جلسه', 'Visit': 'ملاقات', 'Call': 'تماس', 'Travel': 'سفر', 'Personal': 'شخصی', 'Focus': 'تمرکز', 'Out of office': 'خارج از دفتر', 'Weekend': 'آخر هفته',
+    /* event editor */
+    'Does not repeat': 'تکرار نمی‌شود', 'Until (optional)': 'تا (اختیاری)', 'Tentative (not yet confirmed)': 'موقت (هنوز تأیید نشده)', 'No reminder': 'بدون یادآوری', 'What is it?': 'چیست؟',
+    'Room, address or video link': 'اتاق، نشانی یا پیوند ویدیو', 'Names, comma separated': 'نام‌ها، با ویرگول جدا کنید', 'Prep notes, talking points, dress code…': 'یادداشت آماده‌سازی، نکات گفتگو، پوشش…',
+    ' · view only': ' · فقط مشاهده', 'Close': 'بستن', 'Cancel': 'انصراف', 'Save': 'ذخیره', 'Delete': 'حذف',
+    /* repeats */
+    'Design a repeating meeting, then add it to the calendar': 'یک جلسهٔ تکراری طراحی کنید و به تقویم اضافه کنید', 'Reminds on these days': 'در این روزها یادآوری می‌کند', 'Days of the week': 'روزهای هفته', 'On day': 'در روز',
+    'On the': 'در', 'Month of the year': 'ماه سال', 'Drag the clock hands': 'عقربه‌های ساعت را بکشید', 'No dates: pick at least one day.': 'تاریخی نیست: دست‌کم یک روز انتخاب کنید.', 'Frequency': 'تناوب',
+    'Daily repeat options': 'گزینه‌های تکرار روزانه', 'Weekly repeat options': 'گزینه‌های تکرار هفتگی', 'Monthly repeat options': 'گزینه‌های تکرار ماهانه', 'Every how many months': 'هر چند ماه',
+    'Which day of the month': 'کدام روز ماه', 'Day of the month': 'روز ماه', 'One day earlier': 'یک روز زودتر', 'One day later': 'یک روز دیرتر', 'Which week of the month': 'کدام هفتهٔ ماه', 'Which weekday': 'کدام روز هفته',
+    'Yearly repeat options': 'گزینه‌های تکرار سالانه', 'Hora': 'ساعت', 'Minutos': 'دقیقه', 'AM or PM': 'قبل یا بعدازظهر', 'Calendar of upcoming repeats': 'تقویم تکرارهای پیش رو', 'Copy the expression': 'کپی عبارت',
+    'Your repeating events': 'رویدادهای تکراری شما', 'None yet. Design one above and press Save.': 'هنوز نیست. یکی بالا طراحی کنید و ذخیره را بزنید.',
+    /* roadmap */
+    'Projects, trips and milestones for the quarter': 'پروژه‌ها، سفرها و نقاط عطف این فصل', 'Manage items': 'مدیریت موارد',
+    'Drag a bar or stretch its handles · switch to “Month” · arrows move, Shift + arrows stretch, +/− progress': 'نوار را بکشید یا دسته‌هایش را بکشید · به «ماه» بروید · فلش‌ها جابه‌جا می‌کنند، Shift + فلش‌ها طول را عوض می‌کنند، +/− پیشرفت',
+    'Drag a bar or its handles · switch between Month and Quarter': 'نوار یا دسته‌هایش را بکشید · بین ماه و فصل جابه‌جا شوید',
+    'Bar (task with a duration)': 'نوار (کار با مدت)', 'Milestone (a single week)': 'نقطهٔ عطف (یک هفته)', 'Starts (week of)': 'شروع (هفتهٔ)', 'Length in weeks': 'مدت به هفته',
+    /* requests & availability */
+    'Meeting and visit requests for the executive': 'درخواست‌های جلسه و ملاقات برای مدیرعامل', 'Nothing here yet': 'هنوز چیزی اینجا نیست', 'Inbox zero': 'صندوق خالی', 'No pending requests. New ones appear here.': 'درخواست در انتظاری نیست. موارد تازه اینجا می‌آیند.',
+    'Approve & schedule': 'تأیید و زمان‌بندی', 'Suggest times': 'پیشنهاد زمان', 'Decline': 'رد کردن', 'Move back to pending': 'بازگشت به در انتظار', 'Book': 'رزرو', 'Booked': 'رزرو شد',
+    'Visiting hours and real free windows': 'ساعت‌های ملاقات و زمان‌های واقعاً آزاد', 'Block dates': 'مسدود کردن تاریخ‌ها', 'Weekly visiting hours. Drag to add or remove.': 'ساعت‌های ملاقات هفتگی. برای افزودن یا حذف بکشید.',
+    'Drag across the grid to mark the hours the executive can receive visitors and meetings. Each cell is 30 minutes.': 'روی جدول بکشید تا ساعت‌هایی را که مدیرعامل ملاقات و جلسه می‌پذیرد علامت بزنید. هر خانه ۳۰ دقیقه است.',
+    'Copy Monday → Fri': 'کپی دوشنبه ← جمعه', 'Visiting hours minus the schedule, with a 10-minute buffer. Days marked out of office are skipped.': 'ساعت‌های ملاقات منهای برنامه، با ۱۰ دقیقه فاصله. روزهای خارج از دفتر حذف می‌شوند.',
+    'Free windows': 'زمان‌های آزاد', 'Weekly visiting hours': 'ساعت‌های ملاقات هفتگی', 'Clear all': 'پاک کردن همه',
+    /* tasks, notes, people */
+    'Follow-ups, errands and delegations': 'پیگیری‌ها، کارهای روزمره و ارجاع‌ها', 'Add a task… try “Send pack to Elena tomorrow”': 'کاری اضافه کنید… مثلاً «فردا بسته را برای النا بفرست»',
+    'Urgent, less important': 'فوری، کم‌اهمیت‌تر', 'Back to notes': 'بازگشت به یادداشت‌ها', 'Unpin': 'برداشتن سنجاق', 'Start typing…': 'شروع به نوشتن…', 'Bullet': 'فهرست',
+    'Contacts, VIPs and visitors': 'مخاطبان، افراد مهم و ملاقات‌کنندگان', 'VIP': 'مهم', 'Vendor': 'تأمین‌کننده', 'What is this for? (optional)': 'برای چیست؟ (اختیاری)', 'drag the dial': 'صفحه را بکشید',
+    'name@example.com': 'name@example.com', 'What is it about?': 'درباره چیست؟', 'VIP, Board, Press…': 'مهم، هیئت‌مدیره، مطبوعات…', 'Preferences, assistant’s number, how to greet…': 'ترجیحات، شمارهٔ دستیار، نحوهٔ احوال‌پرسی…',
+    /* themes */
+    'Colours, fonts and shapes — sampled from the Moxen templates and applied everywhere': 'رنگ‌ها، فونت‌ها و شکل‌ها — برگرفته از قالب‌های Moxen و اعمال‌شده در همه‌جا',
+    'Light · built in · in use': 'روشن · داخلی · در حال استفاده', '✓ In use': '✓ در حال استفاده', 'Light · built in': 'روشن · داخلی', 'Dark · built in': 'تیره · داخلی',
+    'Duplicate a theme, or make one from the Moxen library, and it will appear here.': 'یک تم را تکثیر کنید یا از کتابخانهٔ Moxen بسازید تا اینجا نمایش داده شود.', 'Light or dark': 'روشن یا تیره',
+    /* manager & users */
+    'Your day at a glance · ': 'روز شما در یک نگاه · ', 'Needs your decision': 'نیازمند تصمیم شما', 'Ask for info': 'درخواست اطلاعات', 'To check': 'برای بررسی', 'Optional note': 'یادداشت اختیاری', 'Approve': 'تأیید',
+    'Approved': 'تأییدشده', 'Declined': 'ردشده', 'Needs more information': 'نیازمند اطلاعات بیشتر', 'Nothing to decide': 'چیزی برای تصمیم نیست', 'New requests appear here.': 'درخواست‌های جدید اینجا می‌آیند.',
+    'Recently decided': 'اخیراً تصمیم‌گیری‌شده', 'All tasks': 'همهٔ کارها', 'No tasks due this week. 🎉': 'این هفته کار سررسیدی نیست. 🎉',
+    'Who can sign in to this desk': 'چه کسانی می‌توانند وارد این میز شوند', 'Add user': 'افزودن کاربر', 'Add a user': 'افزودن کاربر', 'You': 'شما', 'Role': 'نقش', 'Reset password': 'بازنشانی رمز', 'Remove': 'حذف',
+    'Full access: edits everything, manages users.': 'دسترسی کامل: همه‌چیز را ویرایش می‌کند و کاربران را مدیریت می‌کند.', 'Sees everything, decides requests, ticks tasks. Cannot edit.': 'همه‌چیز را می‌بیند، درخواست‌ها را تصمیم می‌گیرد و کارها را تیک می‌زند. ویرایش نمی‌تواند.',
+    'Admin · assistant': 'ادمین · دستیار', 'Manager · executive': 'مدیر · مدیرعامل', 'How this works': 'این چطور کار می‌کند',
+    'All users open the same encrypted data on this device; each has their own password.': 'همهٔ کاربران همان داده‌های رمزگذاری‌شده را روی این دستگاه باز می‌کنند؛ هر کدام رمز خودشان را دارند.',
+    'The Manager role is enforced by the app. It keeps the executive from changing things by accident; it is not protection against someone with developer tools.': 'نقش مدیر را خود برنامه اعمال می‌کند. جلوی تغییر ناخواستهٔ مدیرعامل را می‌گیرد؛ محافظ در برابر کسی که ابزار توسعه‌دهنده دارد نیست.',
+    'To use the desk on another device: Settings → Profile & data → download the backup, then “Restore backup file” on the sign-in screen. Everyone keeps their own password.': 'برای استفاده روی دستگاه دیگر: تنظیمات ← پروفایل و داده ← دانلود پشتیبان، سپس «بازگردانی فایل پشتیبان» در صفحهٔ ورود. هر کس رمز خودش را نگه می‌دارد.',
+    'Forgotten admin password with no other admin = data cannot be recovered. Keep a backup and a second admin.': 'رمز فراموش‌شدهٔ ادمین بدون ادمین دیگر = داده بازیابی نمی‌شود. پشتیبان و یک ادمین دوم نگه دارید.',
+    'Confirm your password': 'رمز خود را تأیید کنید', 'Confirm': 'تأیید', 'Adding a user needs your password once.': 'افزودن کاربر یک بار رمز شما را می‌خواهد.', 'Resetting a password needs your password once.': 'بازنشانی رمز یک بار رمز شما را می‌خواهد.',
+    'Tell them the password in person. They can change it in Settings → Profile & data.': 'رمز را حضوری به او بگویید. او می‌تواند در تنظیمات ← پروفایل و داده آن را عوض کند.', 'New password': 'رمز جدید', 'Reset': 'بازنشانی',
+    /* settings */
+    'Appearance': 'ظاهر', 'Calendars & help': 'تقویم‌ها و راهنما', 'Profile & data': 'پروفایل و داده', 'Appearance, preferences, security and backups': 'ظاهر، ترجیحات، امنیت و پشتیبان‌گیری',
+    'Make it look the way you like.': 'آن را به سلیقهٔ خودتان دربیاورید.', 'Shown on the desk and in the printed brief.': 'روی میز و در خلاصهٔ چاپی نمایش داده می‌شود.', 'The first day shown in calendars.': 'اولین روزی که در تقویم‌ها نشان داده می‌شود.',
+    'Persian (Jalali) dates': 'تاریخ فارسی (جلالی)', 'Show the Persian date under each day.': 'تاریخ فارسی را زیر هر روز نشان بده.', 'Show the Islamic date under each day.': 'تاریخ اسلامی را زیر هر روز نشان بده.',
+    'Receive reminders': 'دریافت یادآوری', 'Choose how you are told.': 'انتخاب کنید چگونه خبر داده شوید.', 'Ask the browser to show reminder pop-ups.': 'از مرورگر بخواهید یادآوری را نمایش دهد.', 'Vibration': 'لرزش',
+    'Buzz the phone when a reminder fires.': 'هنگام یادآوری گوشی بلرزد.', 'A soft chime with every reminder.': 'با هر یادآوری یک زنگ ملایم.', 'Lock the desk after this long without activity.': 'پس از این مدت بی‌فعالیتی، میز قفل شود.',
+    'Off': 'خاموش', 'On': 'روشن', 'Hide details in reminders': 'پنهان کردن جزئیات در یادآوری‌ها', 'Show only “Reminder” without the event title.': 'فقط «یادآوری» را بدون عنوان رویداد نشان بده.',
+    'Language': 'زبان', 'Page direction': 'جهت صفحه', 'Left to right': 'چپ به راست', 'Right to left': 'راست به چپ', 'Digits': 'ارقام', 'Calendar (all views)': 'تقویم (همهٔ نماها)', 'Gregorian': 'میلادی', 'Shamsi': 'شمسی',
+    'Day, week, month, year, agenda and Today all follow this. Shamsi uses Persian month and weekday names; the Gregorian date stays small beside each day.': 'روز، هفته، ماه، سال، دستورکار و امروز همه از این پیروی می‌کنند. شمسی نام ماه و روز هفتهٔ فارسی دارد؛ تاریخ میلادی کوچک کنار هر روز می‌ماند.',
+    'Latin digits are easier to read next to English text.': 'ارقام لاتین کنار متن انگلیسی راحت‌تر خوانده می‌شوند.', 'Second calendar under each day': 'تقویم دوم زیر هر روز', 'Shown in small type under each day.': 'با حروف ریز زیر هر روز نشان داده می‌شود.',
+    'Persian': 'فارسی', 'Weekend': 'آخر هفته', 'Tints the weekend in the calendar.': 'آخر هفته را در تقویم رنگی می‌کند.', 'Sat–Sun': 'شنبه–یکشنبه', 'Thu–Fri': 'پنجشنبه–جمعه', 'Iranian holidays': 'تعطیلات ایران',
+    'Fixed Shamsi holidays plus the lunar (Hijri) ones.': 'تعطیلات ثابت شمسی به‌علاوهٔ تعطیلات قمری (هجری).', 'Common international holidays': 'تعطیلات رایج جهانی', 'New Year’s Day, Labour Day, Christmas.': 'سال نو، روز کارگر، کریسمس.',
+    'Lunar holiday shift': 'جابه‌جایی تعطیلات قمری', 'Days. Iran’s moon sighting can differ from the computed date by a day or two — adjust to match the official calendar.': 'روز. رؤیت هلال در ایران ممکن است یکی دو روز با تاریخ محاسبه‌شده فرق کند — با تقویم رسمی هماهنگ کنید.',
+    'Keep holidays out of free windows': 'تعطیلات را از زمان‌های آزاد کنار بگذار', 'Visiting-hour windows skip holidays.': 'زمان‌های ملاقات، تعطیلات را رد می‌کنند.', 'Coming up': 'در پیش رو',
+    'Right to left mirrors the menu, calendar and lists for Persian. Language stays English for now; the Moxen boards keep their own layout.': 'راست‌به‌چپ منو، تقویم و فهرست‌ها را برای فارسی آینه می‌کند. تابلوهای Moxen چیدمان خودشان را نگه می‌دارند.',
+    'Colours, fonts and shapes live in the Themes page.': 'رنگ‌ها، فونت‌ها و شکل‌ها در صفحهٔ تم‌ها هستند.', 'Minutes, used for free windows': 'دقیقه، برای زمان‌های آزاد استفاده می‌شود', 'Minutes of inactivity; 0 = never': 'دقیقه بی‌فعالیتی؛ ۰ = هرگز',
+    'Re-encrypts everything with the new password.': 'همه‌چیز را با رمز جدید دوباره رمزگذاری می‌کند.', 'Data & backup': 'داده و پشتیبان',
+    'Everything is stored only in this browser, encrypted with your password. There is no server and no way to reset a forgotten password — so keep a backup file somewhere safe.': 'همه‌چیز فقط در همین مرورگر و رمزگذاری‌شده با رمز شما ذخیره می‌شود. سروری نیست و رمز فراموش‌شده بازنشانی نمی‌شود — پس فایل پشتیبان را جای امنی نگه دارید.',
+    'Alerts only fire while the desk is open (also on the iPhone/iPad home-screen app).': 'هشدارها فقط وقتی میز باز است کار می‌کنند (روی برنامهٔ صفحهٔ اصلی iPhone/iPad هم).',
+    'Encrypted. Safe to store in cloud drive or email to yourself.': 'رمزگذاری‌شده. نگهداری در فضای ابری یا ایمیل به خودتان بی‌خطر است.', 'Opens in Apple, Google and Outlook calendars.': 'در تقویم Apple، Google و Outlook باز می‌شود.', 'Everything as plain JSON': 'همه‌چیز به‌صورت JSON ساده',
+    'Hold the mouse on any word or text to see its Persian beside the pointer (press and hold on touch). A one-line bar at the bottom explains the section under the mouse.': 'ماوس را روی هر کلمه نگه دارید تا معنی فارسی کنار اشاره‌گر بیاید (در لمس، نگه دارید). نواری در پایین بخشی را که ماوس رویش است توضیح می‌دهد.',
+    'Online translation for unknown words': 'ترجمهٔ آنلاین برای کلمه‌های ناشناخته',
+    'Off by default. When on, words missing from the built-in dictionary — including your own text — are sent to the free MyMemory service to be translated. Keep it off for confidential text.': 'به‌طور پیش‌فرض خاموش است. وقتی روشن شود، کلمه‌های غایب در فرهنگ داخلی — از جمله متن خودتان — برای ترجمه به سرویس رایگان MyMemory فرستاده می‌شود. برای متن محرمانه خاموش بگذارید.',
+    'Shortcuts: ⌘/Ctrl + K search · N new event · T today · ← → previous/next in the calendar · in the calendar, arrow keys move a focused event, Shift + ↑↓ changes its length.': 'میان‌برها: ⌘/Ctrl + K جستجو · N رویداد جدید · T امروز · ← → قبلی/بعدی در تقویم · در تقویم، کلیدهای جهت‌دار رویداد انتخاب‌شده را جابه‌جا می‌کنند و Shift + ↑↓ طولش را عوض می‌کند.',
+    'Make it ': 'آن را ', 'Dusk': 'گرگ‌ومیش', 'A good day to begin': 'روز خوبی برای شروع', 'This is how your desk will read.': 'میز شما این‌طور خوانده می‌شود.',
+    'e.g. Alex Morgan': 'مثلاً علی احمدی', 'e.g. Chief Executive Officer': 'مثلاً مدیرعامل', 'Lock the desk': 'قفل کردن میز', 'Description Farsi': 'توضیحات فارسی', 'Description Farsi ': 'توضیحات فارسی', 'Shamsi calendar & holidays': 'تقویم شمسی و تعطیلات',
+    'MON': 'دو', 'SAT': 'شن', 'Sat': 'شنبه', 'Mon': 'دوشنبه', 'Tue': 'سه‌شنبه', 'Wed': 'چهارشنبه', 'Thu': 'پنجشنبه', 'Fri': 'جمعه', 'Sun': 'یکشنبه',
+    'Jan': 'ژانویه', 'Feb': 'فوریه', 'Mar': 'مارس', 'Apr': 'آوریل', 'May': 'مه', 'Jun': 'ژوئن', 'Jul': 'ژوئیه', 'Aug': 'اوت', 'Sep': 'سپتامبر', 'Oct': 'اکتبر', 'Nov': 'نوامبر', 'Dec': 'دسامبر',
+    'wk': 'هفته', 'Minutes': 'دقیقه', 'AM': 'ق.ظ', 'PM': 'ب.ظ', 'Sarah Whit': 'سارا وایت',
+  };
+  A.faU = U;
+})();
+
+/* ===== js/lang.js ===== */
+/* Aide · Persian interface (Settings → Calendars & help → Language, or the فا / EN button in the menu).
+   One switch turns the whole desk Persian: right-to-left layout, Shamsi calendar, Saturday week start and every
+   label translated. Translation is a layer over the English screens, so nothing can break when it is off:
+   exact phrases (lang-dict.js) → exact phrases from Description Farsi (farsi.js) → patterns with numbers →
+   word by word. Your own text (names, event titles, notes) is never touched: it sits in dir="auto" elements. */
+(function () {
+  'use strict';
+  const A = window.Aide, W = A.fa.words, P = A.fa.phrases, U = A.faU;
+  ('user=کاربر|users=کاربران|role=نقش|admin=ادمین|manager=مدیر|monday=دوشنبه|tuesday=سه‌شنبه|wednesday=چهارشنبه|thursday=پنجشنبه|friday=جمعه|saturday=شنبه|sunday=یکشنبه|january=ژانویه|february=فوریه|march=مارس|april=آوریل|may=مه|june=ژوئن|july=ژوئیه|august=اوت|september=سپتامبر|october=اکتبر|november=نوامبر|december=دسامبر|am=ق.ظ|pm=ب.ظ|min=دقیقه|mins=دقیقه|h=ساعت|d=روز|wk=هفته|weeks=هفته|week=هفته|days=روز|day=روز|hours=ساعت|hour=ساعت|minutes=دقیقه|tomorrow=فردا|yesterday=دیروز|today=امروز|now=اکنون|in=در|to=تا|from=از|of=از|and=و|the=|a=|an=|for=برای|with=با|on=در|at=در|or=یا|is=است|are=هستند|your=شما|you=شما|it=آن|this=این|that=آن|new=جدید|open=باز|add=افزودن|edit=ویرایش|delete=حذف|save=ذخیره|cancel=انصراف|close=بستن|done=انجام شد|all=همه|none=هیچ|more=بیشتر|less=کمتر|next=بعدی|previous=قبلی|back=بازگشت|show=نمایش|hide=پنهان|copy=کپی|search=جستجو|name=نام|title=عنوان|date=تاریخ|time=زمان|start=شروع|end=پایان|repeat=تکرار|reminder=یادآوری|location=محل|notes=یادداشت‌ها|note=یادداشت|event=رویداد|events=رویدادها|task=کار|tasks=کارها|request=درخواست|requests=درخواست‌ها').split('|').forEach(p => { const i = p.indexOf('='); const k = p.slice(0, i), v = p.slice(i + 1); if (!W[k] && v) W[k] = v; });
+
+  const norm = s => s.replace(/\s+/g, ' ').trim();
+  const lw = w => { const l = w.toLowerCase(); return W[l.replace(/[’']s$/, '')] || W[l] || W[l.replace(/(ing|ed|es|s)$/, '')] || null; };
+  const RULES = [
+    [/^Good morning, (.+)$/, 'صبح بخیر، $1'], [/^Good afternoon, (.+)$/, 'ظهر بخیر، $1'], [/^Good evening, (.+)$/, 'عصر بخیر، $1'],
+    [/^(\d+) h (\d+) min$/, '$1 ساعت و $2 دقیقه'], [/^(\d+) h$/, '$1 ساعت'], [/^(\d+) min$/, '$1 دقیقه'], [/^(\d+) d$/, '$1 روز'], [/^(\d+) wk$/, '$1 هفته'], [/^(\d+) days?$/, '$1 روز'],
+    [/^Remove (.+) · (\d+) wk$/, 'حذف $1 · $2 هفته'], [/^Remove ⚑ (.+)$/, 'حذف ⚑ $1'], [/^Remove (.+)$/, 'حذف $1'], [/^Resize (.+)$/, 'تغییر اندازهٔ $1'],
+    [/^(\d+) words? · saved$/, '$1 کلمه · ذخیره شد'], [/^Done: (.+)$/, 'انجام شد: $1'], [/^See all (\d+) requests$/, 'دیدن همهٔ $1 درخواست'], [/^Added (.+)$/, 'اضافه شد $1'],
+    [/^(.+), position (\d+) of (\d+), size (.+)$/, '$1، جایگاه $2 از $3، اندازه $4'], [/^Manager: (.+)$/, 'مدیر: $1'], [/^Strength: (.+)$/, 'قدرت: $1'], [/^Your day at a glance · (.+)$/, 'روز شما در یک نگاه · $1'], [/^Added (.+)$/, 'اضافه شد $1'],
+    [/^Try again in (\d+) s\.$/, '$1 ثانیه دیگر دوباره تلاش کنید.'], [/^Too many attempts\. Try again in (\d+) s\.$/, 'تلاش‌های زیاد. $1 ثانیه دیگر دوباره تلاش کنید.'],
+  ];
+  /* tr(): English UI text → Persian. Returns the same string when nothing can be said better. */
+  A.tr = function (s) {
+    const m = s.match(/^(\s*)([\s\S]*?)(\s*)$/); let core = m[2]; if (!core || !/[A-Za-z]{2}/.test(core)) return s;
+    const k = norm(core).toLowerCase(), ex = U[core] || U[norm(core)] || ULOW[k] || PLOW[k]; if (ex) return m[1] + ex + m[3];
+    core = core.replace(/\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)(?= \d)/g, d => U[d]).replace(/(\d )(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g, (m, n, mo) => n + U[mo]);
+    for (const [re, to] of RULES) if (re.test(core)) return m[1] + core.replace(re, to).replace(/[A-Za-z][A-Za-z’'-]*/g, w => lw(w) || w) + m[3];
+    return m[1] + core.replace(/[A-Za-z][A-Za-z’'-]*/g, w => lw(w) || w) + m[3];
+  };
+  const ULOW = {}; Object.keys(U).forEach(k => { ULOW[norm(k).toLowerCase()] = U[k]; });
+  const PLOW = P;                                                     // farsi.js keeps its phrases lower-cased already
+
+  /* ── live translation of the page ─────────────────────────────────── */
+  let obs = null, on = false;
+  const ATTR = ['placeholder', 'title', 'aria-label'];
+  const user = n => { for (let p = n.nodeType === 1 ? n : n.parentElement; p; p = p.parentElement) { if (p.tagName === 'BODY') return false; if (p.getAttribute && (p.getAttribute('dir') === 'auto' || p.hasAttribute('data-nofa'))) return true; if (p.isContentEditable || /^(SCRIPT|STYLE|TEXTAREA|CODE)$/.test(p.tagName)) return true; } return false; };
+  function doNode(n) {
+    if (n.nodeType === 3) { const t = n.nodeValue; if (!/[A-Za-z]{2}/.test(t) || user(n)) return; const r = A.tr(t); if (r !== t) n.nodeValue = r; return; }
+    if (n.nodeType !== 1 || /^(SCRIPT|STYLE)$/.test(n.tagName)) return;
+    const ph = n.tagName === 'INPUT' || n.tagName === 'TEXTAREA'; if (!user(n) || ph) ATTR.forEach(a => { const v = n.getAttribute(a); if (v && /[A-Za-z]{2}/.test(v)) { const r = A.tr(v); if (r !== v) n.setAttribute(a, r); } });
+    for (let c = n.firstChild; c; c = c.nextSibling) doNode(c);
+  }
+  function start() {
+    if (on) return; on = true; doNode(document.body);
+    obs = new MutationObserver(ms => { for (const m of ms) { if (m.type === 'childList') m.addedNodes.forEach(doNode); else if (m.type === 'characterData') doNode(m.target); else if (m.type === 'attributes') { const v = m.target.getAttribute(m.attributeName); if (v && /[A-Za-z]{2}/.test(v) && (!user(m.target) || /^(INPUT|TEXTAREA)$/.test(m.target.tagName))) { const r = A.tr(v); if (r !== v) m.target.setAttribute(m.attributeName, r); } } } });
+    obs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTR });
+  }
+  function stop() { on = false; obs && obs.disconnect(); obs = null; }
+
+  /* ── the switch ───────────────────────────────────────────────────── */
+  A.isFa = () => A.settings().lang === 'fa';
+  A.applyLang = function () {
+    const fa = A.isFa(), r = document.documentElement; r.lang = fa ? 'fa' : 'en'; r.classList.toggle('lang-fa', fa);
+    if (fa) { A.loadFont && A.loadFont('Vazirmatn'); start(); } else stop();
+  };
+  A.setLang = function (l) {
+    const S = A.settings(); S.lang = l;
+    if (l === 'fa') { S.dir = 'rtl'; S.calSystem = 'jalali'; S.weekStart = 5; S.hijriOffset = S.hijriOffset || 0; } else { S.dir = 'ltr'; S.calSystem = 'gregorian'; S.weekStart = 0; }
+    A.clearHolidayCache && A.clearHolidayCache(); A.save('settings'); A.flush();
+    A.rebuild();                                                  // redraw the menu and page in the new language
+  };
+  /* the tiny فا / EN button */
+  A.langButton = () => A.h('button', { class: 'icon-btn lang-btn', type: 'button', title: A.isFa() ? 'English' : 'فارسی', 'aria-label': A.isFa() ? 'Switch to English' : 'تغییر به فارسی', 'data-nofa': '', onClick: () => A.setLang(A.isFa() ? 'en' : 'fa') }, A.isFa() ? 'EN' : 'فا');
 })();
 
 
