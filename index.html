@@ -2416,11 +2416,16 @@ a { color: inherit; }
     const headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (onlineToken) headers.Authorization = 'Bearer ' + onlineToken;
-    const response = await fetch(ONLINE_API + path, {
-      method, credentials: 'omit', headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      cache: 'no-store'
-    });
+    let response;
+    try {
+      response = await fetch(ONLINE_API + path, {
+        method, credentials: 'omit', headers,
+        body: body === undefined ? undefined : JSON.stringify(body),
+        cache: 'no-store'
+      });
+    } catch (_) {
+      throw new Error('اتصال به سرور برقرار نشد. صفحه را با Ctrl+Shift+R تازه کنید؛ اگر ادامه داشت، مشکل اتصال API کلادفلر است.');
+    }
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || ('Server request failed (' + response.status + ').'));
     if (result.token) onlineToken = result.token;
@@ -2463,7 +2468,7 @@ a { color: inherit; }
         const username = user.value.trim().toLowerCase(), pw = password.value;
         if (!username || !pw) throw new Error('Enter your username and password.');
         if (mode === 'register') {
-          if (pw.length < 10) throw new Error('Use a password with at least 10 characters.');
+          if (pw.length < 8) throw new Error('Use a password with at least 8 characters.');
           if (pw !== repeat.value) throw new Error('The passwords do not match.');
           await onlineRequest('/api/register', 'POST', { username, password: pw, displayName: username });
         } else {
