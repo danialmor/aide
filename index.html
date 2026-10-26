@@ -1834,6 +1834,9 @@ a { color: inherit; }
     A.db.data = Object.assign({ events: [], contacts: [], requests: [], tasks: [], notes: [], avail: {}, away: [] }, data);
     A.db.data.settings = Object.assign(DEFAULTS(), data.settings || {});
     const st = A.db.data.settings; if (!st.shamsiInit) { if (st.secondary === 'none') st.secondary = 'persian'; st.shamsiInit = true; }
+    // One-time migration: existing workspaces open in Shamsi by default. After this marker is saved,
+    // the user's explicit Gregorian/Shamsi choice is respected on every subsequent login.
+    if (!st.calendarSystemInit) { st.calSystem = 'jalali'; st.weekStart = 5; st.calendarSystemInit = true; setTimeout(() => A.save('settings'), 0); }
     if (data.settings && !data.settings.themeMode) st.themeMode = { paper: 'light', dusk: 'dark', auto: 'auto' }[data.settings.theme] || 'auto';   // from the older theme setting
     A.applyTheme();
   };
