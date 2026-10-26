@@ -232,14 +232,26 @@ async function route(request, env) {
       return json({ error: "Provide a valid username and role." }, 400);
     }
     const username = input.username.toLowerCase();
+    const role = input.role || "user";
+    if (role === "ceo" && user.role !== "system_admin") {
+      const ceoCount = await env.DB.prepare("SELECT COUNT(*) AS total FROM users WHERE owner_id=? AND role='ceo'").bind(user.id).first();
+      if (Number(ceoCount?.total || 0) >= 2) return json({ error: "An admin can create up to two CEO accounts." }, 400);
+    }
+    if (role === "ceo" && !validPassword(input.password)) {
+      return json({ error: "A CEO account requires a password of 8–128 characters." }, 400);
+    }
     const existing = await env.DB.prepare("SELECT id FROM users WHERE username=?").bind(username).first();
     if (existing) return json({ error: "This username is already registered." }, 409);
-    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
-    const bytes = crypto.getRandomValues(new Uint8Array(18));
-    const temporaryPassword = Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
-    const created = await createUser(env, { username, password: temporaryPassword, role: input.role || "user", displayName: String(input.displayName || username).slice(0, 100), title: "", bio: "", ownerId: user.role === "system_admin" ? null : user.id });
+    let temporaryPassword = null;
+    if (validPassword(input.password)) temporaryPassword = input.password;
+    else {
+      const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+      const bytes = crypto.getRandomValues(new Uint8Array(18));
+      temporaryPassword = Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
+    }
+    const created = await createUser(env, { username, password: temporaryPassword, role, displayName: String(input.displayName || username).slice(0, 100), title: "", bio: "", ownerId: user.role === "system_admin" ? null : user.id });
     await audit(env, user.id, "user.created_by_admin", created.id, created.role);
-    return json({ user: created, temporaryPassword }, 201);
+    return json({ user: created, ...(role === "ceo" ? {} : { temporaryPassword }) }, 201);
   }
 
   if (path === "/api/admin/users" && request.method === "GET") {
