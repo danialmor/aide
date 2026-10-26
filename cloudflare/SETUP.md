@@ -1,5 +1,9 @@
 # AIDE online API setup (Cloudflare)
 
+## Important: choose a same-site deployment
+
+The current production frontend is on GitHub Pages. A Worker on a separate `workers.dev` hostname is a cross-site origin, and browsers may refuse to send its authentication cookies from the GitHub Pages site. For reliable cookie-based sessions, serve the frontend and API on the same site (recommended: a Cloudflare-hosted frontend with the API on that same origin, or a custom domain such as `aide.example.com` with the API on `api.aide.example.com`). Set `APP_ORIGIN` to the exact frontend origin. Do not consider online sign-in production-ready until this is resolved and tested in the target browsers.
+
 ## 1. Create D1 and apply schema
 
 From the `cloudflare` directory, install Wrangler if needed and authenticate with Cloudflare:
@@ -10,7 +14,7 @@ wrangler login
 wrangler d1 create aide-online
 ```
 
-Copy the returned database ID into `wrangler.toml` based on `wrangler.toml.example`, then run:
+Copy the returned database ID into `wrangler.toml` based on `wrangler.toml.example`, set `APP_ORIGIN` to the actual frontend origin, then run:
 
 ```bash
 wrangler d1 execute aide-online --remote --file=./schema.sql
