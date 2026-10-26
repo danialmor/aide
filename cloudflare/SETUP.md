@@ -48,7 +48,11 @@ After deploying, send a POST request to `/api/admin/bootstrap` with JSON:
 }
 ```
 
-The first successful call creates the `system_admin` account and marks bootstrap as used. The secret and bootstrap endpoint must be treated as sensitive. Do not share the admin credentials with regular users or the CEO.
+The first successful call initializes the system administrator and marks bootstrap as used. If the supplied username already exists in this D1 database, that account is promoted to `system_admin` and its current password is preserved. If it does not exist, a new `system_admin` account is created using the supplied password. This operation is one-time and requires the private `ADMIN_BOOTSTRAP_KEY`.
+
+If the endpoint returns `503 Bootstrap is not configured`, the deployed Worker cannot read `ADMIN_BOOTSTRAP_KEY` in the environment handling that request. Add the secret to the correct Worker/environment and redeploy/retry; do not put the secret in source code or commit it to GitHub. If the account can log in on the website but does not exist in this D1 database, the website is authenticating against a different backend and this bootstrap will not promote that other account.
+
+The secret and bootstrap endpoint must be treated as sensitive. Do not share the admin credentials with regular users or the CEO.
 
 ## API endpoints
 
