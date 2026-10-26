@@ -53,7 +53,8 @@ async function currentUser(request, env) {
     "SELECT u.id, u.username, u.role, u.is_admin, u.created_at, u.owner_id, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at > ?"
   ).bind(tokenHash, Date.now()).first();
   if (!row) return null;
-  return { id: row.id, username: row.username, role: row.role === "system_admin" ? "system_admin" : (row.is_admin ? "admin" : row.role), createdAt: row.created_at, ownerId: row.owner_id || null };
+  const effectiveRole = row.role === "system_admin" ? "system_admin" : (row.is_admin || (row.role === "user" && !row.owner_id) ? "admin" : row.role);
+  return { id: row.id, username: row.username, role: effectiveRole, createdAt: row.created_at, ownerId: row.owner_id || null };
 }
 function requireRole(user, roles) {
   return !!user && roles.includes(user.role);
@@ -127,7 +128,7 @@ async function route(request, env) {
   if (path === "/api/login" && request.method === "POST") {
     const input = await bodyJson(request);
     if (!input || typeof input.username !== "string" || typeof input.password !== "string") return json({ error: "Username and password are required." }, 400);
-    const row = await env.DB.prepare("SELECT id, username, password_salt, password_hash, role, is_admin, created_at FROM users WHERE username=?")
+    const row = await env.DB.prepare("SELECT id, username, password_salt, password_hash, role, is_admin, owner_id, created_at FROM users WHERE username=?")
       .bind(input.username.toLowerCase()).first();
     if (!row || await passwordHash(input.password, row.password_salt) !== row.password_hash) {
       return json({ error: "Invalid username or password." }, 401);
@@ -136,7 +137,8 @@ async function route(request, env) {
     await env.DB.prepare("INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at) VALUES (?, ?, ?, ?, ?)")
       .bind(crypto.randomUUID(), row.id, await sha256(token), now, expires).run();
     await audit(env, row.id, "user.login", row.id);
-    return json({ token, user: { id: row.id, username: row.username, role: row.is_admin ? "admin" : row.role, createdAt: row.created_at } }, 200, { "set-cookie": setCookie(token) });
+    const effectiveRole = row.role === "system_admin" ? "system_admin" : (row.is_admin || (row.role === "user" && !row.owner_id) ? "admin" : row.role);
+    return json({ token, user: { id: row.id, username: row.username, role: effectiveRole, createdAt: row.created_at } }, 200, { "set-cookie": setCookie(token) });
   }
 
   if (path === "/api/logout" && request.method === "POST") {
@@ -237,9 +239,6 @@ async function route(request, env) {
       const ceoCount = await env.DB.prepare("SELECT COUNT(*) AS total FROM users WHERE owner_id=? AND role='ceo'").bind(user.id).first();
       if (Number(ceoCount?.total || 0) >= 2) return json({ error: "An admin can create up to two CEO accounts." }, 400);
     }
-    if (role === "ceo" && !validPassword(input.password)) {
-      return json({ error: "A CEO account requires a password of 8–128 characters." }, 400);
-    }
     const existing = await env.DB.prepare("SELECT id FROM users WHERE username=?").bind(username).first();
     if (existing) return json({ error: "This username is already registered." }, 409);
     let temporaryPassword = null;
@@ -251,7 +250,7 @@ async function route(request, env) {
     }
     const created = await createUser(env, { username, password: temporaryPassword, role, displayName: String(input.displayName || username).slice(0, 100), title: "", bio: "", ownerId: user.role === "system_admin" ? null : user.id });
     await audit(env, user.id, "user.created_by_admin", created.id, created.role);
-    return json({ user: created, ...(role === "ceo" ? {} : { temporaryPassword }) }, 201);
+    return json({ user: created, temporaryPassword }, 201);
   }
 
   if (path === "/api/admin/users" && request.method === "GET") {
