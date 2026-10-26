@@ -2402,6 +2402,107 @@ a { color: inherit; }
       form));
     (up ? user : (user.value ? pw : user)).focus({ preventScroll: true });
   };
+
+  /* ONLINE-ONLY MODE: authentication and workspace data live on Cloudflare. */
+  const ONLINE_API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
+  let onlineUser = null, onlineRole = null, onlineSaving = Promise.resolve();
+  async function onlineRequest(path, method = 'GET', body) {
+    const response = await fetch(ONLINE_API + path, {
+      method, credentials: 'include',
+      headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      cache: 'no-store'
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || ('Server request failed (' + response.status + ').'));
+    return result;
+  }
+  V.role = () => onlineRole === 'system_admin' ? 'admin' : 'manager';
+  V.user = () => onlineUser && onlineUser.username;
+  V.save = data => {
+    if (!onlineUser) return Promise.reject(new Error('Sign in to save changes online.'));
+    const snapshot = JSON.parse(JSON.stringify(data || {}));
+    onlineSaving = onlineSaving.then(() => onlineRequest('/api/data', 'PUT', { data: snapshot }));
+    return onlineSaving;
+  };
+  V.lock = () => { onlineUser = null; onlineRole = null; A.db.data = null; A.role = null; A.readOnly = false; };
+  V.wipe = async () => { V.lock(); };
+  V.users = () => [];
+  V.addUser = async () => { throw new Error('Accounts are managed online by the system administrator.'); };
+  V.resetPassword = async () => { throw new Error('Password management must be performed by the online account service.'); };
+  V.setRole = () => { throw new Error('Roles are managed by the online system administrator.'); };
+  V.removeUser = () => { throw new Error('Accounts are managed online by the system administrator.'); };
+  A.enter = function(data) {
+    A.load(data || { settings: {} });
+    A.role = V.role();
+    A.readOnly = A.role !== 'admin';
+    if (A.readOnly && (!location.hash || /^#\\/(today|users)$/.test(location.hash))) location.hash = '#/manager';
+    $('#login').hidden = true; $('#app').hidden = false; A.start();
+  };
+  A.showLogin = function(msg) {
+    const root = $('#login'); root.hidden = false; $('#app').hidden = true; root.replaceChildren();
+    let mode = 'login';
+    const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', required: true, placeholder: 'Username' });
+    const password = h('input', { type: 'password', autocomplete: 'current-password', required: true, placeholder: 'Password (10+ characters)' });
+    const repeat = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'Repeat password' });
+    const error = h('div', { class: 'warn', role: 'alert', hidden: true });
+    const submit = h('button', { class: 'btn primary', type: 'submit' }, 'Sign in');
+    const switcher = h('button', { class: 'btn sm', type: 'button' }, 'Create online account');
+    const form = h('form', { class: 'login-form', onSubmit: async e => {
+      e.preventDefault(); error.hidden = true; submit.disabled = true; submit.textContent = 'Connecting…';
+      try {
+        const username = user.value.trim().toLowerCase(), pw = password.value;
+        if (!username || !pw) throw new Error('Enter your username and password.');
+        if (mode === 'register') {
+          if (pw.length < 10) throw new Error('Use a password with at least 10 characters.');
+          if (pw !== repeat.value) throw new Error('The passwords do not match.');
+          await onlineRequest('/api/register', 'POST', { username, password: pw, displayName: username });
+        } else {
+          await onlineRequest('/api/login', 'POST', { username, password: pw });
+        }
+        const me = await onlineRequest('/api/me');
+        if (!me.user) throw new Error('The server did not create a valid session. Check the API configuration.');
+        onlineUser = me.user; onlineRole = me.user.role;
+        const remote = await onlineRequest('/api/data');
+        A.enter(remote.data || { settings: {} });
+      } catch (ex) {
+        error.textContent = ex.message || 'Unable to connect to the online service.';
+        error.hidden = false; submit.disabled = false; submit.textContent = mode === 'register' ? 'Create online account' : 'Sign in';
+      }
+    } }, 
+      h('div', null, h('h1', null, 'AIDE · Online Workspace'), h('p', { class: 'muted' }, 'Your workspace data is saved to Cloudflare. This browser does not store workspace records.' + (msg ? ' ' + msg : ''))),
+      A.field('Username', user), A.field('Password', password),
+      h('div', { hidden: true, id: 'aide-online-repeat' }, A.field('Repeat password', repeat)),
+      error, submit, switcher
+    );
+    switcher.addEventListener('click', () => {
+      mode = mode === 'login' ? 'register' : 'login';
+      $('#aide-online-repeat').hidden = mode !== 'register';
+      password.autocomplete = mode === 'register' ? 'new-password' : 'current-password';
+      submit.textContent = mode === 'register' ? 'Create online account' : 'Sign in';
+      switcher.textContent = mode === 'register' ? 'Back to sign in' : 'Create online account';
+      error.hidden = true;
+    });
+    root.replaceChildren(h('div', { class: 'login-card' },
+      h('div', { class: 'login-art' },
+        h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Cloud workspace'))),
+        h('div', null, h('h2', null, 'One online workspace.'), h('p', null, 'Sign in from any device to access your server-stored data.')),
+        h('ul', null, h('li', null, 'Online account authentication'), h('li', null, 'Cloudflare D1 persistence'), h('li', null, 'No local workspace database'))),
+      form));
+    user.focus({ preventScroll: true });
+  };
+  A.boot = async function() {
+    try {
+      const me = await onlineRequest('/api/me');
+      if (me.user) {
+        onlineUser = me.user; onlineRole = me.user.role;
+        const remote = await onlineRequest('/api/data');
+        return A.enter(remote.data || { settings: {} });
+      }
+    } catch (_) { /* show sign-in if there is no valid online session */ }
+    A.showLogin();
+  };
+  /* END ONLINE-ONLY MODE */
 })();
 
 /* ===== js/events.js ===== */
