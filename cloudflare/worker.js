@@ -53,7 +53,7 @@ async function currentUser(request, env) {
     "SELECT u.id, u.username, u.role, u.is_admin, u.created_at, u.owner_id, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at > ?"
   ).bind(tokenHash, Date.now()).first();
   if (!row) return null;
-  return { id: row.id, username: row.username, role: row.is_admin ? "admin" : row.role, createdAt: row.created_at, ownerId: row.owner_id || null };
+  return { id: row.id, username: row.username, role: row.role === "system_admin" ? "system_admin" : (row.is_admin ? "admin" : row.role), createdAt: row.created_at, ownerId: row.owner_id || null };
 }
 function requireRole(user, roles) {
   return !!user && roles.includes(user.role);
@@ -201,7 +201,7 @@ async function route(request, env) {
     let admin;
     if (existing) {
       // Secure one-time bootstrap may promote the existing account without resetting its password.
-      await env.DB.prepare("UPDATE users SET role='system_admin' WHERE id=?").bind(existing.id).run();
+      await env.DB.prepare("UPDATE users SET role='system_admin', is_admin=0 WHERE id=?").bind(existing.id).run();
       admin = { id: existing.id, username: existing.username, createdAt: existing.created_at };
     } else {
       admin = await createUser(env, { username, password: input.password, role: "system_admin", displayName: "", title: "", bio: "" });
