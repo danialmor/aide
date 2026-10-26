@@ -2434,6 +2434,8 @@ a { color: inherit; }
   }
   V.role = () => (onlineRole === 'system_admin' || onlineRole === 'admin') ? 'admin' : 'manager';
   V.user = () => onlineUser && onlineUser.username;
+  V.isElevated = () => ['system_admin', 'admin'].includes(onlineRole);
+  V.elevate = async () => { if (!['system_admin', 'admin'].includes(onlineRole)) throw new Error('Only an admin can manage users.'); return true; };
   V.save = data => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save changes online.'));
     const snapshot = JSON.parse(JSON.stringify(data || {}));
