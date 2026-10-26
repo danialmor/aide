@@ -2423,8 +2423,9 @@ a { color: inherit; }
         body: body === undefined ? undefined : JSON.stringify(body),
         cache: 'no-store'
       });
-    } catch (_) {
-      throw new Error('اتصال به سرور برقرار نشد. صفحه را با Ctrl+Shift+R تازه کنید؛ اگر ادامه داشت، مشکل اتصال API کلادفلر است.');
+    } catch (networkError) {
+      const detail = networkError && networkError.message ? String(networkError.message) : 'network/CORS error';
+      throw new Error('اتصال به API کلادفلر ناموفق بود (' + detail + '). این خطا معمولاً به CORS یا دسترسی به Worker مربوط است.');
     }
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || ('Server request failed (' + response.status + ').'));
