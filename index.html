@@ -2432,7 +2432,7 @@ a { color: inherit; }
     if (result.token) onlineToken = result.token;
     return result;
   }
-  V.role = () => (onlineRole === 'system_admin' || onlineRole === 'admin') ? 'admin' : 'manager';
+  V.role = () => (onlineRole === 'system_admin' || onlineRole === 'admin') ? 'admin' : (onlineRole === 'ceo' ? 'manager' : 'user');
   V.user = () => onlineUser && onlineUser.username;
   V.isElevated = () => ['system_admin', 'admin'].includes(onlineRole);
   V.elevate = async () => { if (!['system_admin', 'admin'].includes(onlineRole)) throw new Error('Only an admin can manage users.'); return true; };
@@ -2468,7 +2468,7 @@ a { color: inherit; }
   A.enter = async function(data) {
     A.load(data || { settings: {} });
     A.role = V.role();
-    A.readOnly = A.role !== 'admin';
+    A.readOnly = A.role === 'manager' || A.role === 'user';
     if (A.role === 'admin') { try { await V.refreshUsers(); } catch (_) { onlineUsersCache = []; } }
     if (A.readOnly && (!location.hash || /^#\/(today|users)$/.test(location.hash))) location.hash = '#/manager';
     $('#login').hidden = true; $('#app').hidden = false; A.start();
