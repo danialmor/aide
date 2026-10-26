@@ -4765,7 +4765,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
      El componente
      ===================================================================== */
   function Recurrencia(raiz, opciones) {
-    const o = Object.assign({ hoy: [2026, 9, 14], ahora: [8, 15], regla: null, alCambiar: null }, opciones);
+    const o = Object.assign({ hoy: [2026, 9, 14], ahora: [8, 15], regla: null, alCambiar: null, calSystem: 'jalali' }, opciones);
     const $ = s => raiz.querySelector(s), $$ = s => Array.from(raiz.querySelectorAll(s));
     const reduce = () => reduceMQ.matches;
     const HOY = dnDe(o.hoy[0], o.hoy[1], o.hoy[2]), AHORA = o.ahora[0] * 60 + o.ahora[1];
@@ -5198,7 +5198,10 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       }
       throw new Error('Could not resolve Jalali date.');
     }
-    const jToday = jalaliOf(HOY);
+    const sistemaJ = o.calSystem !== 'gregorian';
+    const fechaSistema = dn => { const f = sistemaJ ? jalaliOf(dn) : fechaDe(dn); return Object.assign({}, f, { w: fechaDe(dn).w }); };
+    const dnSistema = (y, m, d) => sistemaJ ? jalaliDn(y, m, d) : dnDe(y, m - 1, d);
+    const jToday = fechaSistema(HOY);
     let vista = { y: jToday.y, m: jToday.m };
     const celdas = [], porDn = new Map();
     for (let i = 0; i < 42; i++) {
@@ -5209,13 +5212,13 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     }
     mesTxt.innerHTML = '<span></span>';
     let mesAct = mesTxt.firstChild;
-    const nombreMes = v => jalaliMonths[v.m - 1] + ' ' + v.y;
+    const nombreMes = v => (sistemaJ ? jalaliMonths[v.m - 1] : MESES[v.m - 1]) + ' ' + v.y;
 
     function pintaCal(prox, quieto) {
       const primeraDn = prox.length ? prox[0] : null;
       let dir = 0;
       if (primeraDn !== null) {
-        const f = jalaliOf(primeraDn);
+        const f = fechaSistema(primeraDn);
         if (f.y !== vista.y || f.m !== vista.m) { dir = (f.y * 12 + f.m) > (vista.y * 12 + vista.m) ? 1 : -1; vista = { y: f.y, m: f.m }; }
       }
       renderMes(prox, dir, quieto);
@@ -5226,15 +5229,15 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       renderMes(proximas(5), d, false);
     }
     function renderMes(prox, dir, quieto) {
-      const firstDn = jalaliDn(vista.y, vista.m, 1);
+      const firstDn = dnSistema(vista.y, vista.m, 1);
       const firstDow = new Date(firstDn * 864e5).getUTCDay();
-      const dn0 = firstDn - ((firstDow + 1) % 7);
+      const dn0 = firstDn - (sistemaJ ? ((firstDow + 1) % 7) : ((firstDow + 6) % 7));
       const set5 = new Set(prox);
       let ult5 = prox.length ? prox[prox.length - 1] : -1;
       const nuevas = [];
       porDn.clear();
       celdas.forEach((c, i) => {
-        const dn = dn0 + i, f = fechaDe(dn), j = jalaliOf(dn);
+        const dn = dn0 + i, j = fechaSistema(dn);
         porDn.set(dn, c);
         c.dataset.dn = dn;
         c.lastChild.textContent = j.d;
@@ -5272,9 +5275,10 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     const filas = new Map();                              // dn → li
     const relativo = dn => { const d = dn - HOY; return d === 0 ? 'today' : d === 1 ? 'tomorrow' : d < 60 ? 'in ' + d + ' days' : 'in ' + Math.round(d / 30.4) + ' months'; };
     function creaFila(dn) {
-      const f = fechaDe(dn), li = document.createElement('li');
+      const f = fechaSistema(dn), weekday = fechaDe(dn).w, li = document.createElement('li');
       li.className = 'rc-fecha'; li.dataset.dn = dn;
-      li.innerHTML = '<span class="rc-f-dia">' + f.d + '</span><span class="rc-f-txt"><b>' + DIAS[f.w][0].toUpperCase() + DIAS[f.w].slice(1) + '</b><small>' + MESES_C[f.m] + ' · ' + relativo(dn) + '</small></span><span class="rc-f-hora"><span class="rc-h"></span><small></small></span>';
+      const monthLabel = sistemaJ ? jalaliMonths[f.m - 1] : MESES_C[f.m];
+      li.innerHTML = '<span class="rc-f-dia">' + f.d + '</span><span class="rc-f-txt"><b>' + DIAS[weekday][0].toUpperCase() + DIAS[weekday].slice(1) + '</b><small>' + monthLabel + ' · ' + relativo(dn) + '</small></span><span class="rc-f-hora"><span class="rc-h"></span><small></small></span>';
       li._cif = Cifras(li.querySelector('.rc-h'), 'dd:dd');
       return li;
     }
@@ -5967,7 +5971,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     title: 'Repeats', sub: 'Design a repeating meeting, then add it to the calendar',
     render(root) {
       const t0 = D.today(), y = D.ymd(t0), now = D.nowMin(), scene = mkEl(tpl.recurrencia); root.classList.add('mx-wrap'); root.append(scene);
-      const r = Recurrencia(scene, { hoy: [y.y, y.m - 1, y.d], ahora: [Math.floor(now / 60), now % 60] });
+      const r = Recurrencia(scene, { hoy: [y.y, y.m - 1, y.d], ahora: [Math.floor(now / 60), now % 60], calSystem: D.isJ() ? 'jalali' : 'gregorian' });
       scene.querySelector('[data-guardar]').addEventListener('click', () => {
         const st = r.estado(), R = st.regla, name = scene.querySelector('.rc-nombre').value.trim() || 'Repeating event', first = st.proximas[0];
         if (!first) return A.toast('That rule has no upcoming dates.');
