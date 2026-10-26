@@ -2439,7 +2439,7 @@ a { color: inherit; }
     A.load(data || { settings: {} });
     A.role = V.role();
     A.readOnly = A.role !== 'admin';
-    if (A.readOnly && (!location.hash || /^#\\/(today|users)$/.test(location.hash))) location.hash = '#/manager';
+    if (A.readOnly && (!location.hash || /^#\/(today|users)$/.test(location.hash))) location.hash = '#/manager';
     $('#login').hidden = true; $('#app').hidden = false; A.start();
   };
   A.showLogin = function(msg) {
