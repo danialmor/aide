@@ -220,6 +220,24 @@ async function route(request, env) {
     return json({ totalUsers: counts?.total || 0, firstRegisteredAt: counts?.first_registered_at || null, firstUser: first ? { id: first.id, username: first.username, displayName: first.display_name, createdAt: first.created_at } : null, roles: roleCounts.results || [] });
   }
 
+  if (path === "/api/admin/users" && request.method === "POST") {
+    const user = await currentUser(request, env);
+    if (!requireRole(user, ["system_admin"])) return json({ error: "Not found." }, 404);
+    const input = await bodyJson(request);
+    if (!input || !validUsername(input.username) || !["user", "ceo"].includes(input.role || "user")) {
+      return json({ error: "Provide a valid username and role." }, 400);
+    }
+    const username = input.username.toLowerCase();
+    const existing = await env.DB.prepare("SELECT id FROM users WHERE username=?").bind(username).first();
+    if (existing) return json({ error: "This username is already registered." }, 409);
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+    const bytes = crypto.getRandomValues(new Uint8Array(18));
+    const temporaryPassword = Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
+    const created = await createUser(env, { username, password: temporaryPassword, role: input.role || "user", displayName: String(input.displayName || username).slice(0, 100), title: "", bio: "" });
+    await audit(env, user.id, "user.created_by_admin", created.id, created.role);
+    return json({ user: created, temporaryPassword }, 201);
+  }
+
   if (path === "/api/admin/users" && request.method === "GET") {
     const user = await currentUser(request, env);
     if (!requireRole(user, ["system_admin"])) return json({ error: "Not found." }, 404);
