@@ -2405,16 +2405,19 @@ a { color: inherit; }
 
   /* ONLINE-ONLY MODE: authentication and workspace data live on Cloudflare. */
   const ONLINE_API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
-  let onlineUser = null, onlineRole = null, onlineSaving = Promise.resolve();
+  let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve();
   async function onlineRequest(path, method = 'GET', body) {
+    const headers = {};
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (onlineToken) headers.Authorization = 'Bearer ' + onlineToken;
     const response = await fetch(ONLINE_API + path, {
-      method, credentials: 'include',
-      headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+      method, credentials: 'omit', headers,
       body: body === undefined ? undefined : JSON.stringify(body),
       cache: 'no-store'
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || ('Server request failed (' + response.status + ').'));
+    if (result.token) onlineToken = result.token;
     return result;
   }
   V.role = () => onlineRole === 'system_admin' ? 'admin' : 'manager';
@@ -2422,10 +2425,10 @@ a { color: inherit; }
   V.save = data => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save changes online.'));
     const snapshot = JSON.parse(JSON.stringify(data || {}));
-    onlineSaving = onlineSaving.then(() => onlineRequest('/api/data', 'PUT', { data: snapshot }));
+    onlineSaving = onlineSaving.catch(() => {}).then(() => onlineRequest('/api/data', 'PUT', { data: snapshot }));
     return onlineSaving;
   };
-  V.lock = () => { onlineUser = null; onlineRole = null; A.db.data = null; A.role = null; A.readOnly = false; };
+  V.lock = () => { onlineUser = null; onlineRole = null; onlineToken = null; A.db.data = null; A.role = null; A.readOnly = false; };
   V.wipe = async () => { V.lock(); };
   V.users = () => [];
   V.addUser = async () => { throw new Error('Accounts are managed online by the system administrator.'); };
