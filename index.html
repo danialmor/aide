@@ -5183,7 +5183,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       return { y: parts.year, m: parts.month, d: parts.day };
     }
     function jalaliDn(y, m, d) {
-      const approx = Math.floor(Date.UTC(y + 621, 2 + (m - 1) * 31, d) / 864e5);
+      const approx = Math.floor((Date.UTC(y + 621, 2, 20) + (m - 1) * 30.5 * 864e5 + (d - 1) * 864e5) / 864e5);
       for (let dn = approx - 6; dn <= approx + 6; dn++) {
         const j = jalaliOf(dn);
         if (j.y === y && j.m === m && j.d === d) return dn;
