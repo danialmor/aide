@@ -69,7 +69,7 @@ function validUsername(value) {
   return typeof value === "string" && /^[a-zA-Z0-9_.-]{3,32}$/.test(value);
 }
 function validPassword(value) {
-  return typeof value === "string" && value.length >= 10 && value.length <= 128;
+  return typeof value === "string" && value.length >= 8 && value.length <= 128;
 }
 async function createUser(env, { username, password, role = "user", displayName = "", title = "", bio = "" }) {
   const salt = randomHex(16);
@@ -250,22 +250,24 @@ async function route(request, env) {
 }
 export default {
   async fetch(request, env) {
+    const origin = request.headers.get("Origin");
+    const expected = (env.APP_ORIGIN || "https://danialmor.github.io").replace(/\\/$/, "");
+    const cors = {};
+    if (origin === expected) {
+      cors["access-control-allow-origin"] = expected;
+      cors["access-control-allow-credentials"] = "true";
+      cors["access-control-allow-methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
+      cors["access-control-allow-headers"] = "Content-Type, Authorization";
+      cors["vary"] = "Origin";
+    }
     try {
       const response = await route(request, env);
       const headers = new Headers(response.headers);
-      const origin = request.headers.get("Origin");
-      const expected = (env.APP_ORIGIN || "https://danialmor.github.io").replace(/\/$/, "");
-      if (origin === expected) {
-        headers.set("access-control-allow-origin", expected);
-        headers.set("access-control-allow-credentials", "true");
-        headers.set("vary", "Origin");
-        headers.set("access-control-allow-methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-        headers.set("access-control-allow-headers", "Content-Type, Authorization");
-      }
+      for (const [key, value] of Object.entries(cors)) headers.set(key, value);
       return new Response(response.body, { status: response.status, headers });
     } catch (error) {
       console.error("AIDE API error", error);
-      return json({ error: "Internal server error." }, 500);
+      return json({ error: "The server could not complete the request. Please try again; if it continues, check the Cloudflare Worker logs." }, 500, cors);
     }
   }
 };
