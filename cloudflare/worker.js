@@ -166,9 +166,15 @@ async function route(request, env) {
     const used = await env.DB.prepare("SELECT value FROM system_settings WHERE key='admin_bootstrap_used'").first();
     if (used) return json({ error: "System administrator has already been initialized." }, 409);
     const username = input.username.toLowerCase();
-    const existing = await env.DB.prepare("SELECT id FROM users WHERE username=?").bind(username).first();
-    if (existing) return json({ error: "This username is already in use." }, 409);
-    const admin = await createUser(env, { username, password: input.password, role: "system_admin", displayName: "", title: "", bio: "" });
+    const existing = await env.DB.prepare("SELECT id, username, created_at FROM users WHERE username=?").bind(username).first();
+    let admin;
+    if (existing) {
+      // Secure one-time bootstrap may promote the existing account without resetting its password.
+      await env.DB.prepare("UPDATE users SET role='system_admin' WHERE id=?").bind(existing.id).run();
+      admin = { id: existing.id, username: existing.username, createdAt: existing.created_at };
+    } else {
+      admin = await createUser(env, { username, password: input.password, role: "system_admin", displayName: "", title: "", bio: "" });
+    }
     await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES ('admin_bootstrap_used', '1')").run();
     await audit(env, admin.id, "system.admin_initialized", admin.id);
     const token = randomHex(32), now = Date.now();
