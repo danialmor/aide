@@ -2438,6 +2438,7 @@ a { color: inherit; }
   V.role = () => (onlineRole === 'system_admin' || onlineRole === 'admin') ? 'admin' : (onlineRole === 'ceo' ? 'manager' : 'user');
   V.user = () => onlineUser && onlineUser.username;
   V.isElevated = () => ['system_admin', 'admin'].includes(onlineRole);
+  V.isSystemAdmin = () => onlineRole === 'system_admin';
   V.elevate = async () => { if (!['system_admin', 'admin'].includes(onlineRole)) throw new Error('Only an admin can manage users.'); return true; };
   V.save = data => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save changes online.'));
@@ -6089,7 +6090,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   const guard = async why => A.vault.isElevated() || askPassword(why);
   function userForm(u) {
     const isNew = !u, name = h('input', { type: 'text', autocapitalize: 'none', spellcheck: 'false', placeholder: 'e.g. sara', value: u ? u.name : '', disabled: !isNew }), pw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'At least 8 characters' });
-    const roleOptions = Object.entries(ROLE).filter(([k]) => k !== 'admin' || onlineRole === 'system_admin');
+    const roleOptions = Object.entries(ROLE).filter(([k]) => k !== 'admin' || (A.vault.isSystemAdmin && A.vault.isSystemAdmin()));
     const role = h('select', null, roleOptions.map(([k, v]) => h('option', { value: k, selected: u ? u.role === k : k === 'manager' }, v[0]))), err = h('div', { class: 'warn', hidden: true });
     const newPasswordField = A.field('CEO password (optional — generated if blank)', pw);
     newPasswordField.hidden = !isNew || role.value !== 'manager';
