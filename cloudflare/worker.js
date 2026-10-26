@@ -1,6 +1,6 @@
 const COOKIE = "__Host-aide_session";
 const SESSION_DAYS = 7;
-const PBKDF2_ITERATIONS = 310000;
+const PBKDF2_ITERATIONS = 100000;
 const encoder = new TextEncoder();
 
 function json(data, status = 200, headers = {}) {
