@@ -50,10 +50,10 @@ async function currentUser(request, env) {
   if (!token) return null;
   const tokenHash = await sha256(token);
   const row = await env.DB.prepare(
-    "SELECT u.id, u.username, u.role, u.created_at, u.owner_id, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at > ?"
+    "SELECT u.id, u.username, u.role, u.is_admin, u.created_at, u.owner_id, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at > ?"
   ).bind(tokenHash, Date.now()).first();
   if (!row) return null;
-  return { id: row.id, username: row.username, role: row.role, createdAt: row.created_at, ownerId: row.owner_id || null };
+  return { id: row.id, username: row.username, role: row.is_admin ? "admin" : row.role, createdAt: row.created_at, ownerId: row.owner_id || null };
 }
 function requireRole(user, roles) {
   return !!user && roles.includes(user.role);
@@ -76,8 +76,10 @@ async function createUser(env, { username, password, role = "user", displayName 
   const hash = await passwordHash(password, salt);
   const id = crypto.randomUUID();
   const now = Date.now();
-  await env.DB.prepare("INSERT INTO users (id, username, password_salt, password_hash, role, created_at, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(id, username.toLowerCase(), salt, hash, role, now, ownerId).run();
+  const storedRole = role === "admin" ? "user" : role;
+  const isAdmin = role === "admin" ? 1 : 0;
+  await env.DB.prepare("INSERT INTO users (id, username, password_salt, password_hash, role, created_at, owner_id, is_admin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(id, username.toLowerCase(), salt, hash, storedRole, now, ownerId, isAdmin).run();
   await env.DB.prepare("INSERT INTO profiles (user_id, display_name, title, bio, updated_at) VALUES (?, ?, ?, ?, ?)")
     .bind(id, String(displayName).slice(0, 100), String(title).slice(0, 100), String(bio).slice(0, 1000), now).run();
   return { id, username: username.toLowerCase(), role, createdAt: now };
@@ -125,7 +127,7 @@ async function route(request, env) {
   if (path === "/api/login" && request.method === "POST") {
     const input = await bodyJson(request);
     if (!input || typeof input.username !== "string" || typeof input.password !== "string") return json({ error: "Username and password are required." }, 400);
-    const row = await env.DB.prepare("SELECT id, username, password_salt, password_hash, role, created_at FROM users WHERE username=?")
+    const row = await env.DB.prepare("SELECT id, username, password_salt, password_hash, role, is_admin, created_at FROM users WHERE username=?")
       .bind(input.username.toLowerCase()).first();
     if (!row || await passwordHash(input.password, row.password_salt) !== row.password_hash) {
       return json({ error: "Invalid username or password." }, 401);
@@ -134,7 +136,7 @@ async function route(request, env) {
     await env.DB.prepare("INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at) VALUES (?, ?, ?, ?, ?)")
       .bind(crypto.randomUUID(), row.id, await sha256(token), now, expires).run();
     await audit(env, row.id, "user.login", row.id);
-    return json({ token, user: { id: row.id, username: row.username, role: row.role, createdAt: row.created_at } }, 200, { "set-cookie": setCookie(token) });
+    return json({ token, user: { id: row.id, username: row.username, role: row.is_admin ? "admin" : row.role, createdAt: row.created_at } }, 200, { "set-cookie": setCookie(token) });
   }
 
   if (path === "/api/logout" && request.method === "POST") {
@@ -244,8 +246,8 @@ async function route(request, env) {
     const user = await currentUser(request, env);
     if (!requireRole(user, ["system_admin", "admin"])) return json({ error: "Not found." }, 404);
     const sql = user.role === "system_admin"
-      ? "SELECT u.id, u.username, u.role, u.created_at, u.owner_id, p.display_name, p.title, p.bio, p.updated_at FROM users u LEFT JOIN profiles p ON p.user_id=u.id WHERE u.role != 'system_admin' ORDER BY u.created_at DESC LIMIT 1000"
-      : "SELECT u.id, u.username, u.role, u.created_at, u.owner_id, p.display_name, p.title, p.bio, p.updated_at FROM users u LEFT JOIN profiles p ON p.user_id=u.id WHERE u.owner_id=? ORDER BY u.created_at DESC LIMIT 1000";
+      ? "SELECT u.id, u.username, CASE WHEN u.is_admin=1 THEN 'admin' ELSE u.role END AS role, u.created_at, u.owner_id, p.display_name, p.title, p.bio, p.updated_at FROM users u LEFT JOIN profiles p ON p.user_id=u.id WHERE u.role != 'system_admin' ORDER BY u.created_at DESC LIMIT 1000"
+      : "SELECT u.id, u.username, CASE WHEN u.is_admin=1 THEN 'admin' ELSE u.role END AS role, u.created_at, u.owner_id, p.display_name, p.title, p.bio, p.updated_at FROM users u LEFT JOIN profiles p ON p.user_id=u.id WHERE u.owner_id=? ORDER BY u.created_at DESC LIMIT 1000";
     const result = user.role === "system_admin" ? await env.DB.prepare(sql).all() : await env.DB.prepare(sql).bind(user.id).all();
     return json({ users: (result.results || []).map(r => ({ id: r.id, username: r.username, role: r.role, createdAt: r.created_at, ownerId: r.owner_id, profile: { displayName: r.display_name, title: r.title, bio: r.bio, updatedAt: r.updated_at } })) });
   }
@@ -260,7 +262,7 @@ async function route(request, env) {
       ? await env.DB.prepare("SELECT id, role FROM users WHERE id=? AND role != 'system_admin'").bind(input.userId).first()
       : await env.DB.prepare("SELECT id, role FROM users WHERE id=? AND owner_id=?").bind(input.userId, user.id).first();
     if (!target) return json({ error: "User not found." }, 404);
-    await env.DB.prepare("UPDATE users SET role=? WHERE id=?").bind(input.role, input.userId).run();
+    await env.DB.prepare("UPDATE users SET role=?, is_admin=? WHERE id=?").bind(input.role === "admin" ? "user" : input.role, input.role === "admin" ? 1 : 0, input.userId).run();
     await audit(env, user.id, "user.role_changed", input.userId, input.role);
     return json({ ok: true });
   }
