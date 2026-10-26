@@ -2406,6 +2406,12 @@ a { color: inherit; }
   /* ONLINE-ONLY MODE: authentication and workspace data live on Cloudflare. */
   const ONLINE_API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
   let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve();
+  async function clearLocalPersistence() {
+    try { localStorage.clear(); } catch (_) {}
+    try { sessionStorage.clear(); } catch (_) {}
+    try { indexedDB.deleteDatabase('aide-session'); } catch (_) {}
+    try { if ('caches' in window) { const keys = await caches.keys(); await Promise.all(keys.map(key => caches.delete(key))); } } catch (_) {}
+  }
   async function onlineRequest(path, method = 'GET', body) {
     const headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -2467,6 +2473,7 @@ a { color: inherit; }
         if (!me.user) throw new Error('The server did not create a valid session. Check the API configuration.');
         onlineUser = me.user; onlineRole = me.user.role;
         const remote = await onlineRequest('/api/data');
+        await clearLocalPersistence();
         A.enter(remote.data || { settings: {} });
       } catch (ex) {
         error.textContent = ex.message || 'Unable to connect to the online service.';
@@ -2500,6 +2507,7 @@ a { color: inherit; }
       if (me.user) {
         onlineUser = me.user; onlineRole = me.user.role;
         const remote = await onlineRequest('/api/data');
+        await clearLocalPersistence();
         return A.enter(remote.data || { settings: {} });
       }
     } catch (_) { /* show sign-in if there is no valid online session */ }
