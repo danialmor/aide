@@ -44,7 +44,9 @@ function allowedOrigin(request, env) {
   return origin === expected;
 }
 async function currentUser(request, env) {
-  const token = cookieValue(request, COOKIE);
+  const auth = request.headers.get("Authorization") || "";
+  const bearer = auth.match(/^Bearer ([A-Fa-f0-9]+)$/);
+  const token = bearer ? bearer[1] : cookieValue(request, COOKIE);
   if (!token) return null;
   const tokenHash = await sha256(token);
   const row = await env.DB.prepare(
@@ -111,7 +113,7 @@ async function route(request, env) {
       const expires = Date.now() + SESSION_DAYS * 86400000;
       await env.DB.prepare("INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at) VALUES (?, ?, ?, ?, ?)")
         .bind(crypto.randomUUID(), user.id, await sha256(token), Date.now(), expires).run();
-      return json({ user: { id: user.id, username: user.username, role: user.role, createdAt: user.createdAt }, profile: { displayName: input.displayName || username, title: input.title || "", bio: input.bio || "" } }, 201, { "set-cookie": setCookie(token) });
+      return json({ token, user: { id: user.id, username: user.username, role: user.role, createdAt: user.createdAt }, profile: { displayName: input.displayName || username, title: input.title || "", bio: input.bio || "" } }, 201, { "set-cookie": setCookie(token) });
     } catch (e) {
       if (String(e).includes("UNIQUE")) return json({ error: "This username is already registered." }, 409);
       throw e;
@@ -130,11 +132,13 @@ async function route(request, env) {
     await env.DB.prepare("INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at) VALUES (?, ?, ?, ?, ?)")
       .bind(crypto.randomUUID(), row.id, await sha256(token), now, expires).run();
     await audit(env, row.id, "user.login", row.id);
-    return json({ user: { id: row.id, username: row.username, role: row.role, createdAt: row.created_at } }, 200, { "set-cookie": setCookie(token) });
+    return json({ token, user: { id: row.id, username: row.username, role: row.role, createdAt: row.created_at } }, 200, { "set-cookie": setCookie(token) });
   }
 
   if (path === "/api/logout" && request.method === "POST") {
-    const token = cookieValue(request, COOKIE);
+    const auth = request.headers.get("Authorization") || "";
+    const bearer = auth.match(/^Bearer ([A-Fa-f0-9]+)$/);
+    const token = bearer ? bearer[1] : cookieValue(request, COOKIE);
     if (token) await env.DB.prepare("DELETE FROM sessions WHERE token_hash=?").bind(await sha256(token)).run();
     return json({ ok: true }, 200, { "set-cookie": clearCookie() });
   }
