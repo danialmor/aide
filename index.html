@@ -6076,7 +6076,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   function userForm(u) {
     const isNew = !u, name = h('input', { type: 'text', autocapitalize: 'none', spellcheck: 'false', placeholder: 'e.g. sara', value: u ? u.name : '', disabled: !isNew }), pw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'At least 8 characters' });
     const roleOptions = Object.entries(ROLE).filter(([k]) => k !== 'admin' || onlineRole === 'system_admin');
-    const role = h('select', null, roleOptions.map(([k, v]) => h('option', { value: k, selected: u ? u.role === k : k === 'user' }, v[0]))), err = h('div', { class: 'warn', hidden: true });
+    const role = h('select', null, roleOptions.map(([k, v]) => h('option', { value: k, selected: u ? u.role === k : k === 'manager' }, v[0]))), err = h('div', { class: 'warn', hidden: true });
     const newPasswordField = A.field('Password for CEO account', pw);
     newPasswordField.hidden = !isNew || role.value !== 'manager';
     role.addEventListener('change', () => { newPasswordField.hidden = role.value !== 'manager'; });
