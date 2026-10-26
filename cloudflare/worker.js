@@ -107,7 +107,9 @@ async function route(request, env) {
     const existing = await env.DB.prepare("SELECT id FROM users WHERE username=?").bind(username).first();
     if (existing) return json({ error: "This username is already registered." }, 409);
     try {
-      const user = await createUser(env, { username, password: input.password, role: "user", displayName: input.displayName || username, title: input.title || "", bio: input.bio || "" });
+      const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM users").first();
+      const role = Number(count?.total || 0) === 0 ? "system_admin" : "user";
+      const user = await createUser(env, { username, password: input.password, role, displayName: input.displayName || username, title: input.title || "", bio: input.bio || "" });
       await audit(env, user.id, "user.registered", user.id);
       const token = randomHex(32);
       const expires = Date.now() + SESSION_DAYS * 86400000;
@@ -258,7 +260,7 @@ export default {
         headers.set("access-control-allow-credentials", "true");
         headers.set("vary", "Origin");
         headers.set("access-control-allow-methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-        headers.set("access-control-allow-headers", "Content-Type");
+        headers.set("access-control-allow-headers", "Content-Type, Authorization");
       }
       return new Response(response.body, { status: response.status, headers });
     } catch (error) {
