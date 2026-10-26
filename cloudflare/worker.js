@@ -71,13 +71,13 @@ function validUsername(value) {
 function validPassword(value) {
   return typeof value === "string" && value.length >= 8 && value.length <= 128;
 }
-async function createUser(env, { username, password, role = "user", displayName = "", title = "", bio = "" }) {
+async function createUser(env, { username, password, role = "user", displayName = "", title = "", bio = "", ownerId = null }) {
   const salt = randomHex(16);
   const hash = await passwordHash(password, salt);
   const id = crypto.randomUUID();
   const now = Date.now();
-  await env.DB.prepare("INSERT INTO users (id, username, password_salt, password_hash, role, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-    .bind(id, username.toLowerCase(), salt, hash, role, now).run();
+  await env.DB.prepare("INSERT INTO users (id, username, password_salt, password_hash, role, created_at, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .bind(id, username.toLowerCase(), salt, hash, role, now, ownerId).run();
   await env.DB.prepare("INSERT INTO profiles (user_id, display_name, title, bio, updated_at) VALUES (?, ?, ?, ?, ?)")
     .bind(id, String(displayName).slice(0, 100), String(title).slice(0, 100), String(bio).slice(0, 1000), now).run();
   return { id, username: username.toLowerCase(), role, createdAt: now };
@@ -108,8 +108,8 @@ async function route(request, env) {
     if (existing) return json({ error: "This username is already registered." }, 409);
     try {
       const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM users").first();
-      const role = Number(count?.total || 0) === 0 ? "system_admin" : "user";
-      const user = await createUser(env, { username, password: input.password, role, displayName: input.displayName || username, title: input.title || "", bio: input.bio || "" });
+      const role = Number(count?.total || 0) === 0 ? "system_admin" : "admin";
+      const user = await createUser(env, { username, password: input.password, role, displayName: input.displayName || username, title: input.title || "", bio: input.bio || "", ownerId: null });
       await audit(env, user.id, "user.registered", user.id);
       const token = randomHex(32);
       const expires = Date.now() + SESSION_DAYS * 86400000;
@@ -222,9 +222,10 @@ async function route(request, env) {
 
   if (path === "/api/admin/users" && request.method === "POST") {
     const user = await currentUser(request, env);
-    if (!requireRole(user, ["system_admin"])) return json({ error: "Not found." }, 404);
+    if (!requireRole(user, ["system_admin", "admin"])) return json({ error: "Not found." }, 404);
     const input = await bodyJson(request);
-    if (!input || !validUsername(input.username) || !["user", "ceo"].includes(input.role || "user")) {
+    const allowedRoles = user.role === "system_admin" ? ["admin", "user", "ceo"] : ["user", "ceo"];
+    if (!input || !validUsername(input.username) || !allowedRoles.includes(input.role || "user")) {
       return json({ error: "Provide a valid username and role." }, 400);
     }
     const username = input.username.toLowerCase();
@@ -233,24 +234,30 @@ async function route(request, env) {
     const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
     const bytes = crypto.getRandomValues(new Uint8Array(18));
     const temporaryPassword = Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
-    const created = await createUser(env, { username, password: temporaryPassword, role: input.role || "user", displayName: String(input.displayName || username).slice(0, 100), title: "", bio: "" });
+    const created = await createUser(env, { username, password: temporaryPassword, role: input.role || "user", displayName: String(input.displayName || username).slice(0, 100), title: "", bio: "", ownerId: user.role === "system_admin" ? null : user.id });
     await audit(env, user.id, "user.created_by_admin", created.id, created.role);
     return json({ user: created, temporaryPassword }, 201);
   }
 
   if (path === "/api/admin/users" && request.method === "GET") {
     const user = await currentUser(request, env);
-    if (!requireRole(user, ["system_admin"])) return json({ error: "Not found." }, 404);
-    const result = await env.DB.prepare("SELECT u.id, u.username, u.role, u.created_at, p.display_name, p.title, p.bio, p.updated_at FROM users u LEFT JOIN profiles p ON p.user_id=u.id WHERE u.role != 'system_admin' ORDER BY u.created_at DESC LIMIT 1000").all();
-    return json({ users: (result.results || []).map(r => ({ id: r.id, username: r.username, role: r.role, createdAt: r.created_at, profile: { displayName: r.display_name, title: r.title, bio: r.bio, updatedAt: r.updated_at } })) });
+    if (!requireRole(user, ["system_admin", "admin"])) return json({ error: "Not found." }, 404);
+    const sql = user.role === "system_admin"
+      ? "SELECT u.id, u.username, u.role, u.created_at, u.owner_id, p.display_name, p.title, p.bio, p.updated_at FROM users u LEFT JOIN profiles p ON p.user_id=u.id WHERE u.role != 'system_admin' ORDER BY u.created_at DESC LIMIT 1000"
+      : "SELECT u.id, u.username, u.role, u.created_at, u.owner_id, p.display_name, p.title, p.bio, p.updated_at FROM users u LEFT JOIN profiles p ON p.user_id=u.id WHERE u.owner_id=? ORDER BY u.created_at DESC LIMIT 1000";
+    const result = user.role === "system_admin" ? await env.DB.prepare(sql).all() : await env.DB.prepare(sql).bind(user.id).all();
+    return json({ users: (result.results || []).map(r => ({ id: r.id, username: r.username, role: r.role, createdAt: r.created_at, ownerId: r.owner_id, profile: { displayName: r.display_name, title: r.title, bio: r.bio, updatedAt: r.updated_at } })) });
   }
 
   if (path === "/api/admin/users/role" && request.method === "PATCH") {
     const user = await currentUser(request, env);
-    if (!requireRole(user, ["system_admin"])) return json({ error: "Not found." }, 404);
+    if (!requireRole(user, ["system_admin", "admin"])) return json({ error: "Not found." }, 404);
     const input = await bodyJson(request);
-    if (!input || typeof input.userId !== "string" || !["user", "ceo"].includes(input.role)) return json({ error: "Invalid role change." }, 400);
-    const target = await env.DB.prepare("SELECT id, role FROM users WHERE id=? AND role != 'system_admin'").bind(input.userId).first();
+    const allowedRoles = user.role === "system_admin" ? ["admin", "user", "ceo"] : ["user", "ceo"];
+    if (!input || typeof input.userId !== "string" || !allowedRoles.includes(input.role)) return json({ error: "Invalid role change." }, 400);
+    const target = user.role === "system_admin"
+      ? await env.DB.prepare("SELECT id, role FROM users WHERE id=? AND role != 'system_admin'").bind(input.userId).first()
+      : await env.DB.prepare("SELECT id, role FROM users WHERE id=? AND owner_id=?").bind(input.userId, user.id).first();
     if (!target) return json({ error: "User not found." }, 404);
     await env.DB.prepare("UPDATE users SET role=? WHERE id=?").bind(input.role, input.userId).run();
     await audit(env, user.id, "user.role_changed", input.userId, input.role);
