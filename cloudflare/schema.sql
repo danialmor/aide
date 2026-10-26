@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
   password_salt TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'ceo', 'system_admin')),
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  owner_id TEXT,
+  is_admin INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS profiles (
