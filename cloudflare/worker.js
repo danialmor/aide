@@ -40,7 +40,7 @@ function clearCookie() {
 function allowedOrigin(request, env) {
   const origin = request.headers.get("Origin");
   if (!origin) return true;
-  const expected = (env.APP_ORIGIN || "https://danialmor.github.io").replace(/\/$/, "");
+  const expected = "https://danialmor.github.io";
   return origin === expected;
 }
 async function currentUser(request, env) {
