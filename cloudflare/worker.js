@@ -251,7 +251,7 @@ async function route(request, env) {
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin");
-    const expected = (env.APP_ORIGIN || "https://danialmor.github.io").replace(/\\/$/, "");
+    const expected = (env.APP_ORIGIN || "https://danialmor.github.io").replace(/\/$/, "");
     const cors = {};
     if (origin === expected) {
       cors["access-control-allow-origin"] = expected;
