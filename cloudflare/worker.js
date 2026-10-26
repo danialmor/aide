@@ -50,10 +50,10 @@ async function currentUser(request, env) {
   if (!token) return null;
   const tokenHash = await sha256(token);
   const row = await env.DB.prepare(
-    "SELECT u.id, u.username, u.role, u.created_at, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at > ?"
+    "SELECT u.id, u.username, u.role, u.created_at, u.owner_id, s.expires_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at > ?"
   ).bind(tokenHash, Date.now()).first();
   if (!row) return null;
-  return { id: row.id, username: row.username, role: row.role, createdAt: row.created_at };
+  return { id: row.id, username: row.username, role: row.role, createdAt: row.created_at, ownerId: row.owner_id || null };
 }
 function requireRole(user, roles) {
   return !!user && roles.includes(user.role);
@@ -167,7 +167,8 @@ async function route(request, env) {
   if (path === "/api/data" && request.method === "GET") {
     const user = await currentUser(request, env);
     if (!user) return json({ error: "Authentication required." }, 401);
-    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind("workspace:" + user.id).first();
+    const workspaceOwner = user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id;
+    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind("workspace:" + workspaceOwner).first();
     if (!row) return json({ data: null });
     try { return json({ data: JSON.parse(row.value) }); }
     catch { return json({ error: "Stored workspace data is invalid." }, 500); }
@@ -181,7 +182,7 @@ async function route(request, env) {
     const value = JSON.stringify(input.data);
     if (value.length > 900000) return json({ error: "Workspace data exceeds the 900 KB limit." }, 413);
     await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
-      .bind("workspace:" + user.id, value).run();
+      .bind("workspace:" + (user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id), value).run();
     await audit(env, user.id, "workspace.saved", user.id, "bytes=" + value.length);
     return json({ ok: true, savedAt: Date.now(), bytes: value.length });
   }
