@@ -2405,7 +2405,7 @@ a { color: inherit; }
 
   /* ONLINE-ONLY MODE: authentication and workspace data live on Cloudflare. */
   const ONLINE_API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
-  let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve();
+  let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlineUsersCache = [];
   async function clearLocalPersistence() {
     try { localStorage.clear(); } catch (_) {}
     try { sessionStorage.clear(); } catch (_) {}
@@ -2442,15 +2442,31 @@ a { color: inherit; }
   };
   V.lock = () => { onlineUser = null; onlineRole = null; onlineToken = null; A.db.data = null; A.role = null; A.readOnly = false; };
   V.wipe = async () => { V.lock(); };
-  V.users = () => [];
-  V.addUser = async () => { throw new Error('Accounts are managed online by the system administrator.'); };
-  V.resetPassword = async () => { throw new Error('Password management must be performed by the online account service.'); };
-  V.setRole = () => { throw new Error('Roles are managed by the online system administrator.'); };
-  V.removeUser = () => { throw new Error('Accounts are managed online by the system administrator.'); };
-  A.enter = function(data) {
+  V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: 'manager', created: u.createdAt, id: u.id }));
+  V.refreshUsers = async () => {
+    if (onlineRole !== 'system_admin') { onlineUsersCache = []; return onlineUsersCache; }
+    const result = await onlineRequest('/api/admin/users');
+    onlineUsersCache = result.users || [];
+    return onlineUsersCache;
+  };
+  V.addUser = async (name, role) => {
+    const result = await onlineRequest('/api/admin/users', 'POST', { username: name, role: role === 'manager' ? 'ceo' : 'user', displayName: name });
+    await V.refreshUsers();
+    return result;
+  };
+  V.resetPassword = async () => { throw new Error('Password reset is not available yet.'); };
+  V.setRole = async (name, role) => {
+    const target = onlineUsersCache.find(u => u.username === name);
+    if (!target) throw new Error('User not found.');
+    await onlineRequest('/api/admin/users/role', 'PATCH', { userId: target.id, role: role === 'manager' ? 'ceo' : 'user' });
+    await V.refreshUsers();
+  };
+  V.removeUser = async () => { throw new Error('User removal is not available yet.'); };
+  A.enter = async function(data) {
     A.load(data || { settings: {} });
     A.role = V.role();
     A.readOnly = A.role !== 'admin';
+    if (A.role === 'admin') { try { await V.refreshUsers(); } catch (_) { onlineUsersCache = []; } }
     if (A.readOnly && (!location.hash || /^#\/(today|users)$/.test(location.hash))) location.hash = '#/manager';
     $('#login').hidden = true; $('#app').hidden = false; A.start();
   };
@@ -6038,20 +6054,20 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   function userForm(u) {
     const isNew = !u, name = h('input', { type: 'text', autocapitalize: 'none', spellcheck: 'false', placeholder: 'e.g. sara', value: u ? u.name : '', disabled: !isNew }), pw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'At least 10 characters' });
     const role = h('select', null, Object.entries(ROLE).map(([k, v]) => h('option', { value: k, selected: u ? u.role === k : k === 'manager' }, v[0]))), err = h('div', { class: 'warn', hidden: true });
-    const m = A.modal({ title: isNew ? 'Add a user' : 'Reset password · ' + u.name, body: [isNew ? A.field('Username', name) : null, A.field(isNew ? 'Password' : 'New password', pw), isNew ? A.field('Role', role) : null, isNew ? h('p', { class: 'note' }, ROLE.manager[1]) : null, h('p', { class: 'note' }, 'Tell them the password in person. They can change it in Settings → Profile & data.'), err],
-      footer: [h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: async () => { try { if (isNew) await A.vault.addUser(name.value, pw.value, role.value); else await A.vault.resetPassword(u.name, pw.value); m.close(); A.toast(isNew ? 'User added.' : 'Password reset.'); A.route(); } catch (e) { err.textContent = e.message; err.hidden = false; } } }, isNew ? 'Add user' : 'Reset')] });
+    const m = A.modal({ title: isNew ? 'Add a user' : 'Reset password · ' + u.name, body: [isNew ? A.field('Username', name) : null, isNew ? h('p', { class: 'note' }, 'A temporary password will be generated automatically.') : A.field('New password', pw), isNew ? A.field('Role', role) : null, isNew ? h('p', { class: 'note' }, ROLE.manager[1]) : null, err],
+      footer: [h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: async () => { try { if (isNew) { const result = await A.vault.addUser(name.value, role.value); m.close(); window.prompt('Copy and share this temporary password with the new user:', result.temporaryPassword); } else { await A.vault.resetPassword(u.name, pw.value); m.close(); } A.toast(isNew ? 'User added.' : 'Password reset.'); A.route(); } catch (e) { err.textContent = e.message; err.hidden = false; } } }, isNew ? 'Add user' : 'Reset')] });
     setTimeout(() => (isNew ? name : pw).focus(), 50);
   }
   A.views.users = {
     title: 'Users', sub: 'Who can sign in to this desk',
-    actions: () => [h('button', { class: 'btn primary', type: 'button', onClick: async () => { if (await guard('Adding a user needs your password once.')) userForm(null); } }, A.ico('plus'), 'Add user')],
+    actions: () => [h('button', { class: 'btn primary', type: 'button', onClick: () => userForm(null) }, A.ico('plus'), 'Add user')],
     render(root) {
       const me = A.vault.user(), list = A.vault.users();
       root.append(h('div', { class: 'grid g2' }, list.map(u => h('article', { class: 'card' },
         h('div', { class: 'row' }, h('div', { class: 'avatar' }, A.initials(u.name)), h('div', { class: 'grow' }, h('b', null, u.name, u.name === me ? h('span', { class: 'pill', style: { marginInlineStart: '8px' } }, 'You') : null), h('div', { class: 'small muted' }, 'Added ' + (u.created ? new Date(u.created).toLocaleDateString() : '—')))),
         h('p', { class: 'small muted', style: { margin: '8px 0' } }, ROLE[u.role][1]),
         h('div', { class: 'row wrap' },
-          h('select', { 'aria-label': 'Role', onChange: async e => { try { A.vault.setRole(u.name, e.target.value); A.toast('Role changed.'); A.route(); } catch (x) { A.toast(x.message); A.route(); } } }, Object.entries(ROLE).map(([k, v]) => h('option', { value: k, selected: u.role === k }, v[0]))),
+          h('select', { 'aria-label': 'Role', onChange: async e => { try { await A.vault.setRole(u.name, e.target.value); A.toast('Role changed.'); A.route(); } catch (x) { A.toast(x.message); A.route(); } } }, Object.entries(ROLE).map(([k, v]) => h('option', { value: k, selected: u.role === k }, v[0]))),
           h('button', { class: 'btn sm', type: 'button', onClick: async () => { if (await guard('Resetting a password needs your password once.')) userForm(u); } }, 'Reset password'),
           u.name === me ? null : h('button', { class: 'btn sm', type: 'button', onClick: async () => { if (!await A.confirm('Remove ' + u.name + '?', 'They will no longer be able to sign in. The data stays.', 'Remove')) return; try { A.vault.removeUser(u.name); A.toast('User removed.'); A.route(); } catch (x) { A.toast(x.message); } } }, 'Remove'))))));
       root.append(h('div', { class: 'card', style: { marginTop: '14px' } }, h('h3', null, 'How this works'), h('ul', { class: 'small muted', style: { margin: 0, paddingInlineStart: '18px' } },
