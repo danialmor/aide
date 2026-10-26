@@ -101,7 +101,7 @@ async function route(request, env) {
   if (path === "/api/register" && request.method === "POST") {
     const input = await bodyJson(request);
     if (!input || !validUsername(input.username) || !validPassword(input.password)) {
-      return json({ error: "Username must be 3–32 letters/numbers/._- and password must be 10–128 characters." }, 400);
+      return json({ error: "Username must be 3–32 letters/numbers/._- and password must be 8–128 characters." }, 400);
     }
     const username = input.username.toLowerCase();
     const existing = await env.DB.prepare("SELECT id FROM users WHERE username=?").bind(username).first();
@@ -251,7 +251,7 @@ async function route(request, env) {
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin");
-    const expected = (env.APP_ORIGIN || "https://danialmor.github.io").replace(/\/$/, "");
+    const expected = "https://danialmor.github.io";
     const cors = {};
     if (origin === expected) {
       cors["access-control-allow-origin"] = expected;
