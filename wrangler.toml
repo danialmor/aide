@@ -1,0 +1,8 @@
+name = "aide-api"
+main = "cloudflare/worker.js"
+compatibility_date = "2026-10-19"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aide-online"
+database_id = "e288f291-b0d5-4085-bf0f-9e6c1e8bf5b2"
