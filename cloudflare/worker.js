@@ -235,22 +235,27 @@ async function route(request, env) {
     }
     const username = input.username.toLowerCase();
     const role = input.role || "user";
-    if (role === "ceo" && user.role !== "system_admin") {
+    if (role === "ceo") {
+      // CEO accounts belong to the creator's workspace, including when created by system_admin.
       const ceoCount = await env.DB.prepare("SELECT COUNT(*) AS total FROM users WHERE owner_id=? AND role='ceo'").bind(user.id).first();
-      if (Number(ceoCount?.total || 0) >= 2) return json({ error: "An admin can create up to two CEO accounts." }, 400);
+      if (Number(ceoCount?.total || 0) >= 2) return json({ error: "This workspace already has two CEO accounts. Remove one before creating another." }, 400);
     }
     const existing = await env.DB.prepare("SELECT id FROM users WHERE username=?").bind(username).first();
     if (existing) return json({ error: "This username is already registered." }, 409);
-    let temporaryPassword = null;
-    if (validPassword(input.password)) temporaryPassword = input.password;
-    else {
+    const suppliedPassword = validPassword(input.password);
+    if (input.password && !suppliedPassword) {
+      return json({ error: "Password must be 8–128 characters, or leave it blank to generate a secure temporary password." }, 400);
+    }
+    let temporaryPassword = suppliedPassword ? input.password : null;
+    if (!temporaryPassword) {
       const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
-      const bytes = crypto.getRandomValues(new Uint8Array(18));
+      const bytes = crypto.getRandomValues(new Uint8Array(24));
       temporaryPassword = Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
     }
-    const created = await createUser(env, { username, password: temporaryPassword, role, displayName: String(input.displayName || username).slice(0, 100), title: "", bio: "", ownerId: user.role === "system_admin" ? null : user.id });
+    const ownerId = role === "ceo" ? user.id : (user.role === "system_admin" ? null : user.id);
+    const created = await createUser(env, { username, password: temporaryPassword, role, displayName: String(input.displayName || username).slice(0, 100), title: "", bio: "", ownerId });
     await audit(env, user.id, "user.created_by_admin", created.id, created.role);
-    return json({ user: created, temporaryPassword }, 201);
+    return json({ user: created, ...(!suppliedPassword ? { temporaryPassword } : {}) }, 201);
   }
 
   if (path === "/api/admin/users" && request.method === "GET") {
