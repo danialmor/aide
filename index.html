@@ -1825,7 +1825,7 @@ a { color: inherit; }
   A.catStyle = c => ({ '--c': 'var(--c-' + (A.CATS[c] ? c : 'meeting') + ')', '--b': 'var(--b-' + (A.CATS[c] ? c : 'meeting') + ')' });
 
   /* ── store (in memory; vault.js encrypts it to disk) ──────────────── */
-  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 0, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 60, clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15, secondary: 'persian', weekend: 'sat-sun', calSystem: 'gregorian', holidaysOn: true, holidayIntl: false, holidayBlock: true, hijriOffset: 0, customHolidays: [], faOn: false, faOnline: false, themeMode: 'auto', themeLight: 'ice', themeDark: 'aurora', customThemes: [], fontDisplay: '', fontText: '', fontScale: 100, buffer: 10, remindersOn: true, sound: true, vibrate: true, hidePreview: false });
+  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 5, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 60, clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15, secondary: 'persian', weekend: 'sat-sun', calSystem: 'jalali', holidaysOn: true, holidayIntl: false, holidayBlock: true, hijriOffset: 0, customHolidays: [], faOn: false, faOnline: false, themeMode: 'auto', themeLight: 'ice', themeDark: 'aurora', customThemes: [], fontDisplay: '', fontText: '', fontScale: 100, buffer: 10, remindersOn: true, sound: true, vibrate: true, hidePreview: false });
   A.db = { data: null };
   A.settings = () => (A.db.data && A.db.data.settings) || DEFAULTS();
   A.uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -2208,7 +2208,7 @@ a { color: inherit; }
   /* ── settings cards (shown under the appearance settings) ─────────── */
   A.prefCards = function () {
     const S = A.settings(), set = (k, v, route) => { S[k] = v; A.save('settings'); if (k === 'faOn') A.faEnable(v); if (route !== false) A.route(); };
-    const seg = (k, opts) => h('div', { class: 'seg' }, opts.map(([v, n]) => h('button', { type: 'button', 'aria-pressed': S[k] === v || (S[k] == null && v === opts[0][0]), onClick: () => { set(k, v); if (k === 'calSystem' && v === 'jalali' && S.weekStart !== 5) { S.weekStart = 5; A.toast('Week now starts on Saturday (change it in Settings).'); } } }, n)));
+    const seg = (k, opts) => h('div', { class: 'seg' }, opts.map(([v, n]) => h('button', { type: 'button', 'aria-pressed': S[k] === v || (S[k] == null && v === opts[0][0]), onClick: () => { if (k === 'calSystem') { S.calSystem = v; if (v === 'jalali') S.weekStart = 5; else if (S.weekStart === 5) S.weekStart = 0; A.save('settings'); A.route(); } else set(k, v); } }, n)));
     const onoff = (k, def) => seg(k, [[true, 'On'], [false, 'Off']].map(x => x)), row = (label, ctrl, hint) => h('div', { class: 'line' }, h('div', { class: 'grow' }, h('b', null, label), hint ? h('div', { class: 'small muted' }, hint) : null), ctrl);
     const tf = (k, def) => { const on = S[k] == null ? def : !!S[k]; return h('div', { class: 'seg' }, [[true, 'On'], [false, 'Off']].map(([v, n]) => h('button', { type: 'button', 'aria-pressed': on === v, onClick: () => set(k, v) }, n))); };
     const num = h('input', { type: 'number', min: -3, max: 3, value: S.hijriOffset || 0, style: { width: '84px' }, onChange: e => { set('hijriOffset', Math.max(-3, Math.min(3, +e.target.value || 0)), false); A.toast('Lunar holidays shifted by ' + (S.hijriOffset || 0) + ' day(s).'); } });
@@ -5935,11 +5935,18 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     title: 'Roadmap', sub: 'Projects, trips and milestones for the quarter',
     actions: () => [h('button', { class: 'btn', type: 'button', onClick: manageRoadmap }, A.ico('list'), 'Manage items')],
     render(root) {
-      const R = roadmap(), a0 = D.parse(R.anchor), y0 = D.ymd(a0), t0 = D.today();
-      const ms = [0, 1, 2, 3].map(k => D.ymd(D.num(y0.y, y0.m + k, 1))), dim = ms.map(m => D.daysIn(m.y, m.m));
+      const R = roadmap(), a0 = D.parse(R.anchor), t0 = D.today();
+      // Share the active calendar system with Today, Calendar, Repeats and Settings.
+      const firstMonth = D.sMonthStart(a0);
+      const ms = [0, 1, 2, 3].map(k => D.sAddMonths(firstMonth, k));
+      const dim = ms.map(m => D.sMonthLen(m));
+      const firstParts = D.isJ() ? D.jalali(a0) : D.ymd(a0);
       const scene = mkEl(tpl.itinerario); root.classList.add('mx-wrap'); root.append(scene);
-      const ceja = scene.querySelector('.it-ceja'); if (ceja) ceja.lastChild.textContent = 'Executive office · ' + D.MON[y0.m - 1] + ' – ' + D.MON[ms[3].m - 1] + ' ' + ms[3].y;
-      Itinerario(scene, { semanas: 13, inicio: y0.d - 1, hoy: (t0 - a0) / 7, visibles: 5, meses: ms.map(m => D.MON3[m.m - 1]), diasMes: dim, mesesLargos: ms.map(m => D.MON[m.m - 1]), carriles: R.lanes, barras: R.bars, hitos: R.miles,
+      const ceja = scene.querySelector('.it-ceja');
+      if (ceja) ceja.lastChild.textContent = 'Executive office · ' + D.mtitle(ms[0]) + ' – ' + D.mtitle(ms[3]);
+      Itinerario(scene, { semanas: 13, inicio: firstParts.d - 1, hoy: (t0 - a0) / 7, visibles: 5,
+        meses: ms.map(m => D.mname(m).slice(0, 3)), diasMes: dim, mesesLargos: ms.map(m => D.mname(m)),
+        carriles: R.lanes, barras: R.bars, hitos: R.miles,
         alCambiar: (tipo, x) => { if (tipo === 'barra') { const b = R.bars.find(v => v[0] === x.id); if (b) { b[4] = x.inicio; b[5] = x.largo; } } else if (tipo === 'hito') { const m = R.miles.find(v => v[0] === x.id); if (m) m[2] = x.semana; } else if (tipo === 'avance') { const b = R.bars.find(v => v[0] === x.id); if (b) b[6] = x.avance; } else return; A.save('roadmap'); } });
     },
   };
