@@ -2432,7 +2432,7 @@ a { color: inherit; }
     if (result.token) onlineToken = result.token;
     return result;
   }
-  V.role = () => onlineRole === 'system_admin' ? 'admin' : 'manager';
+  V.role = () => (onlineRole === 'system_admin' || onlineRole === 'admin') ? 'admin' : 'manager';
   V.user = () => onlineUser && onlineUser.username;
   V.save = data => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save changes online.'));
@@ -2442,15 +2442,16 @@ a { color: inherit; }
   };
   V.lock = () => { onlineUser = null; onlineRole = null; onlineToken = null; A.db.data = null; A.role = null; A.readOnly = false; };
   V.wipe = async () => { V.lock(); };
-  V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: 'manager', created: u.createdAt, id: u.id }));
+  V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: u.role === 'admin' ? 'admin' : (u.role === 'ceo' ? 'manager' : 'user'), created: u.createdAt, id: u.id }));
   V.refreshUsers = async () => {
-    if (onlineRole !== 'system_admin') { onlineUsersCache = []; return onlineUsersCache; }
+    if (!['system_admin', 'admin'].includes(onlineRole)) { onlineUsersCache = []; return onlineUsersCache; }
     const result = await onlineRequest('/api/admin/users');
     onlineUsersCache = result.users || [];
     return onlineUsersCache;
   };
   V.addUser = async (name, role) => {
-    const result = await onlineRequest('/api/admin/users', 'POST', { username: name, role: role === 'manager' ? 'ceo' : 'user', displayName: name });
+    const apiRole = role === 'admin' ? 'admin' : (role === 'manager' ? 'ceo' : 'user');
+    const result = await onlineRequest('/api/admin/users', 'POST', { username: name, role: apiRole, displayName: name });
     await V.refreshUsers();
     return result;
   };
@@ -2458,7 +2459,7 @@ a { color: inherit; }
   V.setRole = async (name, role) => {
     const target = onlineUsersCache.find(u => u.username === name);
     if (!target) throw new Error('User not found.');
-    await onlineRequest('/api/admin/users/role', 'PATCH', { userId: target.id, role: role === 'manager' ? 'ceo' : 'user' });
+    await onlineRequest('/api/admin/users/role', 'PATCH', { userId: target.id, role: role === 'admin' ? 'admin' : (role === 'manager' ? 'ceo' : 'user') });
     await V.refreshUsers();
   };
   V.removeUser = async () => { throw new Error('User removal is not available yet.'); };
@@ -6057,7 +6058,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   };
 
   /* ── USERS page (admin) ───────────────────────────────────────────── */
-  const ROLE = { admin: ['Admin · assistant', 'Full access: edits everything, manages users.'], manager: ['Manager · executive', 'Sees everything, decides requests, ticks tasks. Cannot edit.'] };
+  const ROLE = { admin: ['Admin · ادمین', 'Full access to the workspace and team management.'], manager: ['CEO · مدیرعامل', 'Views team information and management reports.'], user: ['Regular user · کاربر عادی', 'Access according to assigned team responsibilities.'] };
   function askPassword(why) {
     return new Promise(res => {
       const pw = h('input', { type: 'password', autocomplete: 'current-password', placeholder: 'Your password' }), err = h('div', { class: 'warn', hidden: true });
@@ -6070,8 +6071,9 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   const guard = async why => A.vault.isElevated() || askPassword(why);
   function userForm(u) {
     const isNew = !u, name = h('input', { type: 'text', autocapitalize: 'none', spellcheck: 'false', placeholder: 'e.g. sara', value: u ? u.name : '', disabled: !isNew }), pw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'At least 10 characters' });
-    const role = h('select', null, Object.entries(ROLE).map(([k, v]) => h('option', { value: k, selected: u ? u.role === k : k === 'manager' }, v[0]))), err = h('div', { class: 'warn', hidden: true });
-    const m = A.modal({ title: isNew ? 'Add a user' : 'Reset password · ' + u.name, body: [isNew ? A.field('Username', name) : null, isNew ? h('p', { class: 'note' }, 'A temporary password will be generated automatically.') : A.field('New password', pw), isNew ? A.field('Role', role) : null, isNew ? h('p', { class: 'note' }, ROLE.manager[1]) : null, err],
+    const roleOptions = Object.entries(ROLE).filter(([k]) => k !== 'admin' || onlineRole === 'system_admin');
+    const role = h('select', null, roleOptions.map(([k, v]) => h('option', { value: k, selected: u ? u.role === k : k === 'user' }, v[0]))), err = h('div', { class: 'warn', hidden: true });
+    const m = A.modal({ title: isNew ? 'Add a user' : 'Reset password · ' + u.name, body: [isNew ? A.field('Username', name) : null, isNew ? h('p', { class: 'note' }, 'No password is needed here. A temporary sign-in password will be generated automatically.') : A.field('New password', pw), isNew ? A.field('Role', role) : null, isNew ? h('p', { class: 'note' }, ROLE.manager[1]) : null, err],
       footer: [h('span', { class: 'grow' }), h('button', { class: 'btn', type: 'button', onClick: () => m.close() }, 'Cancel'), h('button', { class: 'btn primary', type: 'button', onClick: async () => { try { if (isNew) { const result = await A.vault.addUser(name.value, role.value); m.close(); window.prompt('Copy and share this temporary password with the new user:', result.temporaryPassword); } else { await A.vault.resetPassword(u.name, pw.value); m.close(); } A.toast(isNew ? 'User added.' : 'Password reset.'); A.route(); } catch (e) { err.textContent = e.message; err.hidden = false; } } }, isNew ? 'Add user' : 'Reset')] });
     setTimeout(() => (isNew ? name : pw).focus(), 50);
   }
