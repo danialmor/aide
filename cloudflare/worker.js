@@ -32,10 +32,10 @@ function cookieValue(request, name) {
   return "";
 }
 function setCookie(token) {
-  return `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_DAYS * 86400}`;
+  return `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${SESSION_DAYS * 86400}`;
 }
 function clearCookie() {
-  return `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
+  return `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0`;
 }
 function allowedOrigin(request, env) {
   const origin = request.headers.get("Origin");
@@ -156,6 +156,28 @@ async function route(request, env) {
       .bind(user.id, String(input.displayName || "").slice(0, 100), String(input.title || "").slice(0, 100), String(input.bio || "").slice(0, 1000), now).run();
     await audit(env, user.id, "profile.updated", user.id);
     return json({ ok: true });
+  }
+
+  if (path === "/api/data" && request.method === "GET") {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: "Authentication required." }, 401);
+    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind("workspace:" + user.id).first();
+    if (!row) return json({ data: null });
+    try { return json({ data: JSON.parse(row.value) }); }
+    catch { return json({ error: "Stored workspace data is invalid." }, 500); }
+  }
+
+  if (path === "/api/data" && request.method === "PUT") {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: "Authentication required." }, 401);
+    const input = await bodyJson(request);
+    if (!input || !input.data || typeof input.data !== "object" || Array.isArray(input.data)) return json({ error: "A workspace data object is required." }, 400);
+    const value = JSON.stringify(input.data);
+    if (value.length > 900000) return json({ error: "Workspace data exceeds the 900 KB limit." }, 413);
+    await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+      .bind("workspace:" + user.id, value).run();
+    await audit(env, user.id, "workspace.saved", user.id, "bytes=" + value.length);
+    return json({ ok: true, savedAt: Date.now(), bytes: value.length });
   }
 
   if (path === "/api/admin/bootstrap" && request.method === "POST") {
