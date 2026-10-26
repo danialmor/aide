@@ -2698,7 +2698,7 @@ a { color: inherit; }
   const A = window.Aide, { h, date: D, ev: E } = A;
   const SNAP = 15, MIN = 15;
   const ui = A.ui.cal = { view: null, anchor: D.today(), cats: new Set(Object.keys(A.CATS)), q: '' };
-  try { const s = JSON.parse(localStorage.getItem('aide.ui') || '{}'); ui.view = s.calView || null; } catch (e) { /* ignore */ }
+  /* memory-only preference */
   const isPhone = () => matchMedia('(max-width: 860px)').matches;
   const VIEWS = [['day', 'Day'], ['3day', '3 Days'], ['week', 'Week'], ['month', 'Month'], ['year', 'Year'], ['agenda', 'Agenda']];
 
@@ -2707,7 +2707,7 @@ a { color: inherit; }
     render(root, bar) {
       if (!ui.view) ui.view = isPhone() ? 'day' : 'week';
       const view = ui.view, S = A.settings(), ws = S.weekStart;
-      const seg = h('div', { class: 'seg', role: 'tablist', 'aria-label': 'Calendar view' }, VIEWS.map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': k === view, onClick: () => { ui.view = k; localStorage.setItem('aide.ui', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('aide.ui') || '{}'), { calView: k }))); A.route(); } }, n)));
+      const seg = h('div', { class: 'seg', role: 'tablist', 'aria-label': 'Calendar view' }, VIEWS.map(([k, n]) => h('button', { type: 'button', role: 'tab', 'aria-selected': k === view, onClick: () => { ui.view = k; /* memory-only preference */ A.route(); } }, n)));
       const move = dir => { const v = view; ui.anchor = v === 'day' ? ui.anchor + dir : v === '3day' ? ui.anchor + 3 * dir : v === 'week' ? ui.anchor + 7 * dir : v === 'year' ? D.sAddMonths(ui.anchor, 12 * dir) : v === 'agenda' ? ui.anchor + 14 * dir : D.sAddMonths(ui.anchor, dir); A.route(); };
       const a = ui.anchor, y = D.ymd(a);
       let title, sub = '';
@@ -3137,9 +3137,9 @@ a { color: inherit; }
 
   /* ── timers ───────────────────────────────────────────────────────── */
   const SS = 'aide.timers';
-  const T = (() => { try { return JSON.parse(sessionStorage.getItem(SS)) || {}; } catch (e) { return {}; } })();
+  const T = {};
   T.cd = T.cd || { total: 25 * 60, end: null, left: null, label: '' }; T.sw = T.sw || { start: null, acc: 0, laps: [] }; T.mt = T.mt || { items: [{ t: 'Welcome', m: 5 }, { t: 'Updates', m: 15 }, { t: 'Decisions', m: 10 }], idx: -1, t0: null, acc: [], paused: null }; T.tab = T.tab || 'cd';
-  const persist = () => sessionStorage.setItem(SS, JSON.stringify(T));
+  const persist = () => {};
   const mmss = s => { s = Math.max(0, Math.ceil(s)); return A.pad(Math.floor(s / 60)) + ':' + A.pad(s % 60); };
   const hms = s => { const h2 = Math.floor(s / 3600); return (h2 ? h2 + ':' : '') + A.pad(Math.floor(s / 60) % 60) + ':' + A.pad(Math.floor(s) % 60); };
   const cdLeft = () => T.cd.end ? Math.max(0, (T.cd.end - Date.now()) / 1000) : (T.cd.left != null ? T.cd.left : T.cd.total);
@@ -5796,7 +5796,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   const monthSvg = (y, m, ws, cnt, today) => { const first = D.sMonthStart(today), lead = (D.dow(first) - ws + 7) % 7, n = D.sMonthLen(first); let o = '<g class="ac-svg-dia" text-anchor="middle">' + Array.from({ length: 7 }, (_, i) => '<text x="' + (10 + i * 16.7).toFixed(1) + '" y="9">' + D.wletter((ws + i) % 7) + '</text>').join('') + '</g>';
     for (let i = 0; i < n; i++) { const c = (lead + i) % 7, r = Math.floor((lead + i) / 7), x = 10 + c * 16.7, yy = 25 + r * 14.4, d = first + i, k = cnt[d] || 0; if (d === today) o += '<circle cx="' + x.toFixed(1) + '" cy="' + (yy - 3) + '" r="6.4" fill="var(--a)"/>'; else if (k) o += '<circle cx="' + x.toFixed(1) + '" cy="' + (yy - 3) + '" r="6.4" fill="var(--a)" opacity="' + Math.min(.5, .16 + k * .09) + '"/>'; o += '<text x="' + x.toFixed(1) + '" y="' + yy + '" text-anchor="middle" font-size="8" font-weight="700" fill="' + (d === today ? 'var(--ac-papel)' : 'var(--ac-tinta)') + '">' + D.dig(i + 1) + '</text>'; }
     return o; };
-  const timerState = () => { try { return (JSON.parse(sessionStorage.getItem('aide.timers') || '{}').cd) || null; } catch (e) { return null; } };
+  const timerState = () => null;
 
   A.views.today = {
     title: () => { const S = A.settings(), hr = new Date().getHours(), g = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening'; return g + (S.name ? ', ' + S.name.split(' ')[0] : ''); },
@@ -6306,7 +6306,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
 
   /* ── engine ───────────────────────────────────────────────────────── */
   const cacheKey = 'aide.fa.cache';
-  let cache = {}; try { cache = JSON.parse(localStorage.getItem(cacheKey) || '{}'); } catch (e) { cache = {}; }
+  let cache = {};
   const norm = s => s.replace(/\s+/g, ' ').trim();
   const lookupWord = w => W[w.toLowerCase().replace(/[’']s$/, '')] || W[w.toLowerCase().replace(/(ing|ed|es|s)$/, '')] || null;
   const lookupPhrase = t => P[norm(t).toLowerCase()] || null;
@@ -6314,7 +6314,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     const k = text.toLowerCase(); if (cache[k]) return cache[k];
     try {
       const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.slice(0, 400)) + '&langpair=en|fa'), j = await r.json(), t = j && j.responseData && j.responseData.translatedText;
-      if (t && !/MYMEMORY WARNING|QUERY LENGTH/i.test(t)) { cache[k] = t; const ks = Object.keys(cache); if (ks.length > 800) delete cache[ks[0]]; try { localStorage.setItem(cacheKey, JSON.stringify(cache)); } catch (e) { /* full */ } return t; }
+      if (t && !/MYMEMORY WARNING|QUERY LENGTH/i.test(t)) { cache[k] = t; return t; }
     } catch (e) { /* offline */ }
     return null;
   }
@@ -6675,8 +6675,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
  const $=id=>document.getElementById(id);
  const overlay=$('aide-account-overlay'), status=$('aide-ac-status');
  let me=null, profile=null;
- const apiKey='aide_cloudflare_api_base_v1';
- function base(){return ($('aide-ac-api').value||'').trim().replace(/\/$/,'');}
+ const API_ROOT='https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
+ function base(){return API_ROOT;}
  function say(message,type=''){status.textContent=message;status.className='aide-ac-status'+(type?' '+type:'');}
  function showAuth(){ $('aide-ac-auth').hidden=false;$('aide-ac-profile').hidden=true; }
  function showProfile(){ $('aide-ac-auth').hidden=true;$('aide-ac-profile').hidden=false; }
@@ -6720,12 +6720,12 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
  document.addEventListener('keydown',e=>{if(e.key==='Escape')overlay.classList.remove('open');});
  $('aide-ac-tab-login').addEventListener('click',()=>switchTab('login'));
  $('aide-ac-tab-register').addEventListener('click',()=>switchTab('register'));
- $('aide-ac-save-api').addEventListener('click',async()=>{const value=base();if(!value||!/^https:\/\//i.test(value)){say('Enter a valid HTTPS Worker or API URL.','error');return;}try{new URL(value);}catch(e){say('That URL is not valid.','error');return;}localStorage.setItem(apiKey,value);say('API address saved in this browser. Testing connection…');try{const health=await request('/api/health');say('API reachable: '+(health.service||'AIDE API')+'. If sign-in cookies are blocked, deployment must be moved to the same site.','ok');}catch(e){say(e.message,'error');}});
+ $('aide-ac-save-api').addEventListener('click',async()=>{const value=base();if(!value||!/^https:\/\//i.test(value)){say('Enter a valid HTTPS Worker or API URL.','error');return;}try{new URL(value);}catch(e){say('That URL is not valid.','error');return;}say('Using the configured Cloudflare API. Testing connection…');try{const health=await request('/api/health');say('API reachable: '+(health.service||'AIDE API')+'. If sign-in cookies are blocked, deployment must be moved to the same site.','ok');}catch(e){say(e.message,'error');}});
  $('aide-ac-login-form').addEventListener('submit',async e=>{e.preventDefault();try{await request('/api/login','POST',{username:$('aide-ac-login-user').value.trim(),password:$('aide-ac-login-pass').value});$('aide-ac-login-pass').value='';await refreshMe();}catch(err){say(err.message,'error');}});
  $('aide-ac-register-form').addEventListener('submit',async e=>{e.preventDefault();try{await request('/api/register','POST',{username:$('aide-ac-reg-user').value.trim(),password:$('aide-ac-reg-pass').value,displayName:$('aide-ac-reg-name').value,title:$('aide-ac-reg-title').value,bio:$('aide-ac-reg-bio').value});$('aide-ac-reg-pass').value='';await refreshMe();}catch(err){say(err.message,'error');}});
  $('aide-ac-profile-form').addEventListener('submit',async e=>{e.preventDefault();try{await request('/api/profile','PUT',{displayName:$('aide-ac-profile-name').value,title:$('aide-ac-profile-title').value,bio:$('aide-ac-profile-bio').value});say('Profile saved.','ok');}catch(err){say(err.message,'error');}});
  $('aide-ac-logout').addEventListener('click',async()=>{try{await request('/api/logout','POST',{});me=null;profile=null;showAuth();switchTab('login');say('Signed out.','ok');}catch(e){say(e.message,'error');}});
- $('aide-ac-api').value=localStorage.getItem(apiKey)||'';
+ $('aide-ac-api').value=API_ROOT;
 })();
 </script>
 
