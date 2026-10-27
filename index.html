@@ -1840,12 +1840,16 @@ a { color: inherit; }
     if (data.settings && !data.settings.themeMode) st.themeMode = { paper: 'light', dusk: 'dark', auto: 'auto' }[data.settings.theme] || 'auto';   // from the older theme setting
     A.applyTheme();
   };
-  let saveT = 0;
+  let saveT = 0, settingsSaveT = 0;
   A.save = function (what) {
-    clearTimeout(saveT); saveT = setTimeout(() => A.vault && A.vault.save(A.db.data).catch(e => A.toast('Could not save: ' + e.message)), 200);
+    if (what === 'settings') {
+      clearTimeout(settingsSaveT); settingsSaveT = setTimeout(() => A.vault && A.vault.savePreferences(A.db.data.settings).catch(e => A.toast('Could not save account settings online: ' + e.message)), 250);
+    } else {
+      clearTimeout(saveT); saveT = setTimeout(() => A.vault && A.vault.save(A.db.data).catch(e => A.toast('Could not save online: ' + e.message)), 200);
+    }
     A.emit('change', what);
   };
-  A.flush = () => { clearTimeout(saveT); return A.vault && A.db.data ? A.vault.save(A.db.data) : Promise.resolve(); };
+  A.flush = () => { clearTimeout(saveT); clearTimeout(settingsSaveT); if (!A.vault || !A.db.data) return Promise.resolve(); return Promise.all([A.vault.save(A.db.data), A.vault.savePreferences(A.db.data.settings)]); };
   const coll = n => A.db.data[n];
   /* the manager role is read-only, except deciding requests and ticking tasks */
   A.rtl = () => A.settings().dir === 'rtl'; A.dirIco = n => A.ico(A.rtl() ? ({ chevL: 'chevR', chevR: 'chevL' }[n] || n) : n);
@@ -2427,7 +2431,7 @@ a { color: inherit; }
     for (let attempt = 0; attempt < attempts; attempt++) {
       try {
         response = await fetch(ONLINE_API + path, {
-          method, credentials: 'omit', headers,
+          method, credentials: 'include', headers,
           body: body === undefined ? undefined : JSON.stringify(body),
           cache: 'no-store'
         });
@@ -2457,10 +2461,19 @@ a { color: inherit; }
   V.save = data => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save changes online.'));
     const snapshot = JSON.parse(JSON.stringify(data || {}));
+    delete snapshot.settings; // account preferences are stored separately per user
     onlineSaving = onlineSaving.catch(() => {}).then(() => onlineRequest('/api/data', 'PUT', { data: snapshot }));
     return onlineSaving;
   };
-  V.lock = () => { onlineUser = null; onlineRole = null; onlineToken = null; A.db.data = null; A.role = null; A.readOnly = false; };
+  V.getPreferences = async () => {
+    const result = await onlineRequest('/api/preferences');
+    return result.preferences || {};
+  };
+  V.savePreferences = async preferences => {
+    if (!onlineUser) throw new Error('Sign in to save account settings online.');
+    return onlineRequest('/api/preferences', 'PUT', { preferences: JSON.parse(JSON.stringify(preferences || {})) });
+  };
+  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
   V.wipe = async () => { V.lock(); };
   V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: u.role === 'admin' ? 'admin' : (u.role === 'ceo' ? 'manager' : 'user'), created: u.createdAt, id: u.id }));
   V.refreshUsers = async () => {
@@ -2501,7 +2514,9 @@ a { color: inherit; }
   };
   V.removeUser = async () => { throw new Error('User removal is not available yet.'); };
   A.enter = async function(data) {
-    A.load(data || { settings: {} });
+    const preferences = await V.getPreferences();
+    const incoming = Object.assign({}, data || {}, { settings: Object.assign({}, (data && data.settings) || {}, preferences) });
+    A.load(incoming);
     A.role = V.role();
     A.readOnly = A.role === 'manager' || A.role === 'user';
     if (A.role === 'admin') { try { await V.refreshUsers(); } catch (_) { onlineUsersCache = []; } }
@@ -2514,6 +2529,7 @@ a { color: inherit; }
     const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', autocorrect: 'off', spellcheck: 'false', inputmode: 'text', required: true, placeholder: 'Username' });
     const password = h('input', { type: 'password', autocomplete: 'current-password', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', required: true, placeholder: 'Password' });
     const repeat = h('input', { type: 'password', autocomplete: 'new-password', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'Repeat password' });
+    const rememberMe = h('input', { type: 'checkbox', checked: true });
     const passwordToggle = h('button', { class: 'btn sm', type: 'button', 'aria-pressed': 'false', style: 'margin-top:8px; width:100%;' }, 'Show password');
     passwordToggle.addEventListener('click', () => {
       const show = password.type === 'password';
@@ -2534,7 +2550,7 @@ a { color: inherit; }
           if (pw !== repeat.value) throw new Error('The passwords do not match.');
           await onlineRequest('/api/register', 'POST', { username, password: pw, displayName: username });
         } else {
-          await onlineRequest('/api/login', 'POST', { username, password: pw });
+          await onlineRequest('/api/login', 'POST', { username, password: pw, rememberMe: rememberMe.checked });
         }
         const me = await onlineRequest('/api/me');
         if (!me.user) throw new Error('The server did not create a valid session. Check the API configuration.');
@@ -2549,6 +2565,7 @@ a { color: inherit; }
     } }, 
       h('div', null, h('h1', null, 'AIDE · Online Workspace'), h('p', { class: 'muted' }, 'Your workspace data is saved to Cloudflare. This browser does not store workspace records.' + (msg ? ' ' + msg : ''))),
       A.field('Username', user), A.field('Password', password), passwordToggle,
+      h('label', { class: 'row small', style: 'margin:2px 0 8px;' }, rememberMe, h('span', null, 'Remember me on this device (up to 30 days)')),
       h('div', { hidden: true, id: 'aide-online-repeat' }, A.field('Repeat password', repeat)),
       error, submit, switcher
     );
@@ -3339,7 +3356,7 @@ a { color: inherit; }
   /* ── router ───────────────────────────────────────────────────────── */
   A.route = function () {
     document.documentElement.dir = A.settings().dir === 'rtl' ? 'rtl' : 'ltr'; A.applyLang && A.applyLang();
-    if (!A.db.data) return; let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0]; if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && id !== 'manager')) id = A.role === 'manager' ? 'manager' : 'today'; const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
+    if (!A.db.data) return; let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0]; if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && !['manager', 'settings'].includes(id))) id = A.role === 'manager' ? 'manager' : 'today'; const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
     const main = $('#main'); if (!main) return;
     const prev = main.querySelector('.page'), keep = prev && A.current === key ? prev.scrollTop : 0;
     view && view.destroy && view.destroy(); view = v; const changed = A.current !== key; A.current = key;
@@ -3420,9 +3437,9 @@ a { color: inherit; }
         card('Profile', A.field('Executive’s name', txt('name', 'e.g. Alex Morgan')), A.field('Executive’s title', txt('title', 'e.g. Chief Executive Officer')), A.field('Your role / signature', txt('assistant', 'e.g. Executive Assistant'))),
         card('Appearance', row('Theme & colours', h('a', { class: 'btn', href: '#/themes' }, A.ico('palette'), 'Open Themes'), 'Colours, fonts and shapes live in the Themes page.'), row('Time format', seg('hour12', [[false, '24-hour'], [true, '12-hour']])), row('Week starts on', seg('weekStart', [[0, 'Mon'], [5, 'Sat'], [6, 'Sun']])), row('Second calendar', seg('secondary', [['none', 'None'], ['persian', 'Persian'], ['islamic', 'Hijri']]), 'Shown in small type under each day.')),
         card('Schedule', row('Day starts at', num('dayStart', 0, 12), 'Hour, 0–12'), row('Day ends at', num('dayEnd', 12, 24), 'Hour, 12–24'), row('Default event length', num('defDur', 15, 480, 15), 'Minutes'), row('Buffer between meetings', num('buffer', 0, 60, 5), 'Minutes, used for free windows'), row('Default reminder', num('remind', 0, 120, 5), 'Minutes before; 0 = none')),
-        card('Security', row('Auto-lock after', num('lockMin', 0, 240), 'Minutes of inactivity; 0 = never'), row('Lock now', h('button', { class: 'btn', type: 'button', onClick: lock }, A.ico('lock'), 'Lock')), row('Password', h('button', { class: 'btn', type: 'button', onClick: changePw }, 'Change password'), 'Re-encrypts everything with the new password.'), h('p', { class: 'note' }, 'Everything is stored only in this browser, encrypted with your password. There is no server and no way to reset a forgotten password — so keep a backup file somewhere safe.')),
+        card('Security', row('Auto-lock after', num('lockMin', 0, 240), 'Minutes of inactivity; 0 = never'), row('Lock now', h('button', { class: 'btn', type: 'button', onClick: lock }, A.ico('lock'), 'Lock')), row('Password', h('button', { class: 'btn', type: 'button', onClick: changePw }, 'Change password'), 'Re-encrypts everything with the new password.'), h('p', { class: 'note' }, 'Your workspace and account settings are stored online in Cloudflare. “Remember me” uses a server-issued secure session cookie; it does not save your password or workspace records on this device.')),
         card('Notifications', row('Reminders & timers', h('button', { class: 'btn', type: 'button', onClick: async () => { if (!('Notification' in window)) return A.toast('This browser has no notification support.'); const r = await Notification.requestPermission(); A.toast('Notifications: ' + r); } }, A.ico('bell'), 'Allow notifications'), 'Alerts only fire while the desk is open (also on the iPhone/iPad home-screen app).')),
-        card('Data & backup', row('Backup file', h('button', { class: 'btn', type: 'button', onClick: () => { A.flush().then(() => A.download('aide-backup-' + D.iso(D.today()) + '.aide', A.vault.exportBlob(), 'application/json')); } }, A.ico('download'), 'Download'), 'Encrypted. Safe to store in cloud drive or email to yourself.'), row('Restore backup', h('label', { class: 'btn' }, A.ico('upload'), 'Choose file', fileIn)), row('Calendar export', h('button', { class: 'btn', type: 'button', onClick: () => A.download('aide-calendar.ics', A.ics(A.db.data.events, 'Aide'), 'text/calendar') }, A.ico('calendar'), '.ics'), 'Opens in Apple, Google and Outlook calendars.'), row('Everything as plain JSON', h('button', { class: 'btn', type: 'button', onClick: async () => { if (await A.confirm('Export unencrypted data', 'The file will NOT be encrypted. Anyone who gets it can read it. Continue?', 'Export', false)) A.download('aide-data.json', JSON.stringify(A.db.data, null, 2), 'application/json'); } }, 'Export')), row('Load sample data', h('button', { class: 'btn', type: 'button', onClick: async () => { if (await A.confirm('Add sample data', 'Adds example events, contacts, tasks and notes to your existing data.', 'Add', false)) { const s = A.sample(); ['events', 'contacts', 'requests', 'tasks', 'notes'].forEach(k => A.db.data[k].push(...s[k])); A.db.data.avail = Object.assign({}, s.avail, A.db.data.avail); A.save('all'); A.toast('Sample data added.'); } } }, 'Add')), row('Erase everything', h('button', { class: 'btn danger', type: 'button', onClick: async () => { if (await A.confirm('Erase this vault', 'This permanently deletes the vault and all data on this device.', 'Erase forever')) { A.vault.wipe(); built = false; A.showLogin('The vault was erased.'); } } }, 'Erase'))),
+        card('Online storage', h('p', { class: 'note' }, 'Workspace records (calendar, requests, tasks, notes, contacts and availability) are saved in Cloudflare D1. Personal preferences are saved separately for each account. This page does not use a local workspace database.'), row('Signed-in account', h('span', { class: 'chip' }, V.user() || 'Online account')), row('Save status', h('span', { class: 'chip' }, 'Online sync enabled'))),
         card('About', h('p', { class: 'note' }, 'Aide · Executive Desk v1.0. Design language inspired by Moxen’s free resources (moxen.cl/recursos): cream paper, cacao ink, pastel categories and spring motion. All code in this project is original and dependency-free.'), h('p', { class: 'note' }, 'Shortcuts: ⌘/Ctrl + K search · N new event · T today · ← → previous/next in the calendar · in the calendar, arrow keys move a focused event, Shift + ↑↓ changes its length.'))));
     },
   };
