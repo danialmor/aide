@@ -2499,9 +2499,16 @@ a { color: inherit; }
   A.showLogin = function(msg) {
     const root = $('#login'); root.hidden = false; $('#app').hidden = true; root.replaceChildren();
     let mode = 'login';
-    const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', required: true, placeholder: 'Username' });
-    const password = h('input', { type: 'password', autocomplete: 'current-password', required: true, placeholder: 'Password (10+ characters)' });
-    const repeat = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'Repeat password' });
+    const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', autocorrect: 'off', spellcheck: 'false', inputmode: 'text', required: true, placeholder: 'Username' });
+    const password = h('input', { type: 'password', autocomplete: 'current-password', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', required: true, placeholder: 'Password' });
+    const repeat = h('input', { type: 'password', autocomplete: 'new-password', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'Repeat password' });
+    const passwordToggle = h('button', { class: 'btn sm', type: 'button', 'aria-pressed': 'false', style: 'margin-top:8px; width:100%;' }, 'Show password');
+    passwordToggle.addEventListener('click', () => {
+      const show = password.type === 'password';
+      password.type = show ? 'text' : 'password';
+      passwordToggle.textContent = show ? 'Hide password' : 'Show password';
+      passwordToggle.setAttribute('aria-pressed', String(show));
+    });
     const error = h('div', { class: 'warn', role: 'alert', hidden: true });
     const submit = h('button', { class: 'btn primary', type: 'submit' }, 'Sign in');
     const switcher = h('button', { class: 'btn sm', type: 'button' }, 'Create online account');
@@ -2529,7 +2536,7 @@ a { color: inherit; }
       }
     } }, 
       h('div', null, h('h1', null, 'AIDE · Online Workspace'), h('p', { class: 'muted' }, 'Your workspace data is saved to Cloudflare. This browser does not store workspace records.' + (msg ? ' ' + msg : ''))),
-      A.field('Username', user), A.field('Password', password),
+      A.field('Username', user), A.field('Password', password), passwordToggle,
       h('div', { hidden: true, id: 'aide-online-repeat' }, A.field('Repeat password', repeat)),
       error, submit, switcher
     );
