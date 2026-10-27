@@ -2419,18 +2419,30 @@ a { color: inherit; }
     const headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (onlineToken) headers.Authorization = 'Bearer ' + onlineToken;
-    let response;
-    try {
-      response = await fetch(ONLINE_API + path, {
-        method, credentials: 'omit', headers,
-        body: body === undefined ? undefined : JSON.stringify(body),
-        cache: 'no-store'
-      });
-    } catch (networkError) {
+    let response, networkError;
+    // Retry only idempotent reads and login. Never retry registration automatically:
+    // the server may have created the account even if the response was lost.
+    const retryable = method === 'GET' || (method === 'POST' && path === '/api/login');
+    const attempts = retryable ? 3 : 1;
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      try {
+        response = await fetch(ONLINE_API + path, {
+          method, credentials: 'omit', headers,
+          body: body === undefined ? undefined : JSON.stringify(body),
+          cache: 'no-store'
+        });
+        networkError = null;
+        break;
+      } catch (error) {
+        networkError = error;
+        if (attempt + 1 < attempts) await new Promise(resolve => setTimeout(resolve, 350 * (attempt + 1)));
+      }
+    }
+    if (!response) {
       const detail = networkError && networkError.message ? String(networkError.message) : 'network/CORS error';
       const origin = (typeof location !== 'undefined' && location.origin) ? location.origin : 'unknown origin';
       const apiHost = (() => { try { return new URL(ONLINE_API).host; } catch (_) { return ONLINE_API; } })();
-      throw new Error('اتصال به API کلادفلر ناموفق بود (' + detail + '). مبدأ سایت: ' + origin + '؛ سرور API: ' + apiHost + '. صفحه را از لینک رسمی سایت باز کنید و اتصال اینترنت/دسترسی به Cloudflare را بررسی کنید.');
+      throw new Error('ارتباط با API پس از ' + attempts + ' تلاش ناموفق بود (' + detail + '). مسیر: ' + path + '؛ مبدأ سایت: ' + origin + '؛ سرور API: ' + apiHost + '. اگر این خطا تکرار شد، تب Network مرورگر را بررسی کنید؛ این خطا به‌تنهایی به معنی اشتباه بودن نام کاربری یا رمز نیست.');
     }
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || ('Server request failed (' + response.status + ').'));
