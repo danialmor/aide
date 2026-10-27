@@ -128,11 +128,12 @@ async function route(request, env) {
       const role = Number(count?.total || 0) === 0 ? "system_admin" : "admin";
       const user = await createUser(env, { username, password: input.password, role, displayName: input.displayName || username, title: input.title || "", bio: input.bio || "", ownerId: null });
       await audit(env, user.id, "user.registered", user.id);
+      const remember = input.rememberMe !== false;
       const token = randomHex(32);
-      const expires = Date.now() + SESSION_DAYS * 86400000;
+      const expires = Date.now() + (remember ? SESSION_DAYS * 86400000 : 12 * 60 * 60 * 1000);
       await env.DB.prepare("INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at) VALUES (?, ?, ?, ?, ?)")
         .bind(crypto.randomUUID(), user.id, await sha256(token), Date.now(), expires).run();
-      return json({ token, user: { id: user.id, username: user.username, role: user.role, createdAt: user.createdAt }, profile: { displayName: input.displayName || username, title: input.title || "", bio: input.bio || "" } }, 201, { "set-cookie": setCookie(token) });
+      return json({ token, user: { id: user.id, username: user.username, role: user.role, createdAt: user.createdAt }, profile: { displayName: input.displayName || username, title: input.title || "", bio: input.bio || "" } }, 201, { "set-cookie": setCookie(token, remember) });
     } catch (e) {
       if (String(e).includes("UNIQUE")) return json({ error: "This username is already registered." }, 409);
       throw e;
