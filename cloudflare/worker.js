@@ -1,5 +1,5 @@
 const COOKIE = "__Host-aide_session";
-const SESSION_DAYS = 7;
+const SESSION_DAYS = 30;
 const PBKDF2_ITERATIONS = 100000;
 const encoder = new TextEncoder();
 
@@ -31,8 +31,9 @@ function cookieValue(request, name) {
   }
   return "";
 }
-function setCookie(token) {
-  return `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${SESSION_DAYS * 86400}`;
+function setCookie(token, remember = true) {
+  const persistence = remember ? `; Max-Age=${SESSION_DAYS * 86400}` : "";
+  return `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=None${persistence}`;
 }
 function clearCookie() {
   return `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0`;
@@ -146,12 +147,13 @@ async function route(request, env) {
     if (!row || await passwordHash(input.password, row.password_salt) !== row.password_hash) {
       return json({ error: "Invalid username or password." }, 401);
     }
-    const token = randomHex(32), now = Date.now(), expires = now + SESSION_DAYS * 86400000;
+    const remember = input.rememberMe === true;
+    const token = randomHex(32), now = Date.now(), expires = now + (remember ? SESSION_DAYS * 86400000 : 12 * 60 * 60 * 1000);
     await env.DB.prepare("INSERT INTO sessions (id, user_id, token_hash, created_at, expires_at) VALUES (?, ?, ?, ?, ?)")
       .bind(crypto.randomUUID(), row.id, await sha256(token), now, expires).run();
     await audit(env, row.id, "user.login", row.id);
     const effectiveRole = row.role === "system_admin" ? "system_admin" : (row.is_admin || (row.role === "user" && !row.owner_id) ? "admin" : row.role);
-    return json({ token, user: { id: row.id, username: row.username, role: effectiveRole, createdAt: row.created_at } }, 200, { "set-cookie": setCookie(token) });
+    return json({ token, user: { id: row.id, username: row.username, role: effectiveRole, createdAt: row.created_at } }, 200, { "set-cookie": setCookie(token, remember) });
   }
 
   if (path === "/api/logout" && request.method === "POST") {
@@ -179,6 +181,30 @@ async function route(request, env) {
       .bind(user.id, String(input.displayName || "").slice(0, 100), String(input.title || "").slice(0, 100), String(input.bio || "").slice(0, 1000), now).run();
     await audit(env, user.id, "profile.updated", user.id);
     return json({ ok: true });
+  }
+
+  if (path === "/api/preferences" && request.method === "GET") {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: "Authentication required." }, 401);
+    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind("account_preferences:" + user.id).first();
+    if (!row) return json({ preferences: {} });
+    try { return json({ preferences: JSON.parse(row.value) }); }
+    catch { return json({ error: "Stored account preferences are invalid." }, 500); }
+  }
+
+  if (path === "/api/preferences" && request.method === "PUT") {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: "Authentication required." }, 401);
+    const input = await bodyJson(request);
+    if (!input || !input.preferences || typeof input.preferences !== "object" || Array.isArray(input.preferences)) {
+      return json({ error: "An account preferences object is required." }, 400);
+    }
+    const value = JSON.stringify(input.preferences);
+    if (value.length > 100000) return json({ error: "Account preferences exceed the 100 KB limit." }, 413);
+    await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+      .bind("account_preferences:" + user.id, value).run();
+    await audit(env, user.id, "account.preferences_saved", user.id, "bytes=" + value.length);
+    return json({ ok: true, savedAt: Date.now(), bytes: value.length });
   }
 
   if (path === "/api/data" && request.method === "GET") {
@@ -317,6 +343,7 @@ export default {
       // The frontend uses Bearer tokens, not cross-origin cookies.
       cors["access-control-allow-methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
       cors["access-control-allow-headers"] = "Content-Type, Authorization";
+      cors["access-control-allow-credentials"] = "true";
       cors["access-control-max-age"] = "86400";
       cors["vary"] = "Origin";
     }
