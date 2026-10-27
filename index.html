@@ -2428,7 +2428,9 @@ a { color: inherit; }
       });
     } catch (networkError) {
       const detail = networkError && networkError.message ? String(networkError.message) : 'network/CORS error';
-      throw new Error('اتصال به API کلادفلر ناموفق بود (' + detail + '). این خطا معمولاً به CORS یا دسترسی به Worker مربوط است.');
+      const origin = (typeof location !== 'undefined' && location.origin) ? location.origin : 'unknown origin';
+      const apiHost = (() => { try { return new URL(ONLINE_API).host; } catch (_) { return ONLINE_API; } })();
+      throw new Error('اتصال به API کلادفلر ناموفق بود (' + detail + '). مبدأ سایت: ' + origin + '؛ سرور API: ' + apiHost + '. صفحه را از لینک رسمی سایت باز کنید و اتصال اینترنت/دسترسی به Cloudflare را بررسی کنید.');
     }
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || ('Server request failed (' + response.status + ').'));
