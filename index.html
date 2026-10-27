@@ -1673,6 +1673,55 @@ a { color: inherit; }
 .mgr { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; } .mgr-panel { max-height: calc(100vh - 150px); overflow: auto; padding-inline-end: 2px; }
 @media (max-width: 1100px) { .mgr { grid-template-columns: 1fr; } .mgr-panel { max-height: none; } }
 
+
+/* ── mobile polish + Persian/RTL fixes (2026-10) ───────────────────── */
+@media (max-width: 860px) {
+  html, body { width: 100%; max-width: 100%; overflow-x: clip; }
+  .app, #app, .main, .page { min-width: 0; max-width: 100%; }
+  .main { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .topbar { gap: 8px; }
+  .topbar h1 { font-size: clamp(20px, 5.5vw, 24px); overflow-wrap: anywhere; }
+  .topbar .sub { line-height: 1.55; }
+  .page { padding-inline: 12px; }
+  .card { padding: 14px; border-radius: 20px; }
+  .row.wrap > * { max-width: 100%; }
+  .btn { min-height: 44px; }
+  .icon-btn { width: 44px; height: 44px; }
+  input[type=text], input[type=search], input[type=password], input[type=date],
+  input[type=time], input[type=number], input[type=tel], input[type=email],
+  select, textarea { min-height: 46px; font-size: 16px; }
+  .prefgrid { grid-template-columns: minmax(0,1fr) !important; gap: 10px; padding: 0 12px 24px; }
+  .prefgrid > *, .lab-grid > *, .lab-fonts > *, .lab-lib > *, .lab-edgrid > * { min-width: 0; }
+  .lab-grid, .lab-fonts, .lab-lib { grid-template-columns: minmax(0,1fr); }
+  .lab-edgrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .lab-card, .lab-font, .lab-lcard { min-width: 0; }
+  .lab-modal { width: calc(100vw - 16px); max-width: calc(100vw - 16px); }
+  .mgr { grid-template-columns: minmax(0,1fr) !important; }
+  .mgr-panel, .mgr > *, .page > *, .stack > * { min-width: 0; max-width: 100%; }
+  .page .card[style*="margin: 0 22px"] { margin-inline: 0 !important; }
+  .tabbar { grid-template-columns: repeat(4,minmax(0,1fr)); left: 8px; right: 8px; }
+  .tabbar a, .tabbar button { min-width: 0; font-size: 10.5px; }
+  .tabbar .icon { width: 19px; height: 19px; }
+  .sheet { max-width: 100vw; }
+}
+@media (max-width: 380px) {
+  .tabbar { left: 4px; right: 4px; padding: 4px; border-radius: 20px; }
+  .tabbar a, .tabbar button { font-size: 9.5px; }
+  .lab-edgrid { grid-template-columns: minmax(0,1fr); }
+  .page { padding-inline: 10px; }
+}
+html[lang="fa"] body, html[lang="fa"] button, html[lang="fa"] input,
+html[lang="fa"] select, html[lang="fa"] textarea {
+  font-family: "Vazirmatn", Tahoma, system-ui, sans-serif;
+}
+html[lang="fa"] :is(h1,h2,h3,p,label,.muted,.small,.field > span,.lbl) {
+  line-height: 1.65; letter-spacing: 0;
+}
+html[lang="fa"] :is(input[type=email],input[type=password],input[type=tel],input[type=date],input[type=time],input[type=number],code,.num) {
+  direction: ltr; unicode-bidi: plaintext; text-align: start;
+}
+html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
+
 </style>
 <script>
   // apply the saved theme before first paint (no flash)
@@ -6126,13 +6175,13 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   A.managerAccount = function (root) {
     const u = A.vault.user();
     root.append(h('div', { class: 'card', style: { margin: '0 22px', maxWidth: '520px' } }, h('h3', null, 'Your account'),
-      h('div', { class: 'row' }, h('div', { class: 'avatar' }, A.initials(u)), h('div', { class: 'grow' }, h('b', null, u), h('div', { class: 'small muted' }, 'Manager · executive'))),
+      h('div', { class: 'row' }, h('div', { class: 'avatar' }, A.initials(u)), h('div', { class: 'grow' }, h('b', null, u), h('div', { class: 'small muted' }, 'CEO · executive'))),
       h('p', { class: 'small muted' }, 'You can look at everything, decide requests and tick tasks. Ask the assistant (admin) for anything else.'),
       h('div', { class: 'row wrap' }, h('button', { class: 'btn', type: 'button', onClick: () => A.changePw() }, 'Change password'))));
   };
 
   /* ── USERS page (admin) ───────────────────────────────────────────── */
-  const ROLE = { admin: ['Admin · ادمین', 'Full access to the workspace and team management.'], manager: ['CEO · مدیرعامل', 'Can access only the Manager page.'], user: ['Regular user · کاربر عادی', 'Access according to assigned team responsibilities.'] };
+  const ROLE = { admin: ['Admin · ادمین', 'Full access to the workspace and team management.'], manager: ['CEO · مدیرعامل', 'Can access the Manager page, themes and personal settings.'], user: ['Regular user · کاربر عادی', 'Access according to assigned team responsibilities.'] };
   function askPassword(why) {
     return new Promise(res => {
       const pw = h('input', { type: 'password', autocomplete: 'current-password', placeholder: 'Your password' }), err = h('div', { class: 'warn', hidden: true });
@@ -6169,7 +6218,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       root.append(h('div', { class: 'card', style: { marginTop: '14px' } }, h('h3', null, 'How this works'), h('ul', { class: 'small muted', style: { margin: 0, paddingInlineStart: '18px' } },
         h('li', null, 'All users open the same encrypted data on this device; each has their own password.'),
         h('li', null, 'The Manager role is enforced by the app. It keeps the executive from changing things by accident; it is not protection against someone with developer tools.'),
-        h('li', null, 'To use the desk on another device: Settings → Profile & data → download the backup, then “Restore backup file” on the sign-in screen. Everyone keeps their own password.'),
+        h('li', null, 'To use the desk on another device: sign in with the same account while online.'),
         h('li', null, 'Forgotten admin password with no other admin = data cannot be recovered. Keep a backup and a second admin.'))));
     },
   };
@@ -6551,8 +6600,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     'The two passwords do not match.': 'دو رمز عبور یکسان نیستند.', 'Strength: Weak': 'قدرت: ضعیف', 'Strength: Fair': 'قدرت: متوسط', 'Strength: Good': 'قدرت: خوب', 'Strength: Strong': 'قدرت: قوی',
     /* shell */
     'Today': 'امروز', 'Calendar': 'تقویم', 'Repeats': 'تکرارها', 'Roadmap': 'نقشهٔ راه', 'Requests': 'درخواست‌ها', 'Availability': 'ساعت‌های آزاد', 'Tasks': 'کارها', 'Notebook': 'دفترچه یادداشت',
-    'Timers': 'زمان‌سنج‌ها', 'People': 'افراد', 'Themes': 'تم‌ها', 'Manager': 'مدیر', 'Users': 'کاربران', 'Settings': 'تنظیمات', 'Search': 'جستجو', 'Lock': 'قفل', 'Sign out': 'خروج', 'More': 'بیشتر',
-    'Search everything': 'جستجو در همه‌چیز', 'Main': 'اصلی', 'Chief Executive Officer': 'مدیرعامل', 'Executive': 'مدیرعامل', 'Manager account · ': 'حساب مدیر · ',
+    'Timers': 'زمان‌سنج‌ها', 'People': 'افراد', 'Themes': 'تم‌ها', 'Manager': 'مدیرعامل', 'Users': 'کاربران', 'Settings': 'تنظیمات', 'Search': 'جستجو', 'Lock': 'قفل', 'Sign out': 'خروج', 'More': 'بیشتر',
+    'Search everything': 'جستجو در همه‌چیز', 'Main': 'اصلی', 'Chief Executive Officer': 'مدیرعامل', 'Executive': 'مدیرعامل', 'Manager account · ': 'حساب مدیرعامل · ',
     'Search events, people, notes, tasks — or type a command': 'جستجوی رویداد، فرد، یادداشت، کار — یا دستور بنویسید',
     'Read-only: manager accounts can look, decide requests and tick tasks.': 'فقط‌خواندنی: حساب مدیر می‌تواند ببیند، درخواست‌ها را تصمیم بگیرد و کارها را تیک بزند.',
     /* today */
@@ -6612,10 +6661,10 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     'Recently decided': 'اخیراً تصمیم‌گیری‌شده', 'All tasks': 'همهٔ کارها', 'No tasks due this week. 🎉': 'این هفته کار سررسیدی نیست. 🎉',
     'Who can sign in to this desk': 'چه کسانی می‌توانند وارد این میز شوند', 'Add user': 'افزودن کاربر', 'Add a user': 'افزودن کاربر', 'You': 'شما', 'Role': 'نقش', 'Reset password': 'بازنشانی رمز', 'Remove': 'حذف',
     'Full access: edits everything, manages users.': 'دسترسی کامل: همه‌چیز را ویرایش می‌کند و کاربران را مدیریت می‌کند.', 'Sees everything, decides requests, ticks tasks. Cannot edit.': 'همه‌چیز را می‌بیند، درخواست‌ها را تصمیم می‌گیرد و کارها را تیک می‌زند. ویرایش نمی‌تواند.',
-    'Admin · assistant': 'ادمین · دستیار', 'Manager · executive': 'مدیر · مدیرعامل', 'How this works': 'این چطور کار می‌کند',
+    'Admin · assistant': 'ادمین · دستیار', 'CEO · executive': 'مدیرعامل', 'How this works': 'این چطور کار می‌کند',
     'All users open the same encrypted data on this device; each has their own password.': 'همهٔ کاربران همان داده‌های رمزگذاری‌شده را روی این دستگاه باز می‌کنند؛ هر کدام رمز خودشان را دارند.',
     'The Manager role is enforced by the app. It keeps the executive from changing things by accident; it is not protection against someone with developer tools.': 'نقش مدیر را خود برنامه اعمال می‌کند. جلوی تغییر ناخواستهٔ مدیرعامل را می‌گیرد؛ محافظ در برابر کسی که ابزار توسعه‌دهنده دارد نیست.',
-    'To use the desk on another device: Settings → Profile & data → download the backup, then “Restore backup file” on the sign-in screen. Everyone keeps their own password.': 'برای استفاده روی دستگاه دیگر: تنظیمات ← پروفایل و داده ← دانلود پشتیبان، سپس «بازگردانی فایل پشتیبان» در صفحهٔ ورود. هر کس رمز خودش را نگه می‌دارد.',
+    'To use the desk on another device: sign in with the same account while online.': 'برای استفاده روی دستگاه دیگر: تنظیمات ← پروفایل و داده ← دانلود پشتیبان، سپس «بازگردانی فایل پشتیبان» در صفحهٔ ورود. هر کس رمز خودش را نگه می‌دارد.',
     'Forgotten admin password with no other admin = data cannot be recovered. Keep a backup and a second admin.': 'رمز فراموش‌شدهٔ ادمین بدون ادمین دیگر = داده بازیابی نمی‌شود. پشتیبان و یک ادمین دوم نگه دارید.',
     'Confirm your password': 'رمز خود را تأیید کنید', 'Confirm': 'تأیید', 'Adding a user needs your password once.': 'افزودن کاربر یک بار رمز شما را می‌خواهد.', 'Resetting a password needs your password once.': 'بازنشانی رمز یک بار رمز شما را می‌خواهد.',
     'Tell them the password in person. They can change it in Settings → Profile & data.': 'رمز را حضوری به او بگویید. او می‌تواند در تنظیمات ← پروفایل و داده آن را عوض کند.', 'New password': 'رمز جدید', 'Reset': 'بازنشانی',
@@ -6636,7 +6685,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     'Right to left mirrors the menu, calendar and lists for Persian. Language stays English for now; the Moxen boards keep their own layout.': 'راست‌به‌چپ منو، تقویم و فهرست‌ها را برای فارسی آینه می‌کند. تابلوهای Moxen چیدمان خودشان را نگه می‌دارند.',
     'Colours, fonts and shapes live in the Themes page.': 'رنگ‌ها، فونت‌ها و شکل‌ها در صفحهٔ تم‌ها هستند.', 'Minutes, used for free windows': 'دقیقه، برای زمان‌های آزاد استفاده می‌شود', 'Minutes of inactivity; 0 = never': 'دقیقه بی‌فعالیتی؛ ۰ = هرگز',
     'Re-encrypts everything with the new password.': 'همه‌چیز را با رمز جدید دوباره رمزگذاری می‌کند.', 'Data & backup': 'داده و پشتیبان',
-    'Everything is stored only in this browser, encrypted with your password. There is no server and no way to reset a forgotten password — so keep a backup file somewhere safe.': 'همه‌چیز فقط در همین مرورگر و رمزگذاری‌شده با رمز شما ذخیره می‌شود. سروری نیست و رمز فراموش‌شده بازنشانی نمی‌شود — پس فایل پشتیبان را جای امنی نگه دارید.',
+    'Everything is stored only in this browser, encrypted with your password. There is no server and no way to reset a forgotten password — so keep a backup file somewhere safe.': 'اطلاعات اصلی و تنظیمات حساب به‌صورت آنلاین ذخیره می‌شوند. برای همگام‌سازی، هنگام ورود و ذخیره تغییرات به اینترنت متصل باشید.',
     'Alerts only fire while the desk is open (also on the iPhone/iPad home-screen app).': 'هشدارها فقط وقتی میز باز است کار می‌کنند (روی برنامهٔ صفحهٔ اصلی iPhone/iPad هم).',
     'Encrypted. Safe to store in cloud drive or email to yourself.': 'رمزگذاری‌شده. نگهداری در فضای ابری یا ایمیل به خودتان بی‌خطر است.', 'Opens in Apple, Google and Outlook calendars.': 'در تقویم Apple، Google و Outlook باز می‌شود.', 'Everything as plain JSON': 'همه‌چیز به‌صورت JSON ساده',
     'Hold the mouse on any word or text to see its Persian beside the pointer (press and hold on touch). A one-line bar at the bottom explains the section under the mouse.': 'ماوس را روی هر کلمه نگه دارید تا معنی فارسی کنار اشاره‌گر بیاید (در لمس، نگه دارید). نواری در پایین بخشی را که ماوس رویش است توضیح می‌دهد.',
