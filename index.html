@@ -2586,6 +2586,8 @@ a { color: inherit; }
     user.focus({ preventScroll: true });
   };
   A.boot = async function() {
+    // Remove any remnants from the retired local-vault version before showing or resuming a session.
+    await clearLocalPersistence();
     try {
       const me = await onlineRequest('/api/me');
       if (me.user) {
