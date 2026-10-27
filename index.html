@@ -3329,8 +3329,8 @@ a { color: inherit; }
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
   const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
-  const tabsFor = () => A.role === 'manager' ? ['manager'] : ['today', 'calendar', 'requests', 'notes'];
-  const navFor = () => A.role === 'manager' ? NAV.filter(([id]) => id === 'manager') : NAV.filter(([id]) => id !== 'users' || A.role === 'admin');
+  const tabsFor = () => A.role === 'manager' ? ['manager', 'themes', 'settings'] : ['today', 'calendar', 'requests', 'notes'];
+  const navFor = () => A.role === 'manager' ? NAV.filter(([id]) => ['manager', 'themes', 'settings'].includes(id)) : NAV.filter(([id]) => id !== 'users' || A.role === 'admin');
   A.current = null;
   let built = false, view = null;
 
@@ -3358,7 +3358,7 @@ a { color: inherit; }
   /* ── router ───────────────────────────────────────────────────────── */
   A.route = function () {
     document.documentElement.dir = A.settings().dir === 'rtl' ? 'rtl' : 'ltr'; A.applyLang && A.applyLang();
-    if (!A.db.data) return; let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0]; if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && !['manager', 'settings'].includes(id))) id = A.role === 'manager' ? 'manager' : 'today'; const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
+    if (!A.db.data) return; let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0]; if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && !['manager', 'themes', 'settings'].includes(id))) id = A.role === 'manager' ? 'manager' : 'today'; const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
     const main = $('#main'); if (!main) return;
     const prev = main.querySelector('.page'), keep = prev && A.current === key ? prev.scrollTop : 0;
     view && view.destroy && view.destroy(); view = v; const changed = A.current !== key; A.current = key;
