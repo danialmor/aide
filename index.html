@@ -2515,7 +2515,7 @@ a { color: inherit; }
   V.removeUser = async () => { throw new Error('User removal is not available yet.'); };
   A.enter = async function(data) {
     const preferences = await V.getPreferences();
-    const incoming = Object.assign({}, data || {}, { settings: Object.assign({}, (data && data.settings) || {}, preferences) });
+    const incoming = Object.assign({}, data || {}, { settings: preferences }); // never inherit shared workspace settings into this account
     A.load(incoming);
     A.role = V.role();
     A.readOnly = A.role === 'manager' || A.role === 'user';
