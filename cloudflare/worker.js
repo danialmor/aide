@@ -240,12 +240,15 @@ async function route(request, env) {
     const user = await currentUser(request, env);
     if (!requireRole(user, ["system_admin", "admin"])) return json({ error: "Not found." }, 404);
     const input = await bodyJson(request);
+    // Accept both the current API role (ceo) and the older UI alias (manager).
+    // This keeps CEO creation working when a browser still has a cached frontend.
+    const requestedRole = input && input.role === "manager" ? "ceo" : (input && input.role || "user");
     const allowedRoles = user.role === "system_admin" ? ["admin", "user", "ceo"] : ["user", "ceo"];
-    if (!input || !validUsername(input.username) || !allowedRoles.includes(input.role || "user")) {
-      return json({ error: "Provide a valid username and role." }, 400);
+    if (!input || !validUsername(input.username) || !allowedRoles.includes(requestedRole)) {
+      return json({ error: "نقش یا نام کاربری معتبر نیست. برای مدیرعامل، نقش CEO را انتخاب کنید." }, 400);
     }
     const username = input.username.toLowerCase();
-    const role = input.role || "user";
+    const role = requestedRole;
     if (role === "ceo") {
       // CEO accounts belong to the creator's workspace, including when created by system_admin.
       const ceoCount = await env.DB.prepare("SELECT COUNT(*) AS total FROM users WHERE owner_id=? AND role='ceo'").bind(user.id).first();
