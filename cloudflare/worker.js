@@ -40,8 +40,19 @@ function clearCookie() {
 function allowedOrigin(request, env) {
   const origin = request.headers.get("Origin");
   if (!origin) return true;
-  const expected = "https://danialmor.github.io";
-  return origin === expected;
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.toLowerCase();
+    // Allow the production GitHub Pages host and HTTPS GitHub/Cloudflare Pages
+    // deployments used for testing this same frontend on other devices.
+    return host === "danialmor.github.io" ||
+      host.endsWith(".github.io") ||
+      host === "aide.pages.dev" ||
+      host.endsWith(".aide.pages.dev");
+  } catch {
+    return false;
+  }
 }
 async function currentUser(request, env) {
   const auth = request.headers.get("Authorization") || "";
@@ -295,13 +306,13 @@ async function route(request, env) {
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin");
-    const expected = "https://danialmor.github.io";
     const cors = {};
-    if (origin === expected) {
-      cors["access-control-allow-origin"] = expected;
-      cors["access-control-allow-credentials"] = "true";
+    if (origin && allowedOrigin(request, env)) {
+      cors["access-control-allow-origin"] = origin;
+      // The frontend uses Bearer tokens, not cross-origin cookies.
       cors["access-control-allow-methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
       cors["access-control-allow-headers"] = "Content-Type, Authorization";
+      cors["access-control-max-age"] = "86400";
       cors["vary"] = "Origin";
     }
     try {
