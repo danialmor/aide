@@ -2456,11 +2456,26 @@ a { color: inherit; }
     return onlineUsersCache;
   };
   V.addUser = async (name, role, password) => {
-    const apiRole = role === 'admin' ? 'admin' : (role === 'manager' ? 'ceo' : 'user');
-    const payload = { username: name, role: apiRole, displayName: name };
-    if (password) payload.password = password;
+    if (!['system_admin', 'admin'].includes(onlineRole)) {
+      throw new Error('فقط مدیر فضای کاری می‌تواند حساب بسازد. دوباره وارد حساب مدیر شوید.');
+    }
+    const username = String(name || '').trim().toLowerCase();
+    if (!/^[a-zA-Z0-9_.-]{3,32}$/.test(username)) {
+      throw new Error('نام کاربری باید ۳ تا ۳۲ حرف انگلیسی، عدد یا یکی از . _ - باشد.');
+    }
+    const apiRole = role === 'admin' ? 'admin' : (role === 'manager' || role === 'ceo' ? 'ceo' : 'user');
+    const payload = { username, role: apiRole, displayName: username };
+    if (password && String(password).trim()) payload.password = String(password).trim();
     const result = await onlineRequest('/api/admin/users', 'POST', payload);
-    await V.refreshUsers();
+    // Creation is successful as soon as the API returns 201. A list-refresh failure
+    // must not make the UI report a failed creation or cause the user to retry.
+    if (result.user) {
+      onlineUsersCache = onlineUsersCache.filter(u => u.username !== result.user.username);
+      onlineUsersCache.unshift(result.user);
+    }
+    try { await V.refreshUsers(); } catch (refreshError) {
+      console.warn('CEO/user account was created, but the users list could not refresh.', refreshError);
+    }
     return result;
   };
   V.resetPassword = async () => { throw new Error('Password reset is not available yet.'); };
