@@ -99,11 +99,13 @@ async function createUser(env, { username, password, role = "user", displayName 
 async function route(request, env) {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/$/, "") || "/";
-  if (!env.DB) return json({ error: "Database binding DB is not configured." }, 503);
 
+  // CORS preflight must be answered even if the database binding is temporarily
+  // unavailable; otherwise browsers hide the useful server response as "Failed to fetch".
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204 });
   }
+  if (!env.DB) return json({ error: "Database binding DB is not configured." }, 503);
   if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method) && !allowedOrigin(request, env)) {
     return json({ error: "Origin not allowed." }, 403);
   }
