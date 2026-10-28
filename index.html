@@ -2487,7 +2487,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlinePreferencesSaving = Promise.resolve(), onlineUsersCache = [];
   let onlineWorkspaceRevision = null, onlineBaseWorkspace = null, onlinePendingConflict = null;
   let onlinePreferencesRevision = null, onlineBasePreferences = null, onlinePendingPreferencesConflict = null;
-  let syncRecoveryDialog = null, syncRecoveryDialogKind = null;
+  let syncRecoveryDialog = null, syncRecoveryDialogKind = null, legacyRecoveryDialog = null;
   // Legacy local records may be the only copy of older workspaces. Never erase
   // browser storage automatically during boot or sign-in; cleanup must be explicit.
   async function clearLocalPersistence() {
@@ -2721,6 +2721,55 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       footer: [A.h('span', { class: 'grow' }), backup, useServer]
     });
   }
+  function showLegacyRecovery(recoveries) {
+    if (!Array.isArray(recoveries) || !recoveries.length) return;
+    if (legacyRecoveryDialog && legacyRecoveryDialog.el && legacyRecoveryDialog.el.open) return;
+    const ids = recoveries.map(r => r.id).filter(id => typeof id === 'string');
+    let downloaded = false;
+    const acknowledge = A.h('button', {
+      class: 'btn primary', type: 'button', disabled: true,
+      onClick: async () => {
+        if (!downloaded || !ids.length) return;
+        acknowledge.disabled = true;
+        try {
+          const result = await onlineRequest('/api/recoveries/ack', 'POST', { ids });
+          if (!result || !result.ok) throw new Error('The server did not confirm the recovery acknowledgement.');
+          if (legacyRecoveryDialog) legacyRecoveryDialog.close();
+          legacyRecoveryDialog = null;
+          A.toast('Recovery files marked as reviewed. Their data remains stored on the server.');
+        } catch (error) {
+          acknowledge.disabled = false;
+          A.toast('Could not mark recovery records as reviewed: ' + error.message);
+        }
+      }
+    }, 'I saved the backup — mark reviewed');
+    const download = A.h('button', {
+      class: 'btn', type: 'button',
+      onClick: () => {
+        downloadJsonFile({
+          format: 'AIDE online recovery archive', version: 1, exportedAt: new Date().toISOString(),
+          account: onlineUser && onlineUser.username,
+          explanation: 'Recovered submissions from older tabs that could not safely overwrite current online data. These records are intentionally retained on the server after acknowledgement.',
+          recoveries,
+          latestOnlineWorkspace: normalizeWorkspace(A.db && A.db.data),
+          latestOnlineSettings: cloneValue(A.settings())
+        }, 'aide-online-recovery-' + new Date().toISOString().slice(0, 10) + '.json');
+        downloaded = true;
+        acknowledge.disabled = false;
+        A.toast('Recovery archive download was requested. Keep the file in a secure location; it contains private information.');
+      }
+    }, 'Download recovery archive');
+    legacyRecoveryDialog = A.modal({
+      title: 'Recovered changes need review',
+      body: [
+        A.h('p', null, 'AIDE found ' + recoveries.length + ' submission' + (recoveries.length === 1 ? '' : 's') + ' from an older tab or version. To protect newer online data, the server saved these submissions separately instead of replacing the current workspace or settings.'),
+        A.h('p', { class: 'note' }, 'The recovered versions have not been merged automatically. Download the recovery archive and compare it with the current online workspace before using any recovered information.'),
+        A.h('p', null, 'The archive contains potentially confidential calendar, contact, task, note and account-setting data in readable JSON. Store it securely. Marking records as reviewed does not delete them from the server.')
+      ],
+      footer: [A.h('span', { class: 'grow' }), download, acknowledge]
+    });
+  }
+
   function reportSaveFailure(error) {
     if (error && ['AIDE_SYNC_CONFLICT', 'AIDE_PREF_CONFLICT'].includes(error.code)) return;
     if (onlinePendingPreferencesConflict || onlinePendingConflict) {
@@ -2844,6 +2893,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     primePreferences(result);
     return result.preferences || {};
   };
+  V.getRecoveries = async () => {
+    const result = await onlineRequest('/api/recoveries');
+    return Array.isArray(result.recoveries) ? result.recoveries : [];
+  };
   V.savePreferences = preferences => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save account settings online.'));
     const snapshot = normalizePreferences(preferences || {});
@@ -2946,6 +2999,9 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     if (A.role === 'admin') { try { await V.refreshUsers(); } catch (_) { onlineUsersCache = []; } }
     if (A.readOnly && (!location.hash || /^#\/(today|users)$/.test(location.hash))) location.hash = '#/manager';
     $('#login').hidden = true; $('#app').hidden = false; A.start();
+    setTimeout(() => V.getRecoveries().then(showLegacyRecovery).catch(error => {
+      console.warn('Could not check AIDE recovery records', error);
+    }), 350);
   };
   A.showLogin = function(msg) {
     const root = $('#login'); root.hidden = false; $('#app').hidden = true; root.replaceChildren();
