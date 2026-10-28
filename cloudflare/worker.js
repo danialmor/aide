@@ -241,6 +241,27 @@ async function route(request, env) {
     return json({ ok: true, savedAt: Date.now(), bytes: value.length, revision });
   }
 
+  if (path === "/api/recoveries" && request.method === "GET") {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: "Authentication required." }, 401);
+    const workspaceOwner = user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id;
+    const workspacePrefix = "legacy_recovery:workspace:" + workspaceOwner + ":";
+    const preferencesPrefix = "legacy_recovery:preferences:" + user.id + ":";
+    const rows = await env.DB.prepare(
+      "SELECT key, value FROM system_settings WHERE key LIKE ? OR key LIKE ? ORDER BY json_extract(value, '$.capturedAt') DESC LIMIT 20"
+    ).bind(workspacePrefix + "%", preferencesPrefix + "%").all();
+    const recoveries = [];
+    for (const row of rows.results || []) {
+      try {
+        const record = JSON.parse(row.value);
+        recoveries.push({ id: row.key, ...record });
+      } catch (_) {
+        // Leave malformed records in place for manual recovery rather than deleting them.
+      }
+    }
+    return json({ recoveries, count: recoveries.length });
+  }
+
   if (path === "/api/data" && request.method === "GET") {
     const user = await currentUser(request, env);
     if (!user) return json({ error: "Authentication required." }, 401);
