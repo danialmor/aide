@@ -2754,11 +2754,14 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     const result = await onlineRequest('/api/preferences');
     return result.preferences || {};
   };
-  V.savePreferences = async preferences => {
-    if (!onlineUser) throw new Error('Sign in to save account settings online.');
-    return onlineRequest('/api/preferences', 'PUT', { preferences: JSON.parse(JSON.stringify(preferences || {})) });
+  V.savePreferences = preferences => {
+    if (!onlineUser) return Promise.reject(new Error('Sign in to save account settings online.'));
+    const snapshot = JSON.parse(JSON.stringify(preferences || {}));
+    const task = onlinePreferencesSaving.catch(() => {}).then(() => onlineRequest('/api/preferences', 'PUT', { preferences: snapshot }));
+    onlinePreferencesSaving = task;
+    return task;
   };
-  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
+  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; onlineWorkspaceRevision = null; onlineBaseWorkspace = null; onlinePendingConflict = null; syncRecoveryDialog = null; onlineSaving = Promise.resolve(); onlinePreferencesSaving = Promise.resolve(); cur = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
   V.wipe = async () => { V.lock(); };
   V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: u.role === 'admin' ? 'admin' : (u.role === 'ceo' ? 'manager' : 'user'), created: u.createdAt, id: u.id }));
   V.refreshUsers = async () => {
@@ -2802,6 +2805,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     const preferences = await V.getPreferences();
     const incoming = Object.assign({}, data || {}, { settings: preferences }); // never inherit shared workspace settings into this account
     A.load(incoming);
+    A.setSaveStatus && A.setSaveStatus('saved');
     A.role = V.role();
     A.readOnly = A.role === 'manager' || A.role === 'user';
     if (A.role === 'admin') { try { await V.refreshUsers(); } catch (_) { onlineUsersCache = []; } }
@@ -2841,6 +2845,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         if (!me.user) throw new Error('The server did not create a valid session. Check the API configuration.');
         onlineUser = me.user; onlineRole = me.user.role;
         const remote = await onlineRequest('/api/data');
+        primeWorkspace(remote);
         await clearLocalPersistence();
         A.enter(remote.data || { settings: {} });
       } catch (ex) {
@@ -2883,6 +2888,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       if (me.user) {
         onlineUser = me.user; onlineRole = me.user.role;
         const remote = await onlineRequest('/api/data');
+        primeWorkspace(remote);
         await clearLocalPersistence();
         return A.enter(remote.data || { settings: {} });
       }
@@ -3791,8 +3797,24 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   let idle = Date.now();
   ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(n => window.addEventListener(n, () => idle = Date.now(), { passive: true, capture: true }));
   setInterval(() => { if (!A.db.data) return; const m = A.settings().lockMin; if (m > 0 && Date.now() - idle > m * 60000) lock('Locked after ' + m + ' minutes of inactivity.'); }, 15000);
-  window.addEventListener('pagehide', () => { A.db.data && A.flush(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && A.db.data) A.flush(); });
+  window.addEventListener('pagehide', () => {
+    if (A.db.data) A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && A.db.data) A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+  });
+  window.addEventListener('online', () => {
+    if (A.db.data && onlineUser && !onlinePendingConflict) A.flush().catch(error => {
+      A.setSaveStatus && A.setSaveStatus('error', error.message);
+      A.reportSaveFailure && A.reportSaveFailure(error);
+    });
+  });
+  window.addEventListener('beforeunload', event => {
+    if (A.db.data && ['pending', 'saving', 'error'].includes(A.syncStatus)) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  });
 
   A.start = function () {
     A.applyTheme(); idle = Date.now(); if (!built) build(); E.startReminders(); if (A.faInit) A.faInit();
