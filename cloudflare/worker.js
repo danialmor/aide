@@ -244,6 +244,7 @@ async function route(request, env) {
   if (path === "/api/recoveries" && request.method === "GET") {
     const user = await currentUser(request, env);
     if (!user) return json({ error: "Authentication required." }, 401);
+    const includeReviewed = url.searchParams.get("all") === "1";
     const workspaceOwner = user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id;
     const workspacePrefix = "legacy_recovery:workspace:" + workspaceOwner + ":";
     const preferencesPrefix = "legacy_recovery:preferences:" + user.id + ":";
@@ -254,11 +255,13 @@ async function route(request, env) {
     for (const row of rows.results || []) {
       try {
         const record = JSON.parse(row.value);
+        if (!includeReviewed && record.acknowledgedAt) continue;
         recoveries.push({ id: row.key, ...record });
       } catch (_) {
-        // Leave malformed records in place for manual recovery rather than deleting them.
+        // Leave malformed records in place rather than deleting them.
       }
     }
+    recoveries.sort((a, b) => Number(b.capturedAt || 0) - Number(a.capturedAt || 0));
     return json({ recoveries, count: recoveries.length });
   }
 
@@ -269,7 +272,7 @@ async function route(request, env) {
     const workspacePrefix = "legacy_recovery:workspace:" + workspaceOwner + ":";
     const preferencesPrefix = "legacy_recovery:preferences:" + user.id + ":";
     const input = await bodyJson(request);
-    const ids = Array.isArray(input?.ids) ? input.ids.filter(x => typeof x === "string").slice(0, 20) : [];
+    const ids = Array.isArray(input?.ids) ? [...new Set(input.ids.filter(x => typeof x === "string"))].slice(0, 100) : [];
     let acknowledged = 0;
     for (const id of ids) {
       if (!id.startsWith(workspacePrefix) && !id.startsWith(preferencesPrefix)) continue;
