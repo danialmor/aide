@@ -2484,7 +2484,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 
   /* ONLINE-ONLY MODE: authentication and workspace data live on Cloudflare. */
   const ONLINE_API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
-  let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlineUsersCache = [];
+  let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlinePreferencesSaving = Promise.resolve(), onlineUsersCache = [];
+  let onlineWorkspaceRevision = null, onlineBaseWorkspace = null, onlinePendingConflict = null;
+  let onlinePreferencesRevision = null, onlineBasePreferences = null, onlinePendingPreferencesConflict = null;
+  let syncRecoveryDialog = null;
   // Legacy local records may be the only copy of older workspaces. Never erase
   // browser storage automatically during boot or sign-in; cleanup must be explicit.
   async function clearLocalPersistence() {
@@ -2557,6 +2560,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     delete value.settings;
     return value;
   }
+  const ONLINE_DEFAULT_SETTINGS = cloneValue(A.settings());
+  function normalizePreferences(data) {
+    return Object.assign(cloneValue(ONLINE_DEFAULT_SETTINGS), cloneValue(isPlainObject(data) ? data : {}));
+  }
   function mergeWorkspaceValue(base, local, remote, path, conflicts) {
     if (sameValue(local, base)) return cloneValue(remote);
     if (sameValue(remote, base)) return cloneValue(local);
@@ -2565,7 +2572,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     if ([base, local, remote].every(v => v === MISSING || Array.isArray(v)) &&
         [base, local, remote].filter(v => v !== MISSING).length === [base, local, remote].filter(Array.isArray).length) {
       const b = base === MISSING ? [] : base, l = local === MISSING ? [] : local, r = remote === MISSING ? [] : remote;
-      const collection = /(?:^|\.)(events|contacts|requests|tasks|notes|away)$/.test(path);
+      const collection = /(?:^|\.)(events|contacts|requests|tasks|notes|away|customThemes|customHolidays)$/.test(path);
       const allItems = [...b, ...l, ...r];
       const idSafe = allItems.every(item => isPlainObject(item) && (typeof item.id === 'string' || typeof item.id === 'number'));
       if (collection && idSafe) {
@@ -2608,6 +2615,11 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     onlineWorkspaceRevision = remote && typeof remote.revision === 'string' ? remote.revision : null;
     onlineBaseWorkspace = normalizeWorkspace(remote && remote.data ? remote.data : {});
     onlinePendingConflict = null;
+  }
+  function primePreferences(remote) {
+    onlinePreferencesRevision = remote && typeof remote.revision === 'string' ? remote.revision : null;
+    onlineBasePreferences = normalizePreferences(remote && remote.preferences ? remote.preferences : {});
+    onlinePendingPreferencesConflict = null;
   }
   function downloadJsonFile(value, filename) {
     const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
