@@ -2692,10 +2692,63 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   V.elevate = async () => { if (!['system_admin', 'admin'].includes(onlineRole)) throw new Error('Only an admin can manage users.'); return true; };
   V.save = data => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save changes online.'));
-    const snapshot = JSON.parse(JSON.stringify(data || {}));
-    delete snapshot.settings; // account preferences are stored separately per user
-    onlineSaving = onlineSaving.catch(() => {}).then(() => onlineRequest('/api/data', 'PUT', { data: snapshot }));
-    return onlineSaving;
+    const snapshot = normalizeWorkspace(data || {});
+    const task = onlineSaving.catch(() => {}).then(async () => {
+      if (onlinePendingConflict) throw Object.assign(new Error('Resolve the workspace sync conflict before saving again.'), { code: 'AIDE_SYNC_CONFLICT' });
+      let candidate = snapshot;
+      let base = normalizeWorkspace(onlineBaseWorkspace || {});
+      let revision = onlineWorkspaceRevision;
+
+      if (sameValue(candidate, base)) return { ok: true, unchanged: true, revision };
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const saved = await onlineRequest('/api/data', 'PUT', { data: candidate, revision });
+          onlineWorkspaceRevision = saved.revision == null ? null : saved.revision;
+          onlineBaseWorkspace = normalizeWorkspace(candidate);
+
+          // Preserve edits made in this tab while the request was in flight.
+          const live = normalizeWorkspace(A.db && A.db.data);
+          if (!sameValue(live, candidate)) {
+            const liveConflicts = [];
+            const liveMerged = normalizeWorkspace(mergeWorkspaceValue(snapshot, live, candidate, '', liveConflicts));
+            if (liveConflicts.length) {
+              showWorkspaceConflict({
+                base: snapshot, local: live, remote: candidate,
+                remoteRevision: onlineWorkspaceRevision, conflicts: [...new Set(liveConflicts)]
+              });
+              throw Object.assign(new Error('Edits made during synchronization need a recovery backup.'), { code: 'AIDE_SYNC_CONFLICT' });
+            }
+            if (!sameValue(liveMerged, live)) {
+              const settings = A.db.data.settings;
+              for (const key of Object.keys(A.db.data)) if (key !== 'settings' && !Object.prototype.hasOwnProperty.call(liveMerged, key)) delete A.db.data[key];
+              Object.assign(A.db.data, liveMerged, { settings });
+            }
+            if (!sameValue(liveMerged, onlineBaseWorkspace)) setTimeout(() => A.save('data'), 0);
+          }
+          return saved;
+        } catch (error) {
+          if (error.status !== 409) throw error;
+          const latest = await onlineRequest('/api/data');
+          const remote = normalizeWorkspace(latest.data || {});
+          const conflicts = [];
+          const merged = normalizeWorkspace(mergeWorkspaceValue(base, candidate, remote, '', conflicts));
+          if (conflicts.length) {
+            showWorkspaceConflict({
+              base, local: candidate, remote, remoteRevision: latest.revision == null ? null : latest.revision,
+              conflicts: [...new Set(conflicts)]
+            });
+            throw Object.assign(new Error('Another device changed the same data. The save was blocked to prevent data loss.'), { code: 'AIDE_SYNC_CONFLICT' });
+          }
+          candidate = merged;
+          base = remote;
+          revision = latest.revision == null ? null : latest.revision;
+        }
+      }
+      throw new Error('This workspace is changing too quickly on other devices. Save was paused to protect newer online data; download a recovery backup and retry.');
+    });
+    onlineSaving = task;
+    return task;
   };
   V.getPreferences = async () => {
     const result = await onlineRequest('/api/preferences');
