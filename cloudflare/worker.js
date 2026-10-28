@@ -295,8 +295,8 @@ async function route(request, env) {
     const workspacePrefix = "legacy_recovery:workspace:" + workspaceOwner + ":";
     const preferencesPrefix = "legacy_recovery:preferences:" + user.id + ":";
     const rows = await env.DB.prepare(
-      "SELECT key, value FROM system_settings WHERE key LIKE ? OR key LIKE ? LIMIT 20"
-    ).bind(workspacePrefix + "%", preferencesPrefix + "%").all();
+      "SELECT key, value FROM system_settings WHERE (substr(key, 1, ?) = ?) OR (substr(key, 1, ?) = ?) LIMIT 100"
+    ).bind(workspacePrefix.length, workspacePrefix, preferencesPrefix.length, preferencesPrefix).all();
     const recoveries = [];
     for (const row of rows.results || []) {
       try {
