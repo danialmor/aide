@@ -212,9 +212,10 @@ async function route(request, env) {
     const user = await currentUser(request, env);
     if (!user) return json({ error: "Authentication required." }, 401);
     const workspaceOwner = user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id;
-    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind("workspace:" + workspaceOwner).first();
-    if (!row) return json({ data: null });
-    try { return json({ data: JSON.parse(row.value) }); }
+    const key = "workspace:" + workspaceOwner;
+    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+    if (!row) return json({ data: null, revision: null });
+    try { return json({ data: JSON.parse(row.value), revision: await sha256(row.value) }); }
     catch { return json({ error: "Stored workspace data is invalid." }, 500); }
   }
 
@@ -225,10 +226,50 @@ async function route(request, env) {
     if (!input || !input.data || typeof input.data !== "object" || Array.isArray(input.data)) return json({ error: "A workspace data object is required." }, 400);
     const value = JSON.stringify(input.data);
     if (value.length > 900000) return json({ error: "Workspace data exceeds the 900 KB limit." }, 413);
-    await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
-      .bind("workspace:" + (user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id), value).run();
-    await audit(env, user.id, "workspace.saved", user.id, "bytes=" + value.length);
-    return json({ ok: true, savedAt: Date.now(), bytes: value.length });
+
+    const workspaceOwner = user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id;
+    const key = "workspace:" + workspaceOwner;
+    const current = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+    let writeResult;
+
+    // Optimistic concurrency control prevents an older tab/device from replacing
+    // a newer complete workspace snapshot. Legacy clients without a revision may
+    // initialize an empty workspace, but cannot overwrite an existing one.
+    if (current) {
+      const currentRevision = await sha256(current.value);
+      if (typeof input.revision !== "string" || input.revision !== currentRevision) {
+        return json({
+          error: "This workspace changed after it was loaded. The update was blocked to protect newer data. Reload or merge the pending edits before saving.",
+          revision: currentRevision,
+          conflict: true
+        }, 409);
+      }
+      writeResult = await env.DB.prepare("UPDATE system_settings SET value=? WHERE key=? AND value=?")
+        .bind(value, key, current.value).run();
+      if (Number(writeResult.meta?.changes || 0) !== 1) {
+        const latest = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+        return json({
+          error: "Another update reached this workspace at the same time. No data was overwritten; reload and reconcile the pending changes.",
+          revision: latest ? await sha256(latest.value) : null,
+          conflict: true
+        }, 409);
+      }
+    } else {
+      writeResult = await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO NOTHING")
+        .bind(key, value).run();
+      if (Number(writeResult.meta?.changes || 0) !== 1) {
+        const latest = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+        return json({
+          error: "Another device initialized this workspace at the same time. No data was overwritten; reload before saving.",
+          revision: latest ? await sha256(latest.value) : null,
+          conflict: true
+        }, 409);
+      }
+    }
+
+    const revision = await sha256(value);
+    await audit(env, user.id, "workspace.saved", user.id, "bytes=" + value.length + ";revision=" + revision.slice(0, 12));
+    return json({ ok: true, savedAt: Date.now(), bytes: value.length, revision });
   }
 
   if (path === "/api/admin/bootstrap" && request.method === "POST") {
