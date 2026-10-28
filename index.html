@@ -2572,8 +2572,17 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     if ([base, local, remote].every(v => v === MISSING || Array.isArray(v)) &&
         [base, local, remote].filter(v => v !== MISSING).length === [base, local, remote].filter(Array.isArray).length) {
       const b = base === MISSING ? [] : base, l = local === MISSING ? [] : local, r = remote === MISSING ? [] : remote;
-      const collection = /(?:^|\.)(events|contacts|requests|tasks|notes|away|customThemes|customHolidays)$/.test(path);
       const allItems = [...b, ...l, ...r];
+      if (/(?:^|\.)hiddenSections$/.test(path) && allItems.every(v => typeof v === 'string')) {
+        const values = [...new Set([...b, ...l, ...r])], merged = [];
+        for (const value of values) {
+          const bv = b.includes(value), lv = l.includes(value), rv = r.includes(value);
+          const use = lv === bv ? rv : (rv === bv || lv === rv ? lv : rv);
+          if (use) merged.push(value);
+        }
+        return merged;
+      }
+      const collection = /(?:^|\.)(events|contacts|requests|tasks|notes|away|customThemes|customHolidays)$/.test(path);
       const idSafe = allItems.every(item => isPlainObject(item) && (typeof item.id === 'string' || typeof item.id === 'number'));
       if (collection && idSafe) {
         const bm = new Map(b.map(x => [String(x.id), x])), lm = new Map(l.map(x => [String(x.id), x])), rm = new Map(r.map(x => [String(x.id), x]));
@@ -2640,6 +2649,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       syncRecoveryDialog = null;
       A.start();
       A.toast('Latest online data loaded. Keep the downloaded recovery file for your unsaved edits.');
+      if (onlinePendingPreferencesConflict) showPreferencesConflict(onlinePendingPreferencesConflict);
     } }, 'I saved the backup — load online version');
     const backup = A.h('button', { class: 'btn', type: 'button', onClick: () => {
       downloadJsonFile({
@@ -2678,7 +2688,9 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       syncRecoveryDialog = null;
       A.rebuild();
       A.setSaveStatus && A.setSaveStatus('saved');
+      A.setSaveStatus && A.setSaveStatus('saved', 'Online settings reloaded', 'preferences');
       A.toast('Latest online settings loaded. Keep the recovery file for the settings you changed locally.');
+      if (onlinePendingConflict) showWorkspaceConflict(onlinePendingConflict);
     } }, 'I saved the backup — load online settings');
     const backup = A.h('button', { class: 'btn', type: 'button', onClick: () => {
       downloadJsonFile({
