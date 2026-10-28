@@ -2651,6 +2651,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       if (syncRecoveryDialog) syncRecoveryDialog.close();
       syncRecoveryDialog = null; syncRecoveryDialogKind = null;
       A.start();
+      A.setSaveStatus && A.setSaveStatus('saved', 'Online workspace reloaded', 'workspace');
       A.toast('Latest online data loaded. Keep the downloaded recovery file for your unsaved edits.');
       if (onlinePendingPreferencesConflict) showPreferencesConflict(onlinePendingPreferencesConflict);
     } }, 'I saved the backup — load online version');
