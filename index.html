@@ -1891,14 +1891,37 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   };
   let saveT = 0, settingsSaveT = 0;
   A.save = function (what) {
+    if (!A.db.data) return;
+    A.setSaveStatus && A.setSaveStatus('pending');
     if (what === 'settings') {
-      clearTimeout(settingsSaveT); settingsSaveT = setTimeout(() => A.vault && A.vault.savePreferences(A.db.data.settings).catch(e => A.toast('Could not save account settings online: ' + e.message)), 250);
+      clearTimeout(settingsSaveT);
+      settingsSaveT = setTimeout(() => {
+        if (!A.vault || !A.db.data) return;
+        A.setSaveStatus && A.setSaveStatus('saving');
+        A.vault.savePreferences(A.db.data.settings)
+          .then(() => A.setSaveStatus && A.setSaveStatus('saved'))
+          .catch(e => { A.setSaveStatus && A.setSaveStatus('error', e.message); A.reportSaveFailure && A.reportSaveFailure(e); A.toast('Could not save account settings online: ' + e.message); });
+      }, 250);
     } else {
-      clearTimeout(saveT); saveT = setTimeout(() => A.vault && A.vault.save(A.db.data).catch(e => A.toast('Could not save online: ' + e.message)), 200);
+      clearTimeout(saveT);
+      saveT = setTimeout(() => {
+        if (!A.vault || !A.db.data) return;
+        A.setSaveStatus && A.setSaveStatus('saving');
+        A.vault.save(A.db.data)
+          .then(() => A.setSaveStatus && A.setSaveStatus('saved'))
+          .catch(e => { A.setSaveStatus && A.setSaveStatus('error', e.message); A.reportSaveFailure && A.reportSaveFailure(e); A.toast('Could not save online: ' + e.message); });
+      }, 200);
     }
     A.emit('change', what);
   };
-  A.flush = () => { clearTimeout(saveT); clearTimeout(settingsSaveT); if (!A.vault || !A.db.data) return Promise.resolve(); return Promise.all([A.vault.save(A.db.data), A.vault.savePreferences(A.db.data.settings)]); };
+  A.flush = () => {
+    clearTimeout(saveT); clearTimeout(settingsSaveT);
+    if (!A.vault || !A.db.data) return Promise.resolve();
+    A.setSaveStatus && A.setSaveStatus('saving');
+    return Promise.all([A.vault.save(A.db.data), A.vault.savePreferences(A.db.data.settings)])
+      .then(result => { A.setSaveStatus && A.setSaveStatus('saved'); return result; })
+      .catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); A.reportSaveFailure && A.reportSaveFailure(error); throw error; });
+  };
   const coll = n => A.db.data[n];
   /* the manager role is read-only, except deciding requests and ticking tasks */
   A.rtl = () => A.settings().dir === 'rtl'; A.dirIco = n => A.ico(A.rtl() ? ({ chevL: 'chevR', chevR: 'chevL' }[n] || n) : n);
@@ -3521,7 +3544,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         card('Schedule', row('Day starts at', num('dayStart', 0, 12), 'Hour, 0–12'), row('Day ends at', num('dayEnd', 12, 24), 'Hour, 12–24'), row('Default event length', num('defDur', 15, 480, 15), 'Minutes'), row('Buffer between meetings', num('buffer', 0, 60, 5), 'Minutes, used for free windows'), row('Default reminder', num('remind', 0, 120, 5), 'Minutes before; 0 = none')),
         card('Security', row('Auto-lock after', num('lockMin', 0, 240), 'Minutes of inactivity; 0 = never'), row('Lock now', h('button', { class: 'btn', type: 'button', onClick: lock }, A.ico('lock'), 'Lock')), h('p', { class: 'note' }, 'Your workspace and account settings are stored online in Cloudflare. “Remember me” uses a server-issued secure session cookie; it does not save your password or workspace records on this device.')),
         card('Notifications', row('Reminders & timers', h('button', { class: 'btn', type: 'button', onClick: async () => { if (!('Notification' in window)) return A.toast('This browser has no notification support.'); const r = await Notification.requestPermission(); A.toast('Notifications: ' + r); } }, A.ico('bell'), 'Allow notifications'), 'Alerts only fire while the desk is open (also on the iPhone/iPad home-screen app).')),
-        card('Online storage', h('p', { class: 'note' }, 'Workspace records (calendar, requests, tasks, notes, contacts and availability) are saved in Cloudflare D1. Personal preferences are saved separately for each account. This page does not use a local workspace database.'), row('Signed-in account', h('span', { class: 'chip' }, V.user() || 'Online account')), row('Save status', h('span', { class: 'chip' }, 'Online sync enabled'))),
+        card('Online storage', h('p', { class: 'note' }, 'Workspace records (calendar, requests, tasks, notes, contacts and availability) are saved in Cloudflare D1. Personal preferences are saved separately for each account. This page does not use a local workspace database.'), row('Signed-in account', h('span', { class: 'chip' }, V.user() || 'Online account')), row('Save status', h('span', { class: 'chip', 'data-aide-save-status': '' }, 'Checking online sync…'))),
         card('About', h('p', { class: 'note' }, 'Aide · Executive Desk v1.0. Design language inspired by Moxen’s free resources (moxen.cl/recursos): cream paper, cacao ink, pastel categories and spring motion. All code in this project is original and dependency-free.'), h('p', { class: 'note' }, 'Shortcuts: ⌘/Ctrl + K search · N new event · T today · ← → previous/next in the calendar · in the calendar, arrow keys move a focused event, Shift + ↑↓ changes its length.'))));
     },
   };
