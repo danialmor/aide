@@ -3319,7 +3319,9 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         h('button', { class: 'btn sm', type: 'button', onClick: () => { ui.anchor = D.today(); A.route(); } }, 'Today'),
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Next', onClick: () => move(1) }, A.dirIco('chevR')));
       const head = h('div', { class: 'cal-head' }, nav, h('div', { class: 'cal-title', 'aria-live': 'polite' }, title, sub ? h('small', null, sub) : null), h('span', { class: 'grow' }),
-        seg, A.readOnly ? null : h('button', { class: 'btn primary', type: 'button', onClick: () => E.edit(null, { date: D.iso(view === 'day' ? a : D.today()) }) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New')));
+        seg,
+        h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem, title: D.isJ() ? 'تغییر به تقویم میلادی' : 'تغییر به تقویم شمسی' }, D.isJ() ? 'تغییر به میلادی' : 'تغییر به شمسی'),
+        A.readOnly ? null : h('button', { class: 'btn primary', type: 'button', onClick: () => E.edit(null, { date: D.iso(view === 'day' ? a : D.today()) }) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New')));
       const body = h('div', { class: 'cal-body view-enter' });
       root.append(head, catFilter(A.readOnly ? h('span') : quick), body);
       ({ day: timeGrid, '3day': timeGrid, week: timeGrid, month, year, agenda })[view](body, view);
@@ -3829,10 +3831,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 (function () {
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
-  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
+  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['layouts', 'قالب‌ها', 'calendar'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
   const hiddenSections = () => Array.isArray(A.settings().hiddenSections) ? A.settings().hiddenSections : [];
   const roleAllowsSection = id => A.role === 'manager'
-    ? ['manager', 'themes', 'settings'].includes(id)
+    ? ['manager', 'themes', 'layouts', 'settings'].includes(id)
     : id !== 'manager' && (id !== 'users' || A.role === 'admin');
   const sectionAllowed = id => roleAllowsSection(id) && (id === 'settings' || !hiddenSections().includes(id));
   const tabsFor = () => {
@@ -3882,7 +3884,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     document.documentElement.dir = A.settings().dir === 'rtl' ? 'rtl' : 'ltr'; A.applyLang && A.applyLang();
     if (!A.db.data) return;
     let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0];
-    if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && !['manager', 'themes', 'settings'].includes(id))) id = A.role === 'manager' ? 'manager' : 'today';
+    if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && !['manager', 'themes', 'layouts', 'settings'].includes(id))) id = A.role === 'manager' ? 'manager' : 'today';
     if (NAV.some(([sid]) => sid === id) && !sectionAllowed(id)) id = tabsFor()[0] || 'settings';
     const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
     const main = $('#main'); if (!main) return;
@@ -3949,6 +3951,98 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       root.append(h('div', { class: 'stack', style: { gap: '14px' } }, quick, alerts, h('div', { class: 'grid', style: { gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr)', alignItems: 'start' }, id: 'tg' }, h('div', { class: 'stack', style: { gap: '14px' } }, hero, timeline, visitCard), h('div', { class: 'stack', style: { gap: '14px' } }, reqCard, taskCard, weekCard, clockCard))));
       if (matchMedia('(max-width: 1000px)').matches) $('#tg').style.gridTemplateColumns = '1fr';
     },
+  };
+
+  function toggleCalendarSystem() {
+    const settings = A.settings();
+    settings.calSystem = D.isJ() ? 'gregorian' : 'jalali';
+    A.save('settings');
+    A.route();
+    A.flush().then(() => A.toast(settings.calSystem === 'jalali' ? 'تقویم شمسی ذخیره شد.' : 'تقویم میلادی ذخیره شد.')).catch(error => {
+      A.setSaveStatus && A.setSaveStatus('error', error.message, 'preferences');
+      A.reportSaveFailure && A.reportSaveFailure(error, 'preferences');
+    });
+  }
+
+  /* ── integrated Moxen-inspired layouts ─────────────────────────────
+     These are adapted application experiences, not a standalone template
+     library. They open the corresponding AIDE features and share its online
+     data model, access rules, and Persian/Gregorian date engine. */
+  A.views.layouts = {
+    title: 'قالب‌ها و چیدمان‌ها',
+    sub: 'چیدمان‌های یکپارچه‌شده با تقویم و داده‌های AIDE',
+    actions: () => [
+      h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem, title: 'تغییر تقویم شمسی و میلادی' }, D.isJ() ? 'تقویم شمسی ✓' : 'تقویم میلادی ✓'),
+      h('button', { class: 'btn primary', type: 'button', onClick: () => { location.hash = '#/calendar'; A.route(); } }, A.ico('calendar'), 'رفتن به تقویم')
+    ],
+    render(root) {
+      const today = D.today();
+      const fmt = n => D.dnum(n);
+      const cell = (text, color, extra = {}) => h('span', { style: Object.assign({ display: 'grid', placeItems: 'center', minHeight: '16px', padding: '2px', borderRadius: '5px', background: color || 'var(--line-fine)', color: 'var(--ink)', fontSize: '10px', minWidth: 0 }, extra) }, text);
+      const bar = (width, color, label = '') => h('div', { style: { height: '9px', width, maxWidth: '100%', borderRadius: '99px', background: color, position: 'relative', overflow: 'hidden' } }, label ? h('span', { style: { fontSize: '7px', lineHeight: '9px', color: 'white', paddingInline: '4px', whiteSpace: 'nowrap' } }, label) : null);
+      const miniCard = (children, extra = {}) => h('div', { style: Object.assign({ padding: '7px', border: '1px solid var(--line)', borderRadius: '10px', background: 'var(--canvas)', minWidth: 0, overflow: 'hidden' }, extra) }, children);
+      const calendarGrid = (selected = 16, count = 35) => h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: '3px' } }, Array.from({ length: count }, (_, i) => cell(String((i % 30) + 1), i + 1 === selected ? 'var(--accent)' : (i % 9 === 4 ? 'var(--c-meeting)' : 'var(--line-fine)'), i + 1 === selected ? { color: 'white', fontWeight: 700 } : {})));
+      const previewFor = key => {
+        if (key === 'anaquel') return h('div', { style: { display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr', gap: '6px' } },
+          miniCard([h('div', { class: 'small muted' }, 'ساعت'), h('div', { style: { fontSize: '24px', fontWeight: 700, letterSpacing: '-1px' } }, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), h('div', { class: 'small muted' }, D.dnum(today) + ' · ' + D.mname(today))]),
+          miniCard([h('div', { class: 'small muted' }, 'رویدادهای امروز'), h('div', { style: { fontSize: '23px', fontWeight: 700 } }, String(A.ev ? A.ev.expand(today, today).length : 0)), bar('80%', 'var(--b-visit)')]),
+          miniCard([h('div', { class: 'small muted' }, 'پیشرفت'), h('div', { style: { fontSize: '20px', fontWeight: 700 } }, '72%'), bar('72%', 'var(--accent)')]));
+        if (key === 'convite') return h('div', { style: { display: 'grid', gridTemplateColumns: '70px 1fr', gap: '10px', alignItems: 'center' } },
+          miniCard([h('div', { class: 'small muted', style: { textAlign: 'center' } }, D.mname(today)), h('div', { style: { fontSize: '28px', fontWeight: 800, textAlign: 'center', color: 'var(--accent-ink)' } }, fmt(today)), h('div', { class: 'small muted', style: { textAlign: 'center' } }, D.wname(D.dow(today)))], { background: 'var(--paper)' }),
+          h('div', { class: 'stack', style: { gap: '7px' } }, h('b', null, 'درخواست حضور'), h('div', { class: 'small muted' }, 'تأیید، پاسخ و ثبت رویداد'), h('div', { class: 'row', style: { gap: '5px' } }, ...['var(--b-meeting)','var(--b-visit)','var(--b-travel)','var(--accent)'].map(color => h('span', { style: { width: '22px', height: '22px', borderRadius: '50%', background: color, border: '2px solid var(--canvas)' } })))));
+        if (key === 'epoca') return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: '6px' } }, Array.from({ length: 12 }, (_, i) => miniCard([h('div', { class: 'small muted' }, String(i + 1)), h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '3px', marginTop: '4px' } }, Array.from({ length: 8 }, (_, j) => h('i', { style: { width: '5px', height: '5px', borderRadius: '50%', background: (i * 3 + j) % 5 === 0 ? 'var(--accent)' : 'var(--b-meeting)' } })))], { padding: '5px' })));
+        if (key === 'lunario') return h('div', { class: 'stack', style: { gap: '6px' } }, h('div', { class: 'row' }, h('b', null, D.mtitle(D.sMonthStart(today))), h('span', { class: 'grow' }), h('span', { class: 'small muted' }, '◐  ◑  ●')), calendarGrid(Number(D.dnum(today)), 35), h('div', { class: 'small muted' }, 'رویدادهای چندروزه · تقویم ماهانه'));
+        if (key === 'parangon') return h('div', { class: 'stack', style: { gap: '8px' } },
+          h('div', { class: 'row wrap' }, h('span', { class: 'chip' }, D.longS(today)), h('span', { class: 'muted small' }, 'تا'), h('span', { class: 'chip' }, D.longS(today + 13))),
+          h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(12,minmax(0,1fr))', alignItems: 'end', gap: '4px', height: '45px' } }, ...[18,26,23,36,42,29,48,34,55,41,61,70].map((n, i) => h('i', { style: { height: n + '%', borderRadius: '5px 5px 2px 2px', background: i > 8 ? 'var(--accent)' : 'var(--b-meeting)' } }))),
+          h('div', { class: 'small muted' }, 'نمایش بازه و روند فعالیت‌ها'));
+        if (key === 'semana') return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: '4px' } }, ...Array.from({ length: 7 }, (_, i) => h('div', { style: { minWidth: 0, padding: '4px', borderRadius: '7px', border: '1px solid var(--line)', background: i === 2 ? 'var(--today-bg)' : 'var(--canvas)' } }, h('div', { class: 'small muted', style: { textAlign: 'center' } }, D.wletter((D.dow(today) + i) % 7), h('div', { style: { fontWeight: 700, fontSize: '10px' } }, fmt(today + i))), h('div', { class: 'stack', style: { gap: '4px', marginTop: '5px' } }, bar('100%', 'var(--b-meeting)'), i % 2 ? bar('80%', 'var(--b-visit)') : null))));
+        if (key === 'solape') return h('div', { class: 'stack', style: { gap: '7px' } },
+          h('div', { class: 'row' }, h('span', { class: 'chip', style: { background: 'var(--c-meeting)' } }, '09:00 · جلسه'), h('span', { class: 'grow' }), h('span', { class: 'small muted' }, '30 دقیقه')),
+          h('div', { style: { position: 'relative', padding: '7px 10px', background: 'var(--danger-bg)', borderRadius: '9px', color: 'var(--danger)', fontWeight: 600 } }, '09:15 · تداخل زمان', h('div', { style: { position: 'absolute', top: '50%', left: '0', right: '0', height: '2px', background: 'var(--danger)', opacity: .65 } })),
+          h('div', { class: 'small muted' }, 'تشخیص تداخل و رفتن به هفته مربوطه'));
+        if (key === 'tregua') return h('div', { class: 'stack', style: { gap: '8px' } },
+          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'یادآورها'), h('span', { class: 'chip', style: { background: 'var(--c-visit)' } }, 'فعال')),
+          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'قفل خودکار'), h('span', { class: 'chip' }, String(A.settings().lockMin) + ' min')),
+          h('div', { style: { padding: '10px', borderRadius: '9px', background: 'var(--c-travel)', fontWeight: 600 } }, 'زمان آرامش و تنظیمات اعلان‌ها'));
+        if (key === 'turno') return h('div', { class: 'stack', style: { gap: '8px' } },
+          h('div', { class: 'row wrap' }, ...['09:00','10:30','12:00','14:30'].map((s,i)=>h('span',{class:'chip',style:{background:i===1?'var(--accent)':'var(--canvas)',color:i===1?'white':'var(--ink)'}},s))),
+          h('div', { class: 'row' }, h('span', { class: 'small muted' }, D.longS(today)), h('span', { class: 'grow' }), h('span', { class: 'chip', style: { background: 'var(--c-visit)' } }, 'تأیید زمان')));
+        return h('div', { class: 'stack', style: { gap: '8px' } },
+          h('div', { class: 'row wrap' }, ...[0,1,2,3,4,5,6].map((n,i)=>h('span',{class:'chip',style:{background:n===2?'var(--c-personal)':'var(--canvas)'}},fmt(today+n)))),
+          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'موعد بعدی'), h('b', null, D.longS(today + 2))),
+          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'کارهای نزدیک موعد'), h('span', { class: 'chip', style: { background: 'var(--c-travel)' } }, String(A.db.data.tasks.filter(t => !t.done && t.due).length))));
+      };
+      const items = [
+        { key: 'anaquel', name: 'Anaquel', label: 'داشبورد موزاییکی', description: 'نمای فشرده از ساعت، برنامه روز و خلاصه فعالیت‌ها.', route: 'today' },
+        { key: 'convite', name: 'Convite', label: 'دعوت و تأیید حضور', description: 'دسترسی سریع به درخواست‌ها و پیگیری پاسخ‌ها.', route: 'requests' },
+        { key: 'epoca', name: 'Época', label: 'بزرگ‌نمایی زمان', description: 'مرور سال و حرکت بین سطح سال، ماه و روز.', route: 'calendar', calView: 'year' },
+        { key: 'lunario', name: 'Lunario', label: 'تقویم ماهانه', description: 'نمای ماه با نشانگر رویدادها و اطلاعات تقویمی.', route: 'calendar', calView: 'month' },
+        { key: 'parangon', name: 'Parangón', label: 'بازه و روند', description: 'نمای بازه‌های زمانی برای مرور برنامه و فعالیت‌ها.', route: 'calendar', calView: 'agenda' },
+        { key: 'semana', name: 'Semana', label: 'برنامه هفتگی', description: 'برنامه هفت‌روزه با رویدادهای رنگی و تمرکز روی امروز.', route: 'calendar', calView: 'week' },
+        { key: 'solape', name: 'Solape', label: 'تداخل تقویم', description: 'بازکردن نمای هفته برای بررسی رویدادهای هم‌زمان.', route: 'calendar', calView: 'week' },
+        { key: 'tregua', name: 'Tregua', label: 'تنظیمات آرامش و اعلان‌ها', description: 'ورود سریع به تنظیمات یادآورها و قفل خودکار.', route: 'settings' },
+        { key: 'turno', name: 'Turno', label: 'رزرو زمان', description: 'رفتن به زمان‌های آزاد و هماهنگی قرارها.', route: 'availability' },
+        { key: 'vencimientos', name: 'Vencimientos', label: 'موعدها و سررسیدها', description: 'مرور کارهای دارای موعد و موارد نزدیک سررسید.', route: 'tasks' }
+      ];
+      const intro = h('div', { class: 'card', style: { background: 'var(--paper)', marginBottom: '14px' } },
+        h('div', { class: 'row wrap', style: { alignItems: 'start', gap: '12px' } },
+          h('div', { class: 'grow', style: { minWidth: '220px' } },
+            h('h2', { style: { fontSize: '21px', marginBottom: '5px' } }, 'چیدمان‌های آماده، درون خود سامانه'),
+            h('p', { class: 'muted' }, 'این‌ها به بخش‌های واقعی AIDE وصل هستند؛ داده‌ها، سطح دسترسی و ذخیره آنلاین فعلی حفظ می‌شود. انتخاب هر کارت فقط نمای مربوط را باز می‌کند.')),
+          h('div', { style: { minWidth: '220px', padding: '12px 14px', borderRadius: '14px', background: 'var(--canvas)', border: '1px solid var(--line)' } },
+            h('div', { class: 'small muted' }, 'امروز · تاریخ شمسی / میلادی'),
+            h('b', { style: { display: 'block', margin: '3px 0' }, dir: 'auto' }, D.longS(today)),
+            h('span', { class: 'small muted', dir: 'auto' }, D.long(today)),
+            h('div', { class: 'row', style: { marginTop: '8px' } }, h('span', { class: 'chip' }, D.isJ() ? 'تقویم شمسی فعال' : 'تقویم میلادی فعال'), h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem }, 'تغییر تقویم')))));
+      const cards = items.map(item => h('article', { class: 'card', style: { padding: '13px', minWidth: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '11px' } },
+        h('div', { style: { padding: '10px', minHeight: '106px', borderRadius: '14px', background: 'var(--cream)', border: '1px solid var(--line)', display: 'flex', alignItems: 'stretch' } }, previewFor(item.key)),
+        h('div', { class: 'row wrap', style: { alignItems: 'start', gap: '8px' } }, h('div', { class: 'grow', style: { minWidth: '150px' } }, h('h3', { style: { fontSize: '16px', marginBottom: '3px' } }, item.name), h('div', { style: { fontWeight: 700 } }, item.label)), h('span', { class: 'chip' }, 'Moxen · AIDE')),
+        h('p', { class: 'muted small', style: { minHeight: '36px' } }, item.description),
+        h('button', { class: 'btn primary', type: 'button', onClick: () => { if (item.calView && A.ui && A.ui.cal) A.ui.cal.view = item.calView; if (A.ui && A.ui.cal) A.ui.cal.anchor = D.today(); location.hash = '#/' + item.route; A.route(); } }, 'بازکردن نمای یکپارچه')));
+      root.append(intro, h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,270px),1fr))', gap: '12px', alignItems: 'start' } }, cards),
+        h('p', { class: 'small muted', style: { marginTop: '14px', textAlign: 'center' } }, 'الگوهای طراحی با الهام از منابع Moxen و با تطبیق رابط و متن برای AIDE. منبع: moxen.cl/recursos.'));
+    }
   };
 
   /* ── settings ─────────────────────────────────────────────────────── */
