@@ -3378,8 +3378,19 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
   const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
-  const tabsFor = () => A.role === 'manager' ? ['manager', 'themes', 'settings'] : ['today', 'calendar', 'requests', 'notes'];
-  const navFor = () => A.role === 'manager' ? NAV.filter(([id]) => ['manager', 'themes', 'settings'].includes(id)) : NAV.filter(([id]) => id !== 'users' || A.role === 'admin');
+  const hiddenSections = () => Array.isArray(A.settings().hiddenSections) ? A.settings().hiddenSections : [];
+  const roleAllowsSection = id => A.role === 'manager'
+    ? ['manager', 'themes', 'settings'].includes(id)
+    : id !== 'manager' && (id !== 'users' || A.role === 'admin');
+  const sectionAllowed = id => roleAllowsSection(id) && (id === 'settings' || !hiddenSections().includes(id));
+  const tabsFor = () => {
+    const allowed = NAV.filter(([id]) => sectionAllowed(id)).map(([id]) => id);
+    const preferred = A.role === 'manager' ? ['manager', 'themes', 'settings'] : ['today', 'calendar', 'requests', 'notes'];
+    const chosen = preferred.filter(id => allowed.includes(id));
+    for (const [id] of NAV) if (allowed.includes(id) && !chosen.includes(id)) chosen.push(id);
+    return chosen.slice(0, A.role === 'manager' ? 3 : 4);
+  };
+  const navFor = () => NAV.filter(([id]) => sectionAllowed(id));
   A.current = null;
   let built = false, view = null;
 
@@ -3407,7 +3418,11 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   /* ── router ───────────────────────────────────────────────────────── */
   A.route = function () {
     document.documentElement.dir = A.settings().dir === 'rtl' ? 'rtl' : 'ltr'; A.applyLang && A.applyLang();
-    if (!A.db.data) return; let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0]; if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && !['manager', 'themes', 'settings'].includes(id))) id = A.role === 'manager' ? 'manager' : 'today'; const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
+    if (!A.db.data) return;
+    let id = (location.hash.replace(/^#\//, '') || (A.role === 'manager' ? 'manager' : 'today')).split('?')[0];
+    if ((id === 'users' && A.role !== 'admin') || (A.role === 'manager' && !['manager', 'themes', 'settings'].includes(id))) id = A.role === 'manager' ? 'manager' : 'today';
+    if (NAV.some(([sid]) => sid === id) && !sectionAllowed(id)) id = tabsFor()[0] || 'settings';
+    const v = A.views[id] || A.views.today, key = A.views[id] ? id : 'today';
     const main = $('#main'); if (!main) return;
     const prev = main.querySelector('.page'), keep = prev && A.current === key ? prev.scrollTop : 0;
     view && view.destroy && view.destroy(); view = v; const changed = A.current !== key; A.current = key;
