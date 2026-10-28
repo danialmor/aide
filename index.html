@@ -2662,7 +2662,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     });
   }
   function reportSaveFailure(error) {
-    if (onlinePendingConflict || (error && error.code === 'AIDE_SYNC_CONFLICT')) return;
+    if (onlinePendingConflict || onlinePendingPreferencesConflict || (error && ['AIDE_SYNC_CONFLICT', 'AIDE_PREF_CONFLICT'].includes(error.code))) return;
     if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
     const backup = {
       format: 'AIDE unsaved online recovery', version: 1, exportedAt: new Date().toISOString(),
@@ -2764,16 +2764,61 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   };
   V.getPreferences = async () => {
     const result = await onlineRequest('/api/preferences');
+    primePreferences(result);
     return result.preferences || {};
   };
   V.savePreferences = preferences => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save account settings online.'));
-    const snapshot = JSON.parse(JSON.stringify(preferences || {}));
-    const task = onlinePreferencesSaving.catch(() => {}).then(() => onlineRequest('/api/preferences', 'PUT', { preferences: snapshot }));
+    const snapshot = normalizePreferences(preferences || {});
+    const task = onlinePreferencesSaving.catch(() => {}).then(async () => {
+      if (onlinePendingPreferencesConflict) throw Object.assign(new Error('Resolve the account-settings conflict before saving again.'), { code: 'AIDE_PREF_CONFLICT' });
+      let candidate = snapshot;
+      let base = normalizePreferences(onlineBasePreferences || {});
+      let revision = onlinePreferencesRevision;
+      if (sameValue(candidate, base)) return { ok: true, unchanged: true, revision };
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const saved = await onlineRequest('/api/preferences', 'PUT', { preferences: candidate, revision });
+          onlinePreferencesRevision = saved.revision == null ? null : saved.revision;
+          onlineBasePreferences = normalizePreferences(candidate);
+
+          const live = normalizePreferences(A.db && A.db.data && A.db.data.settings || {});
+          if (!sameValue(live, candidate)) {
+            const conflicts = [];
+            const mergedLive = normalizePreferences(mergeWorkspaceValue(snapshot, live, candidate, '', conflicts));
+            if (conflicts.length) {
+              showPreferencesConflict({ base: snapshot, local: live, remote: candidate, remoteRevision: onlinePreferencesRevision, conflicts: [...new Set(conflicts)] });
+              throw Object.assign(new Error('Settings changed while a save was in progress; download the recovery file before continuing.'), { code: 'AIDE_PREF_CONFLICT' });
+            }
+            A.db.data.settings = mergedLive;
+            if (!sameValue(mergedLive, onlineBasePreferences)) setTimeout(() => A.save('settings'), 0);
+          }
+          return saved;
+        } catch (error) {
+          if (error.status !== 409) throw error;
+          const latest = await onlineRequest('/api/preferences');
+          const remote = normalizePreferences(latest.preferences || {});
+          const conflicts = [];
+          const merged = normalizePreferences(mergeWorkspaceValue(base, candidate, remote, '', conflicts));
+          if (conflicts.length) {
+            showPreferencesConflict({
+              base, local: candidate, remote, remoteRevision: latest.revision == null ? null : latest.revision,
+              conflicts: [...new Set(conflicts)]
+            });
+            throw Object.assign(new Error('Account settings changed on another device. The save was blocked to protect newer settings.'), { code: 'AIDE_PREF_CONFLICT' });
+          }
+          candidate = merged;
+          base = remote;
+          revision = latest.revision == null ? null : latest.revision;
+        }
+      }
+      throw new Error('Account settings are changing rapidly on another device. The update was paused for safety.');
+    });
     onlinePreferencesSaving = task;
     return task;
   };
-  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; onlineWorkspaceRevision = null; onlineBaseWorkspace = null; onlinePendingConflict = null; syncRecoveryDialog = null; onlineSaving = Promise.resolve(); onlinePreferencesSaving = Promise.resolve(); cur = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
+  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; onlineWorkspaceRevision = null; onlineBaseWorkspace = null; onlinePendingConflict = null; onlinePreferencesRevision = null; onlineBasePreferences = null; onlinePendingPreferencesConflict = null; syncRecoveryDialog = null; onlineSaving = Promise.resolve(); onlinePreferencesSaving = Promise.resolve(); cur = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
   V.wipe = async () => { V.lock(); };
   V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: u.role === 'admin' ? 'admin' : (u.role === 'ceo' ? 'manager' : 'user'), created: u.createdAt, id: u.id }));
   V.refreshUsers = async () => {
@@ -2817,6 +2862,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     const preferences = await V.getPreferences();
     const incoming = Object.assign({}, data || {}, { settings: preferences }); // never inherit shared workspace settings into this account
     A.load(incoming);
+    onlineBasePreferences = normalizePreferences(A.db.data.settings);
     A.setSaveStatus && A.setSaveStatus('saved');
     A.role = V.role();
     A.readOnly = A.role === 'manager' || A.role === 'user';
