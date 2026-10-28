@@ -2487,7 +2487,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlinePreferencesSaving = Promise.resolve(), onlineUsersCache = [];
   let onlineWorkspaceRevision = null, onlineBaseWorkspace = null, onlinePendingConflict = null;
   let onlinePreferencesRevision = null, onlineBasePreferences = null, onlinePendingPreferencesConflict = null;
-  let syncRecoveryDialog = null;
+  let syncRecoveryDialog = null, syncRecoveryDialogKind = null;
   // Legacy local records may be the only copy of older workspaces. Never erase
   // browser storage automatically during boot or sign-in; cleanup must be explicit.
   async function clearLocalPersistence() {
@@ -2637,7 +2637,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   }
   function showWorkspaceConflict(pending) {
     onlinePendingConflict = pending;
-    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
+    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) {
+      if (syncRecoveryDialogKind === 'workspace') return;
+      syncRecoveryDialog.close(); syncRecoveryDialog = null; syncRecoveryDialogKind = null;
+    }
     let backedUp = false;
     const useServer = A.h('button', { class: 'btn primary', type: 'button', disabled: true, onClick: () => {
       if (!backedUp || !onlinePendingConflict) return;
@@ -2646,7 +2649,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       A.load(Object.assign({}, p.remote, { settings }));
       onlinePendingConflict = null;
       if (syncRecoveryDialog) syncRecoveryDialog.close();
-      syncRecoveryDialog = null;
+      syncRecoveryDialog = null; syncRecoveryDialogKind = null;
       A.start();
       A.toast('Latest online data loaded. Keep the downloaded recovery file for your unsaved edits.');
       if (onlinePendingPreferencesConflict) showPreferencesConflict(onlinePendingPreferencesConflict);
@@ -2661,6 +2664,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       backedUp = true; useServer.disabled = false;
       A.toast('Recovery file downloaded. Keep it until the conflict is resolved.');
     } }, 'Download recovery backup');
+    syncRecoveryDialogKind = 'workspace';
     syncRecoveryDialog = A.modal({
       title: 'Workspace sync conflict',
       body: [
@@ -2674,7 +2678,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   function showPreferencesConflict(pending) {
     onlinePendingPreferencesConflict = pending;
     A.setSaveStatus && A.setSaveStatus('error', 'Account preferences conflict', 'preferences');
-    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
+    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) {
+      if (syncRecoveryDialogKind === 'preferences') return;
+      syncRecoveryDialog.close(); syncRecoveryDialog = null; syncRecoveryDialogKind = null;
+    }
     let backedUp = false;
     const useServer = A.h('button', { class: 'btn primary', type: 'button', disabled: true, onClick: () => {
       if (!backedUp || !onlinePendingPreferencesConflict) return;
@@ -2685,7 +2692,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       onlinePendingPreferencesConflict = null;
       A.applyTheme();
       if (syncRecoveryDialog) syncRecoveryDialog.close();
-      syncRecoveryDialog = null;
+      syncRecoveryDialog = null; syncRecoveryDialogKind = null;
       A.rebuild();
       A.setSaveStatus && A.setSaveStatus('saved');
       A.setSaveStatus && A.setSaveStatus('saved', 'Online settings reloaded', 'preferences');
@@ -2702,6 +2709,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       backedUp = true; useServer.disabled = false;
       A.toast('Settings recovery file downloaded. Keep it until the conflict is resolved.');
     } }, 'Download recovery backup');
+    syncRecoveryDialogKind = 'preferences';
     syncRecoveryDialog = A.modal({
       title: 'Settings sync conflict',
       body: [
@@ -2713,7 +2721,17 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     });
   }
   function reportSaveFailure(error) {
-    if (onlinePendingConflict || onlinePendingPreferencesConflict || (error && ['AIDE_SYNC_CONFLICT', 'AIDE_PREF_CONFLICT'].includes(error.code))) return;
+    if (error && ['AIDE_SYNC_CONFLICT', 'AIDE_PREF_CONFLICT'].includes(error.code)) return;
+    if (onlinePendingPreferencesConflict || onlinePendingConflict) {
+      if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) {
+        const targetKind = onlinePendingPreferencesConflict ? 'preferences' : 'workspace';
+        if (syncRecoveryDialogKind === targetKind) return;
+        syncRecoveryDialog.close(); syncRecoveryDialog = null; syncRecoveryDialogKind = null;
+      }
+      if (onlinePendingPreferencesConflict) showPreferencesConflict(onlinePendingPreferencesConflict);
+      else showWorkspaceConflict(onlinePendingConflict);
+      return;
+    }
     if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
     const backup = {
       format: 'AIDE unsaved online recovery', version: 1, exportedAt: new Date().toISOString(),
@@ -2726,10 +2744,11 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       A.toast('Recovery file downloaded. Keep it until online sync is restored.');
     } }, 'Download recovery backup');
     const retry = A.h('button', { class: 'btn primary', type: 'button', onClick: async () => {
-      if (syncRecoveryDialog) syncRecoveryDialog.close(); syncRecoveryDialog = null;
+      if (syncRecoveryDialog) syncRecoveryDialog.close(); syncRecoveryDialog = null; syncRecoveryDialogKind = null;
       try { await A.flush(); A.toast('All current changes were saved online.'); }
       catch (e) { A.setSaveStatus && A.setSaveStatus('error', e.message); }
     } }, 'Retry online save');
+    syncRecoveryDialogKind = 'save-failure';
     syncRecoveryDialog = A.modal({
       title: 'Online save needs attention',
       body: [
@@ -2875,7 +2894,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     onlinePreferencesSaving = task;
     return task;
   };
-  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; onlineWorkspaceRevision = null; onlineBaseWorkspace = null; onlinePendingConflict = null; onlinePreferencesRevision = null; onlineBasePreferences = null; onlinePendingPreferencesConflict = null; syncRecoveryDialog = null; onlineSaving = Promise.resolve(); onlinePreferencesSaving = Promise.resolve(); cur = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
+  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; onlineWorkspaceRevision = null; onlineBaseWorkspace = null; onlinePendingConflict = null; onlinePreferencesRevision = null; onlineBasePreferences = null; onlinePendingPreferencesConflict = null; syncRecoveryDialog = null; syncRecoveryDialogKind = null; onlineSaving = Promise.resolve(); onlinePreferencesSaving = Promise.resolve(); cur = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
   V.wipe = async () => { V.lock(); };
   V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: u.role === 'admin' ? 'admin' : (u.role === 'ceo' ? 'manager' : 'user'), created: u.createdAt, id: u.id }));
   V.refreshUsers = async () => {
