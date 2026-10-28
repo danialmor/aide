@@ -7250,6 +7250,92 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
 })();
 
 
+  (function () {
+    'use strict';
+    const A = window.Aide;
+    if (!A || !A.views || !A.views.settings || !A.vault || typeof A.vault.getRecoveries !== 'function') return;
+    const previousSettingsRender = A.views.settings.render;
+    const downloadJson = (value, name) => {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    };
+    const safeDate = value => {
+      const n = Number(value);
+      return Number.isFinite(n) && n > 0 ? new Date(n).toLocaleString() : 'زمان نامشخص';
+    };
+    A.views.settings.render = function (root) {
+      previousSettingsRender.call(this, root);
+      const h = A.h;
+      const status = h('p', { class: 'note', role: 'status' }, 'در حال بررسی نسخه‌های بازیابی آنلاین…');
+      const rows = h('div', { class: 'aide-recovery-list' });
+      const refresh = h('button', { class: 'btn sm', type: 'button', onClick: load }, 'به‌روزرسانی فهرست');
+      let allButton;
+      let records = [];
+      const renderRows = () => {
+        rows.replaceChildren();
+        allButton.disabled = records.length === 0;
+        if (!records.length) {
+          rows.append(h('p', { class: 'note' }, 'در حال حاضر نسخه بازیابی اضافه‌ای ثبت نشده است.'));
+          return;
+        }
+        records.forEach((record, index) => {
+          const label = record.kind === 'workspace' ? 'اطلاعات فضای کاری' : record.kind === 'preferences' ? 'تنظیمات حساب' : 'نسخه بازیابی';
+          const bytes = (() => { try { return new Blob([JSON.stringify(record)]).size; } catch (_) { return 0; } })();
+          rows.append(h('div', { class: 'aide-recovery-row' },
+            h('div', { class: 'aide-recovery-meta' },
+              h('b', null, label),
+              h('span', null, safeDate(record.capturedAt)),
+              h('small', null, (record.format || 'AIDE recovery copy') + ' · ' + bytes.toLocaleString() + ' بایت')),
+            h('button', { class: 'btn sm', type: 'button', onClick: () => {
+              downloadJson(record, 'aide-recovery-' + (record.kind || 'record') + '-' + safeDate(record.capturedAt).replace(/[^0-9]/g, '-').slice(0, 24) + '.json');
+            } }, 'دانلود')));
+        });
+      };
+      async function load() {
+        refresh.disabled = true;
+        status.textContent = 'در حال دریافت فهرست بازیابی…';
+        rows.replaceChildren();
+        try {
+          records = await A.vault.getRecoveries();
+          status.textContent = 'تعداد نسخه‌های بازیابی ثبت‌شده: ' + records.length;
+          renderRows();
+        } catch (error) {
+          status.textContent = 'دریافت نسخه‌های بازیابی ناموفق بود: ' + String(error && error.message || error);
+          rows.replaceChildren();
+        } finally {
+          refresh.disabled = false;
+          allButton.disabled = records.length === 0;
+        }
+      }
+      allButton = h('button', { class: 'btn sm', type: 'button', disabled: true, onClick: () => {
+        downloadJson({
+          format: 'AIDE online recovery archive',
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          note: 'These are recovery copies, not the canonical workspace. Review and reconcile before importing.',
+          recoveries: records
+        }, 'aide-online-recoveries-' + new Date().toISOString().slice(0, 10) + '.json');
+      } }, 'دانلود همه نسخه‌ها');
+      const style = h('style', null, `
+        .aide-recovery-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+        .aide-recovery-list{display:grid;gap:8px;margin-top:10px}
+        .aide-recovery-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--canvas)}
+        .aide-recovery-meta{display:grid;gap:3px;min-width:0}
+        .aide-recovery-meta span,.aide-recovery-meta small{font-size:12px;color:var(--faint);overflow-wrap:anywhere}
+        @media(max-width:560px){.aide-recovery-row{align-items:flex-start;flex-direction:column}.aide-recovery-row .btn{width:100%}}
+      `);
+      root.append(style, h('section', { class: 'card aide-recovery-card', style: { marginTop: '14px' } },
+        h('h3', null, 'نسخه‌های بازیابی آنلاین'),
+        h('p', { class: 'note' }, 'اگر یک نسخه قدیمی مرورگر تغییراتی بدون شماره نسخه ارسال کرده باشد، سرور می‌تواند آن تغییرات را جداگانه برای بازیابی نگه دارد؛ داده اصلی را جایگزین نمی‌کند. این نسخه‌ها به‌صورت JSON قابل دانلود هستند و ممکن است شامل اطلاعات محرمانه باشند. فایل‌های دانلودشده را در محل امن نگه دارید.'),
+        h('div', { class: 'aide-recovery-actions' }, refresh, allButton),
+        status,
+        rows));
+      load();
+    };
+  })();
+
   </script>
   <script src="./js/customizable-tabs.js"></script>
   <script>
