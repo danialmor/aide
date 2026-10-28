@@ -58,7 +58,8 @@
       availableSections().forEach(([id, fa, en]) => {
         const input = h('input', {
           type: 'checkbox',
-          checked: !S.hiddenSections.includes(id),
+          checked: id === 'settings' || !S.hiddenSections.includes(id),
+          disabled: id === 'settings',
           'aria-label': 'نمایش ' + fa,
           onChange: e => {
             const hidden = new Set(A.settings().hiddenSections || []);
@@ -66,6 +67,7 @@
             else if (id !== 'settings') hidden.add(id);
             A.settings().hiddenSections = Array.from(hidden);
             A.save('settings');
+            A.rebuild();
             applyVisibility();
             if (A.toast) A.toast(e.target.checked ? 'بخش فعال شد: ' + fa : 'بخش غیرفعال شد: ' + fa);
           }
@@ -96,7 +98,7 @@
         h('button', { type: 'button', class: 'btn sm', onClick: () => {
           A.settings().hiddenSections = [];
           A.save('settings');
-          renderRows();
+          A.rebuild();
           applyVisibility();
           if (A.toast) A.toast('همه بخش‌های مجاز فعال شدند.');
         } }, 'نمایش همه بخش‌ها')));
@@ -107,6 +109,6 @@
   if (typeof A.on === 'function') A.on('change', () => setTimeout(applyVisibility, 0));
   window.addEventListener('hashchange', () => setTimeout(applyVisibility, 0));
   const observer = new MutationObserver(() => applyVisibility());
-  observer.observe(document.getElementById('app') || document.body, { childList: true, subtree: true });
+  observer.observe(document.body, { childList: true, subtree: true });
   setTimeout(applyVisibility, 0);
 })();
