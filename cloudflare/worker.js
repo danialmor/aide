@@ -282,9 +282,9 @@ async function route(request, env) {
       try { record = JSON.parse(row.value); } catch (_) { continue; }
       if (record.acknowledgedAt) continue;
       record.acknowledgedAt = Date.now();
-      await env.DB.prepare("UPDATE system_settings SET value=? WHERE key=? AND value=?")
+      const marked = await env.DB.prepare("UPDATE system_settings SET value=? WHERE key=? AND value=?")
         .bind(JSON.stringify(record), id, row.value).run();
-      acknowledged++;
+      acknowledged += Number(marked.meta?.changes || 0);
     }
     if (acknowledged) await audit(env, user.id, "account.recovery_records_acknowledged", user.id, "count=" + acknowledged);
     return json({ ok: true, acknowledged, retained: true });
