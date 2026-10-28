@@ -248,13 +248,12 @@ async function route(request, env) {
     const workspacePrefix = "legacy_recovery:workspace:" + workspaceOwner + ":";
     const preferencesPrefix = "legacy_recovery:preferences:" + user.id + ":";
     const rows = await env.DB.prepare(
-      "SELECT key, value FROM system_settings WHERE key LIKE ? OR key LIKE ? ORDER BY json_extract(value, '$.capturedAt') DESC LIMIT 20"
-    ).bind(workspacePrefix + "%", preferencesPrefix + "%").all();
+      "SELECT key, value FROM system_settings WHERE (substr(key, 1, ?) = ?) OR (substr(key, 1, ?) = ?) LIMIT 100"
+    ).bind(workspacePrefix.length, workspacePrefix, preferencesPrefix.length, preferencesPrefix).all();
     const recoveries = [];
     for (const row of rows.results || []) {
       try {
         const record = JSON.parse(row.value);
-        if (record.acknowledgedAt) continue;
         recoveries.push({ id: row.key, ...record });
       } catch (_) {
         // Leave malformed records in place for manual recovery rather than deleting them.
@@ -286,28 +285,6 @@ async function route(request, env) {
     }
     if (acknowledged) await audit(env, user.id, "account.recovery_records_acknowledged", user.id, "count=" + acknowledged);
     return json({ ok: true, acknowledged, retained: true });
-  }
-
-  if (path === "/api/recoveries" && request.method === "GET") {
-    const user = await currentUser(request, env);
-    if (!user) return json({ error: "Authentication required." }, 401);
-    const workspaceOwner = user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id;
-    const workspacePrefix = "legacy_recovery:workspace:" + workspaceOwner + ":";
-    const preferencesPrefix = "legacy_recovery:preferences:" + user.id + ":";
-    const rows = await env.DB.prepare(
-      "SELECT key, value FROM system_settings WHERE (substr(key, 1, ?) = ?) OR (substr(key, 1, ?) = ?) LIMIT 100"
-    ).bind(workspacePrefix.length, workspacePrefix, preferencesPrefix.length, preferencesPrefix).all();
-    const recoveries = [];
-    for (const row of rows.results || []) {
-      try {
-        const record = JSON.parse(row.value);
-        recoveries.push({ id: row.key, ...record });
-      } catch (_) {
-        // Never delete malformed recovery data automatically.
-      }
-    }
-    recoveries.sort((a, b) => Number(b.capturedAt || 0) - Number(a.capturedAt || 0));
-    return json({ recoveries, count: recoveries.length });
   }
 
   if (path === "/api/data" && request.method === "GET") {
