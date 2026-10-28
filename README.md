@@ -1,25 +1,45 @@
-# Aide · Executive Desk
+# AIDE · Executive Desk
 
-A private, installable web app for executive assistants: calendars (day, 3-day, week, month, year, agenda), visitor and meeting requests, visiting hours, tasks, notebook, timers and world clocks. English UI, phone and desktop layouts. Pure HTML/CSS/JS, no build step, no dependencies.
+A private, installable web app for executive assistants: calendars, meeting and visitor requests, availability windows, tasks, notes, timers, themes and account settings. The interface is plain HTML/CSS/JavaScript and is hosted as a static site.
 
-Design language inspired by Moxen's free resources (moxen.cl/recursos). All code in this repository is original.
+## Production architecture
 
-## Publish on GitHub Pages (works from an iPad browser)
-1. github.com → **New repository** → name it `aide` → **Public** (free Pages needs public) → Create.
-2. **Add file → Upload files**: drag the *contents* of this folder (index.html, sw.js, manifest.webmanifest, `css/`, `js/`, `icons/`, `.nojekyll`) → **Commit changes**.
-3. **Settings → Pages → Build and deployment → Source: Deploy from a branch → `main` / `/ (root)` → Save.**
-4. After about a minute the site is live at `https://YOUR-NAME.github.io/aide/`.
-5. Phone: open the link in Safari → Share → **Add to Home Screen**.
+- Frontend: GitHub Pages (index.html and static assets).
+- API: Cloudflare Worker, aide-api.
+- Database: Cloudflare D1, aide-online, binding DB.
+- Workspace records: /api/data, stored as JSON under a workspace-owner key.
+- Personal settings: /api/preferences, stored separately per account.
+- Profiles and accounts: Cloudflare D1 tables users and profiles.
 
-Prefer a private repo? Use Cloudflare Pages or Netlify (free) connected to it.
+Workspace records and account preferences are stored server-side. They are not stored only in localStorage. The app sends changes to the API after a short debounce; the Settings page shows an online-save status. On a failed save, do not close or refresh the page before retrying or downloading the recovery backup offered by AIDE.
 
-## Security — please read
-- No server exists, so the login is a **lock on local data**: everything is encrypted in the browser (AES-GCM 256, key from your password via PBKDF2-SHA256, 310,000 rounds).
-- **A forgotten password cannot be recovered.** Use Settings → Backup regularly.
-- Data lives per browser/device. Phone and desktop do **not** sync; move data with the backup file (Settings → Backup, then "Restore backup file" on the login screen). Automatic sync would need a backend (e.g. Supabase) later.
+## Data safety and sync
 
-## Releasing updates
-Change `VERSION` in `sw.js` each time you publish so phones fetch the new files.
+- Workspace and preference writes are queued per browser session.
+- Writes include revision checks. A stale tab/device must not silently replace a newer server snapshot.
+- Non-overlapping changes can be merged. If two devices changed the same record or setting incompatibly, AIDE pauses the save and offers a recovery JSON download. Save that file before choosing to reload the current server copy.
+- Locking the desk waits for the current online save. If the save cannot be confirmed, AIDE cancels the lock and shows the recovery action.
+- The app does not automatically clear legacy localStorage/IndexedDB data. If older local AIDE data is detected, export the encrypted browser archive before doing any manual cleanup. That archive preserves old encrypted data; it is not automatically merged into the online workspace.
+- A conflict recovery JSON contains workspace/settings data in readable JSON. Store it securely; it can include confidential calendar, contact, task and note content.
+- Keep a separate D1 backup/Time Travel recovery point before schema changes or other database maintenance. Application-level conflict protection is not a substitute for database backups.
 
-## Shortcuts
-Ctrl/⌘+K search · N new event · T today · ←/→ navigate · focused event: arrows move, Shift+↑↓ resize, Delete removes.
+## Deployment notes
+
+1. Publish the site from main / root using GitHub Pages.
+2. Deploy cloudflare/worker.js as the aide-api Worker with the D1 binding DB pointing to the aide-online database ID in wrangler.toml.
+3. Keep the Worker compatibility date and required environment bindings consistent with the deployed settings.
+4. Bump VERSION in sw.js when shipping frontend changes so installed mobile clients request the new build.
+5. After a release, hard-refresh the site (and reopen/reload an installed iOS/iPadOS app) before testing sync.
+
+## Verification checklist
+
+- Create or edit a test event and verify it remains after reload and login from a second device.
+- Change a personal setting and verify it remains after reload.
+- Keep two tabs open; make non-conflicting edits in both and check that both survive.
+- Make conflicting edits to the same record; verify AIDE blocks the overwrite and offers a recovery file.
+- With the network temporarily unavailable, verify the app reports failure and does not claim the change was saved.
+- Confirm the latest Time Travel bookmark or SQL export before making changes to production data.
+
+## Limitations
+
+No browser-based system can guarantee zero data loss during a device crash, browser force-quit, or storage/network failure. This release is designed to make save state explicit, block stale overwrites, preserve legacy local storage and provide recovery exports rather than silently discard pending changes.

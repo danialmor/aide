@@ -1891,14 +1891,37 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   };
   let saveT = 0, settingsSaveT = 0;
   A.save = function (what) {
+    if (!A.db.data) return;
+    A.setSaveStatus && A.setSaveStatus('pending', '', what === 'settings' ? 'preferences' : 'workspace');
     if (what === 'settings') {
-      clearTimeout(settingsSaveT); settingsSaveT = setTimeout(() => A.vault && A.vault.savePreferences(A.db.data.settings).catch(e => A.toast('Could not save account settings online: ' + e.message)), 250);
+      clearTimeout(settingsSaveT);
+      settingsSaveT = setTimeout(() => {
+        if (!A.vault || !A.db.data) return;
+        A.setSaveStatus && A.setSaveStatus('saving', '', 'preferences');
+        A.vault.savePreferences(A.db.data.settings)
+          .then(() => A.setSaveStatus && A.setSaveStatus('saved', '', 'preferences'))
+          .catch(e => { A.setSaveStatus && A.setSaveStatus('error', e.message, 'preferences'); A.reportSaveFailure && A.reportSaveFailure(e, 'preferences'); A.toast('Could not save account settings online: ' + e.message); });
+      }, 250);
     } else {
-      clearTimeout(saveT); saveT = setTimeout(() => A.vault && A.vault.save(A.db.data).catch(e => A.toast('Could not save online: ' + e.message)), 200);
+      clearTimeout(saveT);
+      saveT = setTimeout(() => {
+        if (!A.vault || !A.db.data) return;
+        A.setSaveStatus && A.setSaveStatus('saving', '', 'workspace');
+        A.vault.save(A.db.data)
+          .then(() => A.setSaveStatus && A.setSaveStatus('saved', '', 'workspace'))
+          .catch(e => { A.setSaveStatus && A.setSaveStatus('error', e.message, 'workspace'); A.reportSaveFailure && A.reportSaveFailure(e, 'workspace'); A.toast('Could not save online: ' + e.message); });
+      }, 200);
     }
     A.emit('change', what);
   };
-  A.flush = () => { clearTimeout(saveT); clearTimeout(settingsSaveT); if (!A.vault || !A.db.data) return Promise.resolve(); return Promise.all([A.vault.save(A.db.data), A.vault.savePreferences(A.db.data.settings)]); };
+  A.flush = () => {
+    clearTimeout(saveT); clearTimeout(settingsSaveT);
+    if (!A.vault || !A.db.data) return Promise.resolve();
+    A.setSaveStatus && A.setSaveStatus('saving');
+    return Promise.all([A.vault.save(A.db.data), A.vault.savePreferences(A.db.data.settings)])
+      .then(result => { A.setSaveStatus && A.setSaveStatus('saved'); return result; })
+      .catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); A.reportSaveFailure && A.reportSaveFailure(error); throw error; });
+  };
   const coll = n => A.db.data[n];
   /* the manager role is read-only, except deciding requests and ticking tasks */
   A.rtl = () => A.settings().dir === 'rtl'; A.dirIco = n => A.ico(A.rtl() ? ({ chevL: 'chevR', chevR: 'chevL' }[n] || n) : n);
@@ -2461,12 +2484,26 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 
   /* ONLINE-ONLY MODE: authentication and workspace data live on Cloudflare. */
   const ONLINE_API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
-  let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlineUsersCache = [];
+  let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlinePreferencesSaving = Promise.resolve(), onlineUsersCache = [];
+  let onlineWorkspaceRevision = null, onlineBaseWorkspace = null, onlinePendingConflict = null;
+  let onlinePreferencesRevision = null, onlineBasePreferences = null, onlinePendingPreferencesConflict = null;
+  let syncRecoveryDialog = null;
+  // Legacy local records may be the only copy of older workspaces. Never erase
+  // browser storage automatically during boot or sign-in; cleanup must be explicit.
   async function clearLocalPersistence() {
-    try { localStorage.clear(); } catch (_) {}
-    try { sessionStorage.clear(); } catch (_) {}
-    try { indexedDB.deleteDatabase('aide-session'); } catch (_) {}
-    try { if ('caches' in window) { const keys = await caches.keys(); await Promise.all(keys.map(key => caches.delete(key))); } } catch (_) {}
+    return;
+  }
+  function legacyStorageKeys() {
+    try { return Object.keys(localStorage).filter(k => k === 'aide.vault2' || k === 'aide.users' || k === 'aide.lastUser' || k.startsWith('aide.vault.')); }
+    catch (_) { return []; }
+  }
+  function downloadLegacyStorageArchive() {
+    const keys = legacyStorageKeys(), storage = {};
+    keys.forEach(k => { try { storage[k] = localStorage.getItem(k); } catch (_) {} });
+    const payload = { format: 'AIDE encrypted legacy browser archive', version: 1, exportedAt: new Date().toISOString(), origin: location.origin, storage };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'aide-legacy-encrypted-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   async function onlineRequest(path, method = 'GET', body) {
     const headers = {};
@@ -2498,10 +2535,225 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       throw new Error('ارتباط با API پس از ' + attempts + ' تلاش ناموفق بود (' + detail + '). مسیر: ' + path + '؛ مبدأ سایت: ' + origin + '؛ سرور API: ' + apiHost + '. اگر این خطا تکرار شد، تب Network مرورگر را بررسی کنید؛ این خطا به‌تنهایی به معنی اشتباه بودن نام کاربری یا رمز نیست.');
     }
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || ('Server request failed (' + response.status + ').'));
+    if (!response.ok) {
+      const error = new Error(result.error || ('Server request failed (' + response.status + ').'));
+      error.status = response.status; error.payload = result;
+      throw error;
+    }
     if (result.token) onlineToken = result.token;
     return result;
   }
+
+  const MISSING = Symbol('aide-missing');
+  const cloneValue = value => value === MISSING ? MISSING : value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  function stableValue(value) {
+    if (value === MISSING) return '"__MISSING__"';
+    if (value === undefined) return '"__UNDEFINED__"';
+    if (value === null || typeof value !== 'object') return JSON.stringify(value);
+    if (Array.isArray(value)) return '[' + value.map(stableValue).join(',') + ']';
+    return '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + stableValue(value[k])).join(',') + '}';
+  }
+  const sameValue = (a, b) => a === b || (a !== MISSING && b !== MISSING && stableValue(a) === stableValue(b));
+  const isPlainObject = value => !!value && typeof value === 'object' && !Array.isArray(value);
+  function normalizeWorkspace(data) {
+    const value = Object.assign({ events: [], contacts: [], requests: [], tasks: [], notes: [], avail: {}, away: [] }, cloneValue(isPlainObject(data) ? data : {}));
+    delete value.settings;
+    return value;
+  }
+  const ONLINE_DEFAULT_SETTINGS = cloneValue(A.settings());
+  function normalizePreferences(data) {
+    return Object.assign(cloneValue(ONLINE_DEFAULT_SETTINGS), cloneValue(isPlainObject(data) ? data : {}));
+  }
+  function mergeWorkspaceValue(base, local, remote, path, conflicts) {
+    if (sameValue(local, base)) return cloneValue(remote);
+    if (sameValue(remote, base)) return cloneValue(local);
+    if (sameValue(local, remote)) return cloneValue(local);
+
+    if ([base, local, remote].every(v => v === MISSING || Array.isArray(v)) &&
+        [base, local, remote].filter(v => v !== MISSING).length === [base, local, remote].filter(Array.isArray).length) {
+      const b = base === MISSING ? [] : base, l = local === MISSING ? [] : local, r = remote === MISSING ? [] : remote;
+      const allItems = [...b, ...l, ...r];
+      if (/(?:^|\.)hiddenSections$/.test(path) && allItems.every(v => typeof v === 'string')) {
+        const values = [...new Set([...b, ...l, ...r])], merged = [];
+        for (const value of values) {
+          const bv = b.includes(value), lv = l.includes(value), rv = r.includes(value);
+          const use = lv === bv ? rv : (rv === bv || lv === rv ? lv : rv);
+          if (use) merged.push(value);
+        }
+        return merged;
+      }
+      const collection = /(?:^|\.)(events|contacts|requests|tasks|notes|away|customThemes|customHolidays)$/.test(path);
+      const idSafe = allItems.every(item => isPlainObject(item) && (typeof item.id === 'string' || typeof item.id === 'number'));
+      if (collection && idSafe) {
+        const bm = new Map(b.map(x => [String(x.id), x])), lm = new Map(l.map(x => [String(x.id), x])), rm = new Map(r.map(x => [String(x.id), x]));
+        const ids = [...new Set([...r, ...l, ...b].map(x => String(x.id)))], merged = [];
+        for (const id of ids) {
+          const bv = bm.has(id) ? bm.get(id) : MISSING, lv = lm.has(id) ? lm.get(id) : MISSING, rv = rm.has(id) ? rm.get(id) : MISSING;
+          const item = mergeWorkspaceValue(bv, lv, rv, path + '[' + id + ']', conflicts);
+          if (item !== MISSING) merged.push(item);
+        }
+        return merged;
+      }
+      const scalarOnly = allItems.every(v => v === null || ['string', 'number', 'boolean'].includes(typeof v));
+      if (scalarOnly && b.every(v => l.some(x => sameValue(x, v)) && r.some(x => sameValue(x, v)))) {
+        const out = [...r];
+        for (const item of l) if (!out.some(x => sameValue(x, item))) out.push(item);
+        return out;
+      }
+      conflicts.push(path || '$');
+      return cloneValue(remote);
+    }
+
+    if (isPlainObject(local) && isPlainObject(remote) && (base === MISSING || isPlainObject(base))) {
+      const b = base === MISSING ? {} : base, out = {};
+      const keys = new Set([...Object.keys(b), ...Object.keys(local), ...Object.keys(remote)]);
+      for (const key of keys) {
+        const bv = Object.prototype.hasOwnProperty.call(b, key) ? b[key] : MISSING;
+        const lv = Object.prototype.hasOwnProperty.call(local, key) ? local[key] : MISSING;
+        const rv = Object.prototype.hasOwnProperty.call(remote, key) ? remote[key] : MISSING;
+        const merged = mergeWorkspaceValue(bv, lv, rv, path ? path + '.' + key : key, conflicts);
+        if (merged !== MISSING) out[key] = merged;
+      }
+      return out;
+    }
+
+    conflicts.push(path || '$');
+    return cloneValue(remote);
+  }
+  function primeWorkspace(remote) {
+    onlineWorkspaceRevision = remote && typeof remote.revision === 'string' ? remote.revision : null;
+    onlineBaseWorkspace = normalizeWorkspace(remote && remote.data ? remote.data : {});
+    onlinePendingConflict = null;
+  }
+  function primePreferences(remote) {
+    onlinePreferencesRevision = remote && typeof remote.revision === 'string' ? remote.revision : null;
+    onlineBasePreferences = normalizePreferences(remote && remote.preferences ? remote.preferences : {});
+    onlinePendingPreferencesConflict = null;
+  }
+  function downloadJsonFile(value, filename) {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
+    const a = document.createElement('a'); a.href = url; a.download = filename;
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+  function showWorkspaceConflict(pending) {
+    onlinePendingConflict = pending;
+    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
+    let backedUp = false;
+    const useServer = A.h('button', { class: 'btn primary', type: 'button', disabled: true, onClick: () => {
+      if (!backedUp || !onlinePendingConflict) return;
+      const p = onlinePendingConflict, settings = cloneValue(A.settings());
+      primeWorkspace({ data: p.remote, revision: p.remoteRevision });
+      A.load(Object.assign({}, p.remote, { settings }));
+      onlinePendingConflict = null;
+      if (syncRecoveryDialog) syncRecoveryDialog.close();
+      syncRecoveryDialog = null;
+      A.start();
+      A.toast('Latest online data loaded. Keep the downloaded recovery file for your unsaved edits.');
+      if (onlinePendingPreferencesConflict) showPreferencesConflict(onlinePendingPreferencesConflict);
+    } }, 'I saved the backup — load online version');
+    const backup = A.h('button', { class: 'btn', type: 'button', onClick: () => {
+      downloadJsonFile({
+        format: 'AIDE workspace conflict recovery', version: 1, exportedAt: new Date().toISOString(),
+        account: onlineUser && onlineUser.username, conflictPaths: pending.conflicts,
+        base: pending.base, localPending: pending.local, latestOnline: pending.remote,
+        localPreferences: cloneValue(A.settings())
+      }, 'aide-workspace-conflict-' + new Date().toISOString().slice(0, 10) + '.json');
+      backedUp = true; useServer.disabled = false;
+      A.toast('Recovery file downloaded. Keep it until the conflict is resolved.');
+    } }, 'Download recovery backup');
+    syncRecoveryDialog = A.modal({
+      title: 'Workspace sync conflict',
+      body: [
+        A.h('p', null, 'Another device changed the same record or field. AIDE blocked this save instead of replacing newer online data. Your local edits are still in this page, but are not confirmed as saved online.'),
+        A.h('p', { class: 'note' }, 'Conflicting paths: ' + pending.conflicts.slice(0, 8).join(', ') + (pending.conflicts.length > 8 ? '…' : '')),
+        A.h('p', null, 'Download the recovery backup first. It contains the base, your pending edits, the latest online copy and your personal settings.')
+      ],
+      footer: [A.h('span', { class: 'grow' }), backup, useServer]
+    });
+  }
+  function showPreferencesConflict(pending) {
+    onlinePendingPreferencesConflict = pending;
+    A.setSaveStatus && A.setSaveStatus('error', 'Account preferences conflict', 'preferences');
+    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
+    let backedUp = false;
+    const useServer = A.h('button', { class: 'btn primary', type: 'button', disabled: true, onClick: () => {
+      if (!backedUp || !onlinePendingPreferencesConflict) return;
+      const p = onlinePendingPreferencesConflict;
+      onlinePreferencesRevision = p.remoteRevision;
+      onlineBasePreferences = normalizePreferences(p.remote);
+      A.db.data.settings = normalizePreferences(p.remote);
+      onlinePendingPreferencesConflict = null;
+      A.applyTheme();
+      if (syncRecoveryDialog) syncRecoveryDialog.close();
+      syncRecoveryDialog = null;
+      A.rebuild();
+      A.setSaveStatus && A.setSaveStatus('saved');
+      A.setSaveStatus && A.setSaveStatus('saved', 'Online settings reloaded', 'preferences');
+      A.toast('Latest online settings loaded. Keep the recovery file for the settings you changed locally.');
+      if (onlinePendingConflict) showWorkspaceConflict(onlinePendingConflict);
+    } }, 'I saved the backup — load online settings');
+    const backup = A.h('button', { class: 'btn', type: 'button', onClick: () => {
+      downloadJsonFile({
+        format: 'AIDE settings conflict recovery', version: 1, exportedAt: new Date().toISOString(),
+        account: onlineUser && onlineUser.username, conflictPaths: pending.conflicts,
+        baseSettings: pending.base, localPendingSettings: pending.local, latestOnlineSettings: pending.remote,
+        workspace: normalizeWorkspace(A.db && A.db.data)
+      }, 'aide-settings-conflict-' + new Date().toISOString().slice(0, 10) + '.json');
+      backedUp = true; useServer.disabled = false;
+      A.toast('Settings recovery file downloaded. Keep it until the conflict is resolved.');
+    } }, 'Download recovery backup');
+    syncRecoveryDialog = A.modal({
+      title: 'Settings sync conflict',
+      body: [
+        A.h('p', null, 'The account settings changed on another device. AIDE blocked this save rather than replacing the latest online preferences. Your local settings remain in this page but are not confirmed as saved online.'),
+        A.h('p', { class: 'note' }, 'Conflicting settings: ' + pending.conflicts.slice(0, 8).join(', ') + (pending.conflicts.length > 8 ? '…' : '')),
+        A.h('p', null, 'Download a recovery file before loading the latest online settings.')
+      ],
+      footer: [A.h('span', { class: 'grow' }), backup, useServer]
+    });
+  }
+  function reportSaveFailure(error) {
+    if (onlinePendingConflict || onlinePendingPreferencesConflict || (error && ['AIDE_SYNC_CONFLICT', 'AIDE_PREF_CONFLICT'].includes(error.code))) return;
+    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
+    const backup = {
+      format: 'AIDE unsaved online recovery', version: 1, exportedAt: new Date().toISOString(),
+      account: onlineUser && onlineUser.username, reason: String(error && error.message || error || 'Unknown save error'),
+      workspace: normalizeWorkspace(A.db && A.db.data), preferences: cloneValue(A.settings()),
+      lastKnownRevision: onlineWorkspaceRevision
+    };
+    const download = A.h('button', { class: 'btn', type: 'button', onClick: () => {
+      downloadJsonFile(backup, 'aide-unsaved-recovery-' + new Date().toISOString().slice(0, 10) + '.json');
+      A.toast('Recovery file downloaded. Keep it until online sync is restored.');
+    } }, 'Download recovery backup');
+    const retry = A.h('button', { class: 'btn primary', type: 'button', onClick: async () => {
+      if (syncRecoveryDialog) syncRecoveryDialog.close(); syncRecoveryDialog = null;
+      try { await A.flush(); A.toast('All current changes were saved online.'); }
+      catch (e) { A.setSaveStatus && A.setSaveStatus('error', e.message); }
+    } }, 'Retry online save');
+    syncRecoveryDialog = A.modal({
+      title: 'Online save needs attention',
+      body: [
+        A.h('p', null, 'AIDE could not confirm that the latest changes were stored online. They remain in this open page for now; do not refresh or close it before retrying or downloading a recovery file.'),
+        A.h('p', { class: 'note' }, String(error && error.message || error || 'Unknown save error'))
+      ],
+      footer: [A.h('span', { class: 'grow' }), download, retry]
+    });
+  }
+  const saveStates = { workspace: 'saved', preferences: 'saved' };
+  A.setSaveStatus = (state, detail, scope = 'all') => {
+    if (scope === 'workspace' || scope === 'preferences') saveStates[scope] = state;
+    else { saveStates.workspace = state; saveStates.preferences = state; }
+    const states = Object.values(saveStates);
+    const overall = states.includes('error') ? 'error' : states.includes('saving') ? 'saving' : states.includes('pending') ? 'pending' : 'saved';
+    A.syncStatus = overall;
+    const labels = { pending: 'Changes waiting to save', saving: 'Saving online…', saved: 'Saved online', error: 'Save failed — recovery needed' };
+    document.querySelectorAll('[data-aide-save-status]').forEach(el => {
+      el.textContent = labels[overall];
+      el.dataset.status = overall;
+      el.title = detail || ('Workspace: ' + saveStates.workspace + ' · Settings: ' + saveStates.preferences);
+    });
+  };
+  A.reportSaveFailure = reportSaveFailure;
   V.role = () => (onlineRole === 'system_admin' || onlineRole === 'admin') ? 'admin' : (onlineRole === 'ceo' ? 'manager' : 'user');
   V.user = () => onlineUser && onlineUser.username;
   V.isElevated = () => ['system_admin', 'admin'].includes(onlineRole);
@@ -2509,20 +2761,121 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   V.elevate = async () => { if (!['system_admin', 'admin'].includes(onlineRole)) throw new Error('Only an admin can manage users.'); return true; };
   V.save = data => {
     if (!onlineUser) return Promise.reject(new Error('Sign in to save changes online.'));
-    const snapshot = JSON.parse(JSON.stringify(data || {}));
-    delete snapshot.settings; // account preferences are stored separately per user
-    onlineSaving = onlineSaving.catch(() => {}).then(() => onlineRequest('/api/data', 'PUT', { data: snapshot }));
-    return onlineSaving;
+    const snapshot = normalizeWorkspace(data || {});
+    const task = onlineSaving.catch(() => {}).then(async () => {
+      if (onlinePendingConflict) throw Object.assign(new Error('Resolve the workspace sync conflict before saving again.'), { code: 'AIDE_SYNC_CONFLICT' });
+      let candidate = snapshot;
+      let base = normalizeWorkspace(onlineBaseWorkspace || {});
+      let revision = onlineWorkspaceRevision;
+
+      if (sameValue(candidate, base)) return { ok: true, unchanged: true, revision };
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const saved = await onlineRequest('/api/data', 'PUT', { data: candidate, revision });
+          onlineWorkspaceRevision = saved.revision == null ? null : saved.revision;
+          onlineBaseWorkspace = normalizeWorkspace(candidate);
+
+          // Preserve edits made in this tab while the request was in flight.
+          const live = normalizeWorkspace(A.db && A.db.data);
+          if (!sameValue(live, candidate)) {
+            const liveConflicts = [];
+            const liveMerged = normalizeWorkspace(mergeWorkspaceValue(snapshot, live, candidate, '', liveConflicts));
+            if (liveConflicts.length) {
+              showWorkspaceConflict({
+                base: snapshot, local: live, remote: candidate,
+                remoteRevision: onlineWorkspaceRevision, conflicts: [...new Set(liveConflicts)]
+              });
+              throw Object.assign(new Error('Edits made during synchronization need a recovery backup.'), { code: 'AIDE_SYNC_CONFLICT' });
+            }
+            if (!sameValue(liveMerged, live)) {
+              const settings = A.db.data.settings;
+              for (const key of Object.keys(A.db.data)) if (key !== 'settings' && !Object.prototype.hasOwnProperty.call(liveMerged, key)) delete A.db.data[key];
+              Object.assign(A.db.data, liveMerged, { settings });
+            }
+            if (!sameValue(liveMerged, onlineBaseWorkspace)) setTimeout(() => A.save('data'), 0);
+          }
+          return saved;
+        } catch (error) {
+          if (error.status !== 409) throw error;
+          const latest = await onlineRequest('/api/data');
+          const remote = normalizeWorkspace(latest.data || {});
+          const conflicts = [];
+          const merged = normalizeWorkspace(mergeWorkspaceValue(base, candidate, remote, '', conflicts));
+          if (conflicts.length) {
+            showWorkspaceConflict({
+              base, local: candidate, remote, remoteRevision: latest.revision == null ? null : latest.revision,
+              conflicts: [...new Set(conflicts)]
+            });
+            throw Object.assign(new Error('Another device changed the same data. The save was blocked to prevent data loss.'), { code: 'AIDE_SYNC_CONFLICT' });
+          }
+          candidate = merged;
+          base = remote;
+          revision = latest.revision == null ? null : latest.revision;
+        }
+      }
+      throw new Error('This workspace is changing too quickly on other devices. Save was paused to protect newer online data; download a recovery backup and retry.');
+    });
+    onlineSaving = task;
+    return task;
   };
   V.getPreferences = async () => {
     const result = await onlineRequest('/api/preferences');
+    primePreferences(result);
     return result.preferences || {};
   };
-  V.savePreferences = async preferences => {
-    if (!onlineUser) throw new Error('Sign in to save account settings online.');
-    return onlineRequest('/api/preferences', 'PUT', { preferences: JSON.parse(JSON.stringify(preferences || {})) });
+  V.savePreferences = preferences => {
+    if (!onlineUser) return Promise.reject(new Error('Sign in to save account settings online.'));
+    const snapshot = normalizePreferences(preferences || {});
+    const task = onlinePreferencesSaving.catch(() => {}).then(async () => {
+      if (onlinePendingPreferencesConflict) throw Object.assign(new Error('Resolve the account-settings conflict before saving again.'), { code: 'AIDE_PREF_CONFLICT' });
+      let candidate = snapshot;
+      let base = normalizePreferences(onlineBasePreferences || {});
+      let revision = onlinePreferencesRevision;
+      if (sameValue(candidate, base)) return { ok: true, unchanged: true, revision };
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const saved = await onlineRequest('/api/preferences', 'PUT', { preferences: candidate, revision });
+          onlinePreferencesRevision = saved.revision == null ? null : saved.revision;
+          onlineBasePreferences = normalizePreferences(candidate);
+
+          const live = normalizePreferences(A.db && A.db.data && A.db.data.settings || {});
+          if (!sameValue(live, candidate)) {
+            const conflicts = [];
+            const mergedLive = normalizePreferences(mergeWorkspaceValue(snapshot, live, candidate, '', conflicts));
+            if (conflicts.length) {
+              showPreferencesConflict({ base: snapshot, local: live, remote: candidate, remoteRevision: onlinePreferencesRevision, conflicts: [...new Set(conflicts)] });
+              throw Object.assign(new Error('Settings changed while a save was in progress; download the recovery file before continuing.'), { code: 'AIDE_PREF_CONFLICT' });
+            }
+            A.db.data.settings = mergedLive;
+            if (!sameValue(mergedLive, onlineBasePreferences)) setTimeout(() => A.save('settings'), 0);
+          }
+          return saved;
+        } catch (error) {
+          if (error.status !== 409) throw error;
+          const latest = await onlineRequest('/api/preferences');
+          const remote = normalizePreferences(latest.preferences || {});
+          const conflicts = [];
+          const merged = normalizePreferences(mergeWorkspaceValue(base, candidate, remote, '', conflicts));
+          if (conflicts.length) {
+            showPreferencesConflict({
+              base, local: candidate, remote, remoteRevision: latest.revision == null ? null : latest.revision,
+              conflicts: [...new Set(conflicts)]
+            });
+            throw Object.assign(new Error('Account settings changed on another device. The save was blocked to protect newer settings.'), { code: 'AIDE_PREF_CONFLICT' });
+          }
+          candidate = merged;
+          base = remote;
+          revision = latest.revision == null ? null : latest.revision;
+        }
+      }
+      throw new Error('Account settings are changing rapidly on another device. The update was paused for safety.');
+    });
+    onlinePreferencesSaving = task;
+    return task;
   };
-  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
+  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; onlineWorkspaceRevision = null; onlineBaseWorkspace = null; onlinePendingConflict = null; onlinePreferencesRevision = null; onlineBasePreferences = null; onlinePendingPreferencesConflict = null; syncRecoveryDialog = null; onlineSaving = Promise.resolve(); onlinePreferencesSaving = Promise.resolve(); cur = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
   V.wipe = async () => { V.lock(); };
   V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: u.role === 'admin' ? 'admin' : (u.role === 'ceo' ? 'manager' : 'user'), created: u.createdAt, id: u.id }));
   V.refreshUsers = async () => {
@@ -2566,6 +2919,8 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     const preferences = await V.getPreferences();
     const incoming = Object.assign({}, data || {}, { settings: preferences }); // never inherit shared workspace settings into this account
     A.load(incoming);
+    onlineBasePreferences = normalizePreferences(A.db.data.settings);
+    A.setSaveStatus && A.setSaveStatus('saved');
     A.role = V.role();
     A.readOnly = A.role === 'manager' || A.role === 'user';
     if (A.role === 'admin') { try { await V.refreshUsers(); } catch (_) { onlineUsersCache = []; } }
@@ -2605,6 +2960,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         if (!me.user) throw new Error('The server did not create a valid session. Check the API configuration.');
         onlineUser = me.user; onlineRole = me.user.role;
         const remote = await onlineRequest('/api/data');
+        primeWorkspace(remote);
         await clearLocalPersistence();
         A.enter(remote.data || { settings: {} });
       } catch (ex) {
@@ -2626,12 +2982,17 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       switcher.textContent = mode === 'register' ? 'Back to sign in' : 'Create online account';
       error.hidden = true;
     });
+    const legacyKeys = legacyStorageKeys();
+    const legacyNotice = h('section', { class: 'card', style: { marginTop: '14px', maxWidth: '980px' }, hidden: !legacyKeys.length },
+      h('h3', null, 'Older local AIDE data detected'),
+      h('p', { class: 'note' }, 'Encrypted legacy data exists in this browser. It is not used by the online workspace, but it has been preserved. Download an archive before clearing browser data or changing devices.'),
+      h('button', { class: 'btn', type: 'button', onClick: downloadLegacyStorageArchive }, 'Download encrypted local backup'));
     root.replaceChildren(h('div', { class: 'login-card' },
       h('div', { class: 'login-art' },
         h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Cloud workspace'))),
         h('div', null, h('h2', null, 'One online workspace.'), h('p', null, 'Sign in from any device to access your server-stored data.')),
         h('ul', null, h('li', null, 'Online account authentication'), h('li', null, 'Cloudflare D1 persistence'), h('li', null, 'No local workspace database'))),
-      form));
+      form, legacyNotice));
     user.focus({ preventScroll: true });
   };
   A.boot = async function() {
@@ -2642,6 +3003,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       if (me.user) {
         onlineUser = me.user; onlineRole = me.user.role;
         const remote = await onlineRequest('/api/data');
+        primeWorkspace(remote);
         await clearLocalPersistence();
         return A.enter(remote.data || { settings: {} });
       }
@@ -3413,7 +3775,17 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       h('button', { type: 'button', class: 'item hov', onClick: () => { m.close(); A.palette(); } }, A.ico('search'), 'Search everything'), h('button', { type: 'button', class: 'item hov', onClick: () => { m.close(); lock(); } }, A.ico('lock'), 'Lock the desk'));
     const m = A.modal({ title: 'More', body: list });
   }
-  function lock(msg) { A.flush().finally(() => { A.vault.forget(); A.vault.lock(); document.title = 'Aide · Executive Desk'; clearInterval(E._t); view && view.destroy && view.destroy(); view = null; built = false; A.showLogin(typeof msg === 'string' ? msg : 'Locked. Enter your password to continue.'); }); }
+  function lock(msg) {
+    A.flush().then(() => {
+      A.vault.forget(); A.vault.lock(); document.title = 'Aide · Executive Desk'; clearInterval(E._t);
+      view && view.destroy && view.destroy(); view = null; built = false;
+      A.showLogin(typeof msg === 'string' ? msg : 'Locked. Enter your password to continue.');
+    }).catch(error => {
+      A.setSaveStatus && A.setSaveStatus('error', error.message);
+      A.reportSaveFailure && A.reportSaveFailure(error);
+      A.toast('Lock cancelled because AIDE could not confirm the latest online save. Retry or download a recovery backup first.');
+    });
+  }
 
   /* ── router ───────────────────────────────────────────────────────── */
   A.route = function () {
@@ -3505,7 +3877,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         card('Schedule', row('Day starts at', num('dayStart', 0, 12), 'Hour, 0–12'), row('Day ends at', num('dayEnd', 12, 24), 'Hour, 12–24'), row('Default event length', num('defDur', 15, 480, 15), 'Minutes'), row('Buffer between meetings', num('buffer', 0, 60, 5), 'Minutes, used for free windows'), row('Default reminder', num('remind', 0, 120, 5), 'Minutes before; 0 = none')),
         card('Security', row('Auto-lock after', num('lockMin', 0, 240), 'Minutes of inactivity; 0 = never'), row('Lock now', h('button', { class: 'btn', type: 'button', onClick: lock }, A.ico('lock'), 'Lock')), h('p', { class: 'note' }, 'Your workspace and account settings are stored online in Cloudflare. “Remember me” uses a server-issued secure session cookie; it does not save your password or workspace records on this device.')),
         card('Notifications', row('Reminders & timers', h('button', { class: 'btn', type: 'button', onClick: async () => { if (!('Notification' in window)) return A.toast('This browser has no notification support.'); const r = await Notification.requestPermission(); A.toast('Notifications: ' + r); } }, A.ico('bell'), 'Allow notifications'), 'Alerts only fire while the desk is open (also on the iPhone/iPad home-screen app).')),
-        card('Online storage', h('p', { class: 'note' }, 'Workspace records (calendar, requests, tasks, notes, contacts and availability) are saved in Cloudflare D1. Personal preferences are saved separately for each account. This page does not use a local workspace database.'), row('Signed-in account', h('span', { class: 'chip' }, V.user() || 'Online account')), row('Save status', h('span', { class: 'chip' }, 'Online sync enabled'))),
+        card('Online storage', h('p', { class: 'note' }, 'Workspace records (calendar, requests, tasks, notes, contacts and availability) are saved in Cloudflare D1. Personal preferences are saved separately for each account. This page does not use a local workspace database.'), row('Signed-in account', h('span', { class: 'chip' }, V.user() || 'Online account')), row('Save status', h('span', { class: 'chip', 'data-aide-save-status': '' }, 'Checking online sync…'))),
         card('About', h('p', { class: 'note' }, 'Aide · Executive Desk v1.0. Design language inspired by Moxen’s free resources (moxen.cl/recursos): cream paper, cacao ink, pastel categories and spring motion. All code in this project is original and dependency-free.'), h('p', { class: 'note' }, 'Shortcuts: ⌘/Ctrl + K search · N new event · T today · ← → previous/next in the calendar · in the calendar, arrow keys move a focused event, Shift + ↑↓ changes its length.'))));
     },
   };
@@ -3550,8 +3922,28 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   let idle = Date.now();
   ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(n => window.addEventListener(n, () => idle = Date.now(), { passive: true, capture: true }));
   setInterval(() => { if (!A.db.data) return; const m = A.settings().lockMin; if (m > 0 && Date.now() - idle > m * 60000) lock('Locked after ' + m + ' minutes of inactivity.'); }, 15000);
-  window.addEventListener('pagehide', () => { A.db.data && A.flush(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && A.db.data) A.flush(); });
+  window.addEventListener('pagehide', () => {
+    if (A.db.data && ['pending', 'saving', 'error'].includes(A.syncStatus)) {
+      A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+    }
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && A.db.data && ['pending', 'saving', 'error'].includes(A.syncStatus)) {
+      A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+    }
+  });
+  window.addEventListener('online', () => {
+    if (A.db.data && onlineUser && !onlinePendingConflict) A.flush().catch(error => {
+      A.setSaveStatus && A.setSaveStatus('error', error.message);
+      A.reportSaveFailure && A.reportSaveFailure(error);
+    });
+  });
+  window.addEventListener('beforeunload', event => {
+    if (A.db.data && ['pending', 'saving', 'error'].includes(A.syncStatus)) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  });
 
   A.start = function () {
     A.applyTheme(); idle = Date.now(); if (!built) build(); E.startReminders(); if (A.faInit) A.faInit();
