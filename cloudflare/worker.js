@@ -254,12 +254,38 @@ async function route(request, env) {
     for (const row of rows.results || []) {
       try {
         const record = JSON.parse(row.value);
+        if (record.acknowledgedAt) continue;
         recoveries.push({ id: row.key, ...record });
       } catch (_) {
         // Leave malformed records in place for manual recovery rather than deleting them.
       }
     }
     return json({ recoveries, count: recoveries.length });
+  }
+
+  if (path === "/api/recoveries/ack" && request.method === "POST") {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: "Authentication required." }, 401);
+    const workspaceOwner = user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id;
+    const workspacePrefix = "legacy_recovery:workspace:" + workspaceOwner + ":";
+    const preferencesPrefix = "legacy_recovery:preferences:" + user.id + ":";
+    const input = await bodyJson(request);
+    const ids = Array.isArray(input?.ids) ? input.ids.filter(x => typeof x === "string").slice(0, 20) : [];
+    let acknowledged = 0;
+    for (const id of ids) {
+      if (!id.startsWith(workspacePrefix) && !id.startsWith(preferencesPrefix)) continue;
+      const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(id).first();
+      if (!row) continue;
+      let record;
+      try { record = JSON.parse(row.value); } catch (_) { continue; }
+      if (record.acknowledgedAt) continue;
+      record.acknowledgedAt = Date.now();
+      await env.DB.prepare("UPDATE system_settings SET value=? WHERE key=? AND value=?")
+        .bind(JSON.stringify(record), id, row.value).run();
+      acknowledged++;
+    }
+    if (acknowledged) await audit(env, user.id, "account.recovery_records_acknowledged", user.id, "count=" + acknowledged);
+    return json({ ok: true, acknowledged, retained: true });
   }
 
   if (path === "/api/data" && request.method === "GET") {
