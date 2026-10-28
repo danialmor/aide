@@ -43,3 +43,8 @@ Workspace records and account preferences are stored server-side. They are not s
 ## Limitations
 
 No browser-based system can guarantee zero data loss during a device crash, browser force-quit, or storage/network failure. This release is designed to make save state explicit, block stale overwrites, preserve legacy local storage and provide recovery exports rather than silently discard pending changes.
+
+
+## Legacy-tab recovery
+
+If an older AIDE tab submits a changed snapshot without a revision, the API now stores that submitted workspace or settings snapshot in a separate `legacy_recovery:` record and rejects the overwrite with HTTP 409. After signing into the updated app, the user is prompted to download a recovery archive and may mark the records as reviewed. Marking them reviewed hides the prompt but **does not delete the server-side recovery data**. Recovered snapshots are not automatically merged; compare them against the current online workspace to avoid duplicating or reintroducing stale values.
