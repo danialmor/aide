@@ -1892,24 +1892,24 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   let saveT = 0, settingsSaveT = 0;
   A.save = function (what) {
     if (!A.db.data) return;
-    A.setSaveStatus && A.setSaveStatus('pending');
+    A.setSaveStatus && A.setSaveStatus('pending', '', what === 'settings' ? 'preferences' : 'workspace');
     if (what === 'settings') {
       clearTimeout(settingsSaveT);
       settingsSaveT = setTimeout(() => {
         if (!A.vault || !A.db.data) return;
-        A.setSaveStatus && A.setSaveStatus('saving');
+        A.setSaveStatus && A.setSaveStatus('saving', '', 'preferences');
         A.vault.savePreferences(A.db.data.settings)
-          .then(() => A.setSaveStatus && A.setSaveStatus('saved'))
-          .catch(e => { A.setSaveStatus && A.setSaveStatus('error', e.message); A.reportSaveFailure && A.reportSaveFailure(e); A.toast('Could not save account settings online: ' + e.message); });
+          .then(() => A.setSaveStatus && A.setSaveStatus('saved', '', 'preferences'))
+          .catch(e => { A.setSaveStatus && A.setSaveStatus('error', e.message, 'preferences'); A.reportSaveFailure && A.reportSaveFailure(e, 'preferences'); A.toast('Could not save account settings online: ' + e.message); });
       }, 250);
     } else {
       clearTimeout(saveT);
       saveT = setTimeout(() => {
         if (!A.vault || !A.db.data) return;
-        A.setSaveStatus && A.setSaveStatus('saving');
+        A.setSaveStatus && A.setSaveStatus('saving', '', 'workspace');
         A.vault.save(A.db.data)
-          .then(() => A.setSaveStatus && A.setSaveStatus('saved'))
-          .catch(e => { A.setSaveStatus && A.setSaveStatus('error', e.message); A.reportSaveFailure && A.reportSaveFailure(e); A.toast('Could not save online: ' + e.message); });
+          .then(() => A.setSaveStatus && A.setSaveStatus('saved', '', 'workspace'))
+          .catch(e => { A.setSaveStatus && A.setSaveStatus('error', e.message, 'workspace'); A.reportSaveFailure && A.reportSaveFailure(e, 'workspace'); A.toast('Could not save online: ' + e.message); });
       }, 200);
     }
     A.emit('change', what);
@@ -2661,6 +2661,45 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       footer: [A.h('span', { class: 'grow' }), backup, useServer]
     });
   }
+  function showPreferencesConflict(pending) {
+    onlinePendingPreferencesConflict = pending;
+    A.setSaveStatus && A.setSaveStatus('error', 'Account preferences conflict', 'preferences');
+    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
+    let backedUp = false;
+    const useServer = A.h('button', { class: 'btn primary', type: 'button', disabled: true, onClick: () => {
+      if (!backedUp || !onlinePendingPreferencesConflict) return;
+      const p = onlinePendingPreferencesConflict;
+      onlinePreferencesRevision = p.remoteRevision;
+      onlineBasePreferences = normalizePreferences(p.remote);
+      A.db.data.settings = normalizePreferences(p.remote);
+      onlinePendingPreferencesConflict = null;
+      A.applyTheme();
+      if (syncRecoveryDialog) syncRecoveryDialog.close();
+      syncRecoveryDialog = null;
+      A.rebuild();
+      A.setSaveStatus && A.setSaveStatus('saved');
+      A.toast('Latest online settings loaded. Keep the recovery file for the settings you changed locally.');
+    } }, 'I saved the backup — load online settings');
+    const backup = A.h('button', { class: 'btn', type: 'button', onClick: () => {
+      downloadJsonFile({
+        format: 'AIDE settings conflict recovery', version: 1, exportedAt: new Date().toISOString(),
+        account: onlineUser && onlineUser.username, conflictPaths: pending.conflicts,
+        baseSettings: pending.base, localPendingSettings: pending.local, latestOnlineSettings: pending.remote,
+        workspace: normalizeWorkspace(A.db && A.db.data)
+      }, 'aide-settings-conflict-' + new Date().toISOString().slice(0, 10) + '.json');
+      backedUp = true; useServer.disabled = false;
+      A.toast('Settings recovery file downloaded. Keep it until the conflict is resolved.');
+    } }, 'Download recovery backup');
+    syncRecoveryDialog = A.modal({
+      title: 'Settings sync conflict',
+      body: [
+        A.h('p', null, 'The account settings changed on another device. AIDE blocked this save rather than replacing the latest online preferences. Your local settings remain in this page but are not confirmed as saved online.'),
+        A.h('p', { class: 'note' }, 'Conflicting settings: ' + pending.conflicts.slice(0, 8).join(', ') + (pending.conflicts.length > 8 ? '…' : '')),
+        A.h('p', null, 'Download a recovery file before loading the latest online settings.')
+      ],
+      footer: [A.h('span', { class: 'grow' }), backup, useServer]
+    });
+  }
   function reportSaveFailure(error) {
     if (onlinePendingConflict || onlinePendingPreferencesConflict || (error && ['AIDE_SYNC_CONFLICT', 'AIDE_PREF_CONFLICT'].includes(error.code))) return;
     if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
@@ -2688,12 +2727,18 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       footer: [A.h('span', { class: 'grow' }), download, retry]
     });
   }
-  A.setSaveStatus = (state, detail) => {
-    A.syncStatus = state;
+  const saveStates = { workspace: 'saved', preferences: 'saved' };
+  A.setSaveStatus = (state, detail, scope = 'all') => {
+    if (scope === 'workspace' || scope === 'preferences') saveStates[scope] = state;
+    else { saveStates.workspace = state; saveStates.preferences = state; }
+    const states = Object.values(saveStates);
+    const overall = states.includes('error') ? 'error' : states.includes('saving') ? 'saving' : states.includes('pending') ? 'pending' : 'saved';
+    A.syncStatus = overall;
     const labels = { pending: 'Changes waiting to save', saving: 'Saving online…', saved: 'Saved online', error: 'Save failed — recovery needed' };
     document.querySelectorAll('[data-aide-save-status]').forEach(el => {
-      el.textContent = labels[state] || String(state || 'Unknown');
-      el.dataset.status = state || 'unknown'; el.title = detail || '';
+      el.textContent = labels[overall];
+      el.dataset.status = overall;
+      el.title = detail || ('Workspace: ' + saveStates.workspace + ' · Settings: ' + saveStates.preferences);
     });
   };
   A.reportSaveFailure = reportSaveFailure;
