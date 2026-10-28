@@ -187,9 +187,10 @@ async function route(request, env) {
   if (path === "/api/preferences" && request.method === "GET") {
     const user = await currentUser(request, env);
     if (!user) return json({ error: "Authentication required." }, 401);
-    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind("account_preferences:" + user.id).first();
-    if (!row) return json({ preferences: {} });
-    try { return json({ preferences: JSON.parse(row.value) }); }
+    const key = "account_preferences:" + user.id;
+    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+    if (!row) return json({ preferences: {}, revision: null });
+    try { return json({ preferences: JSON.parse(row.value), revision: await sha256(row.value) }); }
     catch { return json({ error: "Stored account preferences are invalid." }, 500); }
   }
 
@@ -202,10 +203,28 @@ async function route(request, env) {
     }
     const value = JSON.stringify(input.preferences);
     if (value.length > 100000) return json({ error: "Account preferences exceed the 100 KB limit." }, 413);
-    await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
-      .bind("account_preferences:" + user.id, value).run();
+    const key = "account_preferences:" + user.id;
+    const current = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+    if (current) {
+      const currentRevision = await sha256(current.value);
+      if (typeof input.revision !== "string" || input.revision !== currentRevision) {
+        return json({ error: "Account settings changed on another device. Reload or merge before saving.", revision: currentRevision, conflict: true }, 409);
+      }
+      const write = await env.DB.prepare("UPDATE system_settings SET value=? WHERE key=? AND value=?").bind(value, key, current.value).run();
+      if (Number(write.meta?.changes || 0) !== 1) {
+        const latest = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+        return json({ error: "Concurrent settings update detected.", revision: latest ? await sha256(latest.value) : null, conflict: true }, 409);
+      }
+    } else {
+      const write = await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO NOTHING").bind(key, value).run();
+      if (Number(write.meta?.changes || 0) !== 1) {
+        const latest = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+        return json({ error: "Settings were initialized on another device.", revision: latest ? await sha256(latest.value) : null, conflict: true }, 409);
+      }
+    }
+    const revision = await sha256(value);
     await audit(env, user.id, "account.preferences_saved", user.id, "bytes=" + value.length);
-    return json({ ok: true, savedAt: Date.now(), bytes: value.length });
+    return json({ ok: true, savedAt: Date.now(), bytes: value.length, revision });
   }
 
   if (path === "/api/data" && request.method === "GET") {
