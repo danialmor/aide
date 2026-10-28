@@ -2462,11 +2462,22 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   /* ONLINE-ONLY MODE: authentication and workspace data live on Cloudflare. */
   const ONLINE_API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
   let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlineUsersCache = [];
+  // Legacy local records may be the only copy of older workspaces. Never erase
+  // browser storage automatically during boot or sign-in; cleanup must be explicit.
   async function clearLocalPersistence() {
-    try { localStorage.clear(); } catch (_) {}
-    try { sessionStorage.clear(); } catch (_) {}
-    try { indexedDB.deleteDatabase('aide-session'); } catch (_) {}
-    try { if ('caches' in window) { const keys = await caches.keys(); await Promise.all(keys.map(key => caches.delete(key))); } } catch (_) {}
+    return;
+  }
+  function legacyStorageKeys() {
+    try { return Object.keys(localStorage).filter(k => k === 'aide.vault2' || k === 'aide.users' || k === 'aide.lastUser' || k.startsWith('aide.vault.')); }
+    catch (_) { return []; }
+  }
+  function downloadLegacyStorageArchive() {
+    const keys = legacyStorageKeys(), storage = {};
+    keys.forEach(k => { try { storage[k] = localStorage.getItem(k); } catch (_) {} });
+    const payload = { format: 'AIDE encrypted legacy browser archive', version: 1, exportedAt: new Date().toISOString(), origin: location.origin, storage };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'aide-legacy-encrypted-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   async function onlineRequest(path, method = 'GET', body) {
     const headers = {};
@@ -2626,12 +2637,17 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       switcher.textContent = mode === 'register' ? 'Back to sign in' : 'Create online account';
       error.hidden = true;
     });
+    const legacyKeys = legacyStorageKeys();
+    const legacyNotice = h('section', { class: 'card', style: { marginTop: '14px', maxWidth: '980px' }, hidden: !legacyKeys.length },
+      h('h3', null, 'Older local AIDE data detected'),
+      h('p', { class: 'note' }, 'Encrypted legacy data exists in this browser. It is not used by the online workspace, but it has been preserved. Download an archive before clearing browser data or changing devices.'),
+      h('button', { class: 'btn', type: 'button', onClick: downloadLegacyStorageArchive }, 'Download encrypted local backup'));
     root.replaceChildren(h('div', { class: 'login-card' },
       h('div', { class: 'login-art' },
         h('div', { class: 'brand' }, h('div', { class: 'brand-mark' }, 'A'), h('div', null, h('b', null, 'Aide'), h('small', null, 'Cloud workspace'))),
         h('div', null, h('h2', null, 'One online workspace.'), h('p', null, 'Sign in from any device to access your server-stored data.')),
         h('ul', null, h('li', null, 'Online account authentication'), h('li', null, 'Cloudflare D1 persistence'), h('li', null, 'No local workspace database'))),
-      form));
+      form, legacyNotice));
     user.focus({ preventScroll: true });
   };
   A.boot = async function() {
