@@ -2532,10 +2532,159 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       throw new Error('ارتباط با API پس از ' + attempts + ' تلاش ناموفق بود (' + detail + '). مسیر: ' + path + '؛ مبدأ سایت: ' + origin + '؛ سرور API: ' + apiHost + '. اگر این خطا تکرار شد، تب Network مرورگر را بررسی کنید؛ این خطا به‌تنهایی به معنی اشتباه بودن نام کاربری یا رمز نیست.');
     }
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || ('Server request failed (' + response.status + ').'));
+    if (!response.ok) {
+      const error = new Error(result.error || ('Server request failed (' + response.status + ').'));
+      error.status = response.status; error.payload = result;
+      throw error;
+    }
     if (result.token) onlineToken = result.token;
     return result;
   }
+
+  const MISSING = Symbol('aide-missing');
+  const cloneValue = value => value === MISSING ? MISSING : value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  function stableValue(value) {
+    if (value === MISSING) return '"__MISSING__"';
+    if (value === undefined) return '"__UNDEFINED__"';
+    if (value === null || typeof value !== 'object') return JSON.stringify(value);
+    if (Array.isArray(value)) return '[' + value.map(stableValue).join(',') + ']';
+    return '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + stableValue(value[k])).join(',') + '}';
+  }
+  const sameValue = (a, b) => a === b || (a !== MISSING && b !== MISSING && stableValue(a) === stableValue(b));
+  const isPlainObject = value => !!value && typeof value === 'object' && !Array.isArray(value);
+  function normalizeWorkspace(data) {
+    const value = Object.assign({ events: [], contacts: [], requests: [], tasks: [], notes: [], avail: {}, away: [] }, cloneValue(isPlainObject(data) ? data : {}));
+    delete value.settings;
+    return value;
+  }
+  function mergeWorkspaceValue(base, local, remote, path, conflicts) {
+    if (sameValue(local, base)) return cloneValue(remote);
+    if (sameValue(remote, base)) return cloneValue(local);
+    if (sameValue(local, remote)) return cloneValue(local);
+
+    if ([base, local, remote].every(v => v === MISSING || Array.isArray(v)) &&
+        [base, local, remote].filter(v => v !== MISSING).length === [base, local, remote].filter(Array.isArray).length) {
+      const b = base === MISSING ? [] : base, l = local === MISSING ? [] : local, r = remote === MISSING ? [] : remote;
+      const collection = /(?:^|\.)(events|contacts|requests|tasks|notes|away)$/.test(path);
+      const allItems = [...b, ...l, ...r];
+      const idSafe = allItems.every(item => isPlainObject(item) && (typeof item.id === 'string' || typeof item.id === 'number'));
+      if (collection && idSafe) {
+        const bm = new Map(b.map(x => [String(x.id), x])), lm = new Map(l.map(x => [String(x.id), x])), rm = new Map(r.map(x => [String(x.id), x]));
+        const ids = [...new Set([...r, ...l, ...b].map(x => String(x.id)))], merged = [];
+        for (const id of ids) {
+          const bv = bm.has(id) ? bm.get(id) : MISSING, lv = lm.has(id) ? lm.get(id) : MISSING, rv = rm.has(id) ? rm.get(id) : MISSING;
+          const item = mergeWorkspaceValue(bv, lv, rv, path + '[' + id + ']', conflicts);
+          if (item !== MISSING) merged.push(item);
+        }
+        return merged;
+      }
+      const scalarOnly = allItems.every(v => v === null || ['string', 'number', 'boolean'].includes(typeof v));
+      if (scalarOnly && b.every(v => l.some(x => sameValue(x, v)) && r.some(x => sameValue(x, v)))) {
+        const out = [...r];
+        for (const item of l) if (!out.some(x => sameValue(x, item))) out.push(item);
+        return out;
+      }
+      conflicts.push(path || '$');
+      return cloneValue(remote);
+    }
+
+    if (isPlainObject(local) && isPlainObject(remote) && (base === MISSING || isPlainObject(base))) {
+      const b = base === MISSING ? {} : base, out = {};
+      const keys = new Set([...Object.keys(b), ...Object.keys(local), ...Object.keys(remote)]);
+      for (const key of keys) {
+        const bv = Object.prototype.hasOwnProperty.call(b, key) ? b[key] : MISSING;
+        const lv = Object.prototype.hasOwnProperty.call(local, key) ? local[key] : MISSING;
+        const rv = Object.prototype.hasOwnProperty.call(remote, key) ? remote[key] : MISSING;
+        const merged = mergeWorkspaceValue(bv, lv, rv, path ? path + '.' + key : key, conflicts);
+        if (merged !== MISSING) out[key] = merged;
+      }
+      return out;
+    }
+
+    conflicts.push(path || '$');
+    return cloneValue(remote);
+  }
+  function primeWorkspace(remote) {
+    onlineWorkspaceRevision = remote && typeof remote.revision === 'string' ? remote.revision : null;
+    onlineBaseWorkspace = normalizeWorkspace(remote && remote.data ? remote.data : {});
+    onlinePendingConflict = null;
+  }
+  function downloadJsonFile(value, filename) {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
+    const a = document.createElement('a'); a.href = url; a.download = filename;
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+  function showWorkspaceConflict(pending) {
+    onlinePendingConflict = pending;
+    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
+    let backedUp = false;
+    const useServer = A.h('button', { class: 'btn primary', type: 'button', disabled: true, onClick: () => {
+      if (!backedUp || !onlinePendingConflict) return;
+      const p = onlinePendingConflict, settings = cloneValue(A.settings());
+      primeWorkspace({ data: p.remote, revision: p.remoteRevision });
+      A.load(Object.assign({}, p.remote, { settings }));
+      onlinePendingConflict = null;
+      if (syncRecoveryDialog) syncRecoveryDialog.close();
+      syncRecoveryDialog = null;
+      A.start();
+      A.toast('Latest online data loaded. Keep the downloaded recovery file for your unsaved edits.');
+    } }, 'I saved the backup — load online version');
+    const backup = A.h('button', { class: 'btn', type: 'button', onClick: () => {
+      downloadJsonFile({
+        format: 'AIDE workspace conflict recovery', version: 1, exportedAt: new Date().toISOString(),
+        account: onlineUser && onlineUser.username, conflictPaths: pending.conflicts,
+        base: pending.base, localPending: pending.local, latestOnline: pending.remote,
+        localPreferences: cloneValue(A.settings())
+      }, 'aide-workspace-conflict-' + new Date().toISOString().slice(0, 10) + '.json');
+      backedUp = true; useServer.disabled = false;
+      A.toast('Recovery file downloaded. Keep it until the conflict is resolved.');
+    } }, 'Download recovery backup');
+    syncRecoveryDialog = A.modal({
+      title: 'Workspace sync conflict',
+      body: [
+        A.h('p', null, 'Another device changed the same record or field. AIDE blocked this save instead of replacing newer online data. Your local edits are still in this page, but are not confirmed as saved online.'),
+        A.h('p', { class: 'note' }, 'Conflicting paths: ' + pending.conflicts.slice(0, 8).join(', ') + (pending.conflicts.length > 8 ? '…' : '')),
+        A.h('p', null, 'Download the recovery backup first. It contains the base, your pending edits, the latest online copy and your personal settings.')
+      ],
+      footer: [A.h('span', { class: 'grow' }), backup, useServer]
+    });
+  }
+  function reportSaveFailure(error) {
+    if (onlinePendingConflict || (error && error.code === 'AIDE_SYNC_CONFLICT')) return;
+    if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) return;
+    const backup = {
+      format: 'AIDE unsaved online recovery', version: 1, exportedAt: new Date().toISOString(),
+      account: onlineUser && onlineUser.username, reason: String(error && error.message || error || 'Unknown save error'),
+      workspace: normalizeWorkspace(A.db && A.db.data), preferences: cloneValue(A.settings()),
+      lastKnownRevision: onlineWorkspaceRevision
+    };
+    const download = A.h('button', { class: 'btn', type: 'button', onClick: () => {
+      downloadJsonFile(backup, 'aide-unsaved-recovery-' + new Date().toISOString().slice(0, 10) + '.json');
+      A.toast('Recovery file downloaded. Keep it until online sync is restored.');
+    } }, 'Download recovery backup');
+    const retry = A.h('button', { class: 'btn primary', type: 'button', onClick: async () => {
+      if (syncRecoveryDialog) syncRecoveryDialog.close(); syncRecoveryDialog = null;
+      try { await A.flush(); A.toast('All current changes were saved online.'); }
+      catch (e) { A.setSaveStatus && A.setSaveStatus('error', e.message); }
+    } }, 'Retry online save');
+    syncRecoveryDialog = A.modal({
+      title: 'Online save needs attention',
+      body: [
+        A.h('p', null, 'AIDE could not confirm that the latest changes were stored online. They remain in this open page for now; do not refresh or close it before retrying or downloading a recovery file.'),
+        A.h('p', { class: 'note' }, String(error && error.message || error || 'Unknown save error'))
+      ],
+      footer: [A.h('span', { class: 'grow' }), download, retry]
+    });
+  }
+  A.setSaveStatus = (state, detail) => {
+    A.syncStatus = state;
+    const labels = { pending: 'Changes waiting to save', saving: 'Saving online…', saved: 'Saved online', error: 'Save failed — recovery needed' };
+    document.querySelectorAll('[data-aide-save-status]').forEach(el => {
+      el.textContent = labels[state] || String(state || 'Unknown');
+      el.dataset.status = state || 'unknown'; el.title = detail || '';
+    });
+  };
+  A.reportSaveFailure = reportSaveFailure;
   V.role = () => (onlineRole === 'system_admin' || onlineRole === 'admin') ? 'admin' : (onlineRole === 'ceo' ? 'manager' : 'user');
   V.user = () => onlineUser && onlineUser.username;
   V.isElevated = () => ['system_admin', 'admin'].includes(onlineRole);
