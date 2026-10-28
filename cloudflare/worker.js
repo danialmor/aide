@@ -272,7 +272,24 @@ async function route(request, env) {
       const currentRevision = await sha256(current.value);
       // A byte-identical old-client flush is a no-op, not a conflict; changing payloads still require a revision.
       if (value === current.value) return json({ ok: true, unchanged: true, savedAt: Date.now(), bytes: value.length, revision: currentRevision });
-      if (typeof input.revision !== "string" || input.revision !== currentRevision) {
+      if (typeof input.revision !== "string") {
+        const recoveryKey = "legacy_recovery:workspace:" + workspaceOwner + ":" + await sha256(value);
+        const recoveryValue = JSON.stringify({
+          format: "AIDE legacy workspace recovery", version: 1, kind: "workspace",
+          capturedAt: Date.now(), userId: user.id, workspaceOwner, serverRevision: currentRevision,
+          data: input.data
+        });
+        await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+          .bind(recoveryKey, recoveryValue).run();
+        await audit(env, user.id, "workspace.legacy_recovery_captured", user.id, "bytes=" + value.length);
+        return json({
+          error: "This older client cannot safely replace newer online data. Its submitted workspace was preserved in recovery; reload the application before editing further.",
+          revision: currentRevision,
+          conflict: true,
+          recoveryCaptured: true
+        }, 409);
+      }
+      if (input.revision !== currentRevision) {
         return json({
           error: "This workspace changed after it was loaded. The update was blocked to protect newer data. Reload or merge the pending edits before saving.",
           revision: currentRevision,
