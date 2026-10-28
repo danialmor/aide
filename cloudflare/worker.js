@@ -207,6 +207,8 @@ async function route(request, env) {
     const current = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
     if (current) {
       const currentRevision = await sha256(current.value);
+      // Safe idempotent compatibility for old clients that flush unchanged settings without a revision.
+      if (value === current.value) return json({ ok: true, unchanged: true, savedAt: Date.now(), bytes: value.length, revision: currentRevision });
       if (typeof input.revision !== "string" || input.revision !== currentRevision) {
         return json({ error: "Account settings changed on another device. Reload or merge before saving.", revision: currentRevision, conflict: true }, 409);
       }
@@ -256,6 +258,8 @@ async function route(request, env) {
     // initialize an empty workspace, but cannot overwrite an existing one.
     if (current) {
       const currentRevision = await sha256(current.value);
+      // A byte-identical old-client flush is a no-op, not a conflict; changing payloads still require a revision.
+      if (value === current.value) return json({ ok: true, unchanged: true, savedAt: Date.now(), bytes: value.length, revision: currentRevision });
       if (typeof input.revision !== "string" || input.revision !== currentRevision) {
         return json({
           error: "This workspace changed after it was loaded. The update was blocked to protect newer data. Reload or merge the pending edits before saving.",
