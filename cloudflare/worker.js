@@ -209,7 +209,19 @@ async function route(request, env) {
       const currentRevision = await sha256(current.value);
       // Safe idempotent compatibility for old clients that flush unchanged settings without a revision.
       if (value === current.value) return json({ ok: true, unchanged: true, savedAt: Date.now(), bytes: value.length, revision: currentRevision });
-      if (typeof input.revision !== "string" || input.revision !== currentRevision) {
+      if (typeof input.revision !== "string") {
+        const recoveryKey = "legacy_recovery:preferences:" + user.id + ":" + await sha256(value);
+        const recoveryValue = JSON.stringify({
+          format: "AIDE legacy preference recovery", version: 1, kind: "preferences",
+          capturedAt: Date.now(), userId: user.id, serverRevision: currentRevision,
+          preferences: input.preferences
+        });
+        await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+          .bind(recoveryKey, recoveryValue).run();
+        await audit(env, user.id, "account.legacy_recovery_captured", user.id, "bytes=" + value.length);
+        return json({ error: "This older client cannot safely replace the latest account settings. Its submitted settings were preserved in recovery; reload the application before editing further.", revision: currentRevision, conflict: true, recoveryCaptured: true }, 409);
+      }
+      if (input.revision !== currentRevision) {
         return json({ error: "Account settings changed on another device. Reload or merge before saving.", revision: currentRevision, conflict: true }, 409);
       }
       const write = await env.DB.prepare("UPDATE system_settings SET value=? WHERE key=? AND value=?").bind(value, key, current.value).run();
