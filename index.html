@@ -2637,6 +2637,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   }
   function showWorkspaceConflict(pending) {
     onlinePendingConflict = pending;
+    A.setSaveStatus && A.setSaveStatus('error', 'Workspace sync conflict', 'workspace');
     if (syncRecoveryDialog && syncRecoveryDialog.el && syncRecoveryDialog.el.open) {
       if (syncRecoveryDialogKind === 'workspace') return;
       syncRecoveryDialog.close(); syncRecoveryDialog = null; syncRecoveryDialogKind = null;
@@ -2660,7 +2661,13 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         format: 'AIDE workspace conflict recovery', version: 1, exportedAt: new Date().toISOString(),
         account: onlineUser && onlineUser.username, conflictPaths: pending.conflicts,
         base: pending.base, localPending: pending.local, latestOnline: pending.remote,
-        localPreferences: cloneValue(A.settings())
+        localPreferences: cloneValue(A.settings()),
+        pendingPreferencesConflict: onlinePendingPreferencesConflict ? {
+          baseSettings: onlinePendingPreferencesConflict.base,
+          localPendingSettings: onlinePendingPreferencesConflict.local,
+          latestOnlineSettings: onlinePendingPreferencesConflict.remote,
+          conflictPaths: onlinePendingPreferencesConflict.conflicts
+        } : null
       }, 'aide-workspace-conflict-' + new Date().toISOString().slice(0, 10) + '.json');
       backedUp = true; useServer.disabled = false;
       A.toast('Recovery file downloaded. Keep it until the conflict is resolved.');
@@ -2705,7 +2712,11 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         format: 'AIDE settings conflict recovery', version: 1, exportedAt: new Date().toISOString(),
         account: onlineUser && onlineUser.username, conflictPaths: pending.conflicts,
         baseSettings: pending.base, localPendingSettings: pending.local, latestOnlineSettings: pending.remote,
-        workspace: normalizeWorkspace(A.db && A.db.data)
+        workspace: normalizeWorkspace(A.db && A.db.data),
+        pendingWorkspaceConflict: onlinePendingConflict ? {
+          base: onlinePendingConflict.base, localPending: onlinePendingConflict.local,
+          latestOnline: onlinePendingConflict.remote, conflictPaths: onlinePendingConflict.conflicts
+        } : null
       }, 'aide-settings-conflict-' + new Date().toISOString().slice(0, 10) + '.json');
       backedUp = true; useServer.disabled = false;
       A.toast('Settings recovery file downloaded. Keep it until the conflict is resolved.');
@@ -2796,7 +2807,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     const retry = A.h('button', { class: 'btn primary', type: 'button', onClick: async () => {
       if (syncRecoveryDialog) syncRecoveryDialog.close(); syncRecoveryDialog = null; syncRecoveryDialogKind = null;
       try { await A.flush(); A.toast('All current changes were saved online.'); }
-      catch (e) { A.setSaveStatus && A.setSaveStatus('error', e.message); }
+      catch (e) {
+        A.setSaveStatus && A.setSaveStatus('error', e.message);
+        A.reportSaveFailure && A.reportSaveFailure(e);
+      }
     } }, 'Retry online save');
     syncRecoveryDialogKind = 'save-failure';
     syncRecoveryDialog = A.modal({
@@ -2893,8 +2907,8 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     primePreferences(result);
     return result.preferences || {};
   };
-  V.getRecoveries = async () => {
-    const result = await onlineRequest('/api/recoveries');
+  V.getRecoveries = async (includeReviewed = false) => {
+    const result = await onlineRequest('/api/recoveries' + (includeReviewed ? '?all=1' : ''));
     return Array.isArray(result.recoveries) ? result.recoveries : [];
   };
   V.savePreferences = preferences => {
@@ -7287,7 +7301,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
             h('div', { class: 'aide-recovery-meta' },
               h('b', null, label),
               h('span', null, safeDate(record.capturedAt)),
-              h('small', null, (record.format || 'AIDE recovery copy') + ' · ' + bytes.toLocaleString() + ' بایت')),
+              h('small', null, (record.format || 'AIDE recovery copy') + ' · ' + bytes.toLocaleString() + ' بایت'),
+              h('small', null, record.acknowledgedAt ? 'بررسی‌شده · نسخه همچنان روی سرور محفوظ است' : 'نیازمند بررسی')),
             h('button', { class: 'btn sm', type: 'button', onClick: () => {
               downloadJson(record, 'aide-recovery-' + (record.kind || 'record') + '-' + safeDate(record.capturedAt).replace(/[^0-9]/g, '-').slice(0, 24) + '.json');
             } }, 'دانلود')));
@@ -7298,7 +7313,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
         status.textContent = 'در حال دریافت فهرست بازیابی…';
         rows.replaceChildren();
         try {
-          records = await A.vault.getRecoveries();
+          records = await A.vault.getRecoveries(true);
           status.textContent = 'تعداد نسخه‌های بازیابی ثبت‌شده: ' + records.length;
           renderRows();
         } catch (error) {
