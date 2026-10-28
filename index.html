@@ -3660,7 +3660,17 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       h('button', { type: 'button', class: 'item hov', onClick: () => { m.close(); A.palette(); } }, A.ico('search'), 'Search everything'), h('button', { type: 'button', class: 'item hov', onClick: () => { m.close(); lock(); } }, A.ico('lock'), 'Lock the desk'));
     const m = A.modal({ title: 'More', body: list });
   }
-  function lock(msg) { A.flush().finally(() => { A.vault.forget(); A.vault.lock(); document.title = 'Aide · Executive Desk'; clearInterval(E._t); view && view.destroy && view.destroy(); view = null; built = false; A.showLogin(typeof msg === 'string' ? msg : 'Locked. Enter your password to continue.'); }); }
+  function lock(msg) {
+    A.flush().then(() => {
+      A.vault.forget(); A.vault.lock(); document.title = 'Aide · Executive Desk'; clearInterval(E._t);
+      view && view.destroy && view.destroy(); view = null; built = false;
+      A.showLogin(typeof msg === 'string' ? msg : 'Locked. Enter your password to continue.');
+    }).catch(error => {
+      A.setSaveStatus && A.setSaveStatus('error', error.message);
+      A.reportSaveFailure && A.reportSaveFailure(error);
+      A.toast('Lock cancelled because AIDE could not confirm the latest online save. Retry or download a recovery backup first.');
+    });
+  }
 
   /* ── router ───────────────────────────────────────────────────────── */
   A.route = function () {
@@ -3798,10 +3808,14 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(n => window.addEventListener(n, () => idle = Date.now(), { passive: true, capture: true }));
   setInterval(() => { if (!A.db.data) return; const m = A.settings().lockMin; if (m > 0 && Date.now() - idle > m * 60000) lock('Locked after ' + m + ' minutes of inactivity.'); }, 15000);
   window.addEventListener('pagehide', () => {
-    if (A.db.data) A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+    if (A.db.data && ['pending', 'saving', 'error'].includes(A.syncStatus)) {
+      A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+    }
   });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && A.db.data) A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+    if (document.hidden && A.db.data && ['pending', 'saving', 'error'].includes(A.syncStatus)) {
+      A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+    }
   });
   window.addEventListener('online', () => {
     if (A.db.data && onlineUser && !onlinePendingConflict) A.flush().catch(error => {
