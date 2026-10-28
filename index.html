@@ -4014,12 +4014,20 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   setInterval(() => { if (!A.db.data) return; const m = A.settings().lockMin; if (m > 0 && Date.now() - idle > m * 60000) lock('Locked after ' + m + ' minutes of inactivity.'); }, 15000);
   window.addEventListener('pagehide', () => {
     if (A.db.data && ['pending', 'saving', 'error'].includes(A.syncStatus)) {
-      A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+      A.flush().catch(error => {
+        A.lastSaveError = error;
+        A.setSaveStatus && A.setSaveStatus('error', error.message);
+      });
     }
   });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && A.db.data && ['pending', 'saving', 'error'].includes(A.syncStatus)) {
-      A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); });
+      A.flush().catch(error => {
+        A.lastSaveError = error;
+        A.setSaveStatus && A.setSaveStatus('error', error.message);
+      });
+    } else if (!document.hidden && A.db.data && A.syncStatus === 'error') {
+      A.reportSaveFailure && A.reportSaveFailure(A.lastSaveError || new Error('The previous online save could not be confirmed.'));
     }
   });
   window.addEventListener('online', () => {
