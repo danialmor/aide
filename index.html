@@ -7256,7 +7256,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   A.setLang = function (l) {
     const S = A.settings(); S.lang = l;
     if (l === 'fa') { S.dir = 'rtl'; S.calSystem = 'jalali'; S.weekStart = 5; S.hijriOffset = S.hijriOffset || 0; } else { S.dir = 'ltr'; S.calSystem = 'gregorian'; S.weekStart = 0; }
-    A.clearHolidayCache && A.clearHolidayCache(); A.save('settings'); A.flush().catch(() => {});
+    A.clearHolidayCache && A.clearHolidayCache(); A.save('settings'); A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); A.reportSaveFailure && A.reportSaveFailure(error); });
     A.rebuild();                                                  // redraw the menu and page in the new language
   };
   /* the tiny فا / EN button */
