@@ -209,7 +209,7 @@ async function route(request, env) {
       const currentRevision = await sha256(current.value);
       // Safe idempotent compatibility for old clients that flush unchanged settings without a revision.
       if (value === current.value) return json({ ok: true, unchanged: true, savedAt: Date.now(), bytes: value.length, revision: currentRevision });
-      if (typeof input.revision !== "string") {
+      if (!Object.prototype.hasOwnProperty.call(input, "revision")) {
         const recoveryKey = "legacy_recovery:preferences:" + user.id + ":" + await sha256(value);
         const recoveryValue = JSON.stringify({
           format: "AIDE legacy preference recovery", version: 1, kind: "preferences",
@@ -233,7 +233,21 @@ async function route(request, env) {
       const write = await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO NOTHING").bind(key, value).run();
       if (Number(write.meta?.changes || 0) !== 1) {
         const latest = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
-        return json({ error: "Settings were initialized on another device.", revision: latest ? await sha256(latest.value) : null, conflict: true }, 409);
+        let recoveryCaptured = false;
+        if (!Object.prototype.hasOwnProperty.call(input, "revision")) {
+          const recoveryKey = "legacy_recovery:preferences:" + user.id + ":" + await sha256(value);
+          const recoveryValue = JSON.stringify({
+            format: "AIDE legacy preference recovery", version: 1, kind: "preferences",
+            capturedAt: Date.now(), userId: user.id,
+            serverRevision: latest ? await sha256(latest.value) : null,
+            preferences: input.preferences
+          });
+          await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+            .bind(recoveryKey, recoveryValue).run();
+          await audit(env, user.id, "account.legacy_recovery_captured", user.id, "bytes=" + value.length + ";race=initialization");
+          recoveryCaptured = true;
+        }
+        return json({ error: "Settings were initialized on another device.", revision: latest ? await sha256(latest.value) : null, conflict: true, recoveryCaptured }, 409);
       }
     }
     const revision = await sha256(value);
@@ -321,7 +335,7 @@ async function route(request, env) {
       const currentRevision = await sha256(current.value);
       // A byte-identical old-client flush is a no-op, not a conflict; changing payloads still require a revision.
       if (value === current.value) return json({ ok: true, unchanged: true, savedAt: Date.now(), bytes: value.length, revision: currentRevision });
-      if (typeof input.revision !== "string") {
+      if (!Object.prototype.hasOwnProperty.call(input, "revision")) {
         const recoveryKey = "legacy_recovery:workspace:" + workspaceOwner + ":" + await sha256(value);
         const recoveryValue = JSON.stringify({
           format: "AIDE legacy workspace recovery", version: 1, kind: "workspace",
@@ -360,10 +374,25 @@ async function route(request, env) {
         .bind(key, value).run();
       if (Number(writeResult.meta?.changes || 0) !== 1) {
         const latest = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(key).first();
+        let recoveryCaptured = false;
+        if (!Object.prototype.hasOwnProperty.call(input, "revision")) {
+          const recoveryKey = "legacy_recovery:workspace:" + workspaceOwner + ":" + await sha256(value);
+          const recoveryValue = JSON.stringify({
+            format: "AIDE legacy workspace recovery", version: 1, kind: "workspace",
+            capturedAt: Date.now(), userId: user.id, workspaceOwner,
+            serverRevision: latest ? await sha256(latest.value) : null,
+            data: input.data
+          });
+          await env.DB.prepare("INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+            .bind(recoveryKey, recoveryValue).run();
+          await audit(env, user.id, "workspace.legacy_recovery_captured", user.id, "bytes=" + value.length + ";race=initialization");
+          recoveryCaptured = true;
+        }
         return json({
           error: "Another device initialized this workspace at the same time. No data was overwritten; reload before saving.",
           revision: latest ? await sha256(latest.value) : null,
-          conflict: true
+          conflict: true,
+          recoveryCaptured
         }, 409);
       }
     }
