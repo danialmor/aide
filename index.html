@@ -4102,7 +4102,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         if (key === 'solape') return h('div', { class: 'stack', style: { gap: '7px', width: '100%' } },
           h('div', { class: 'row wrap' }, h('b', null, 'تداخل‌های واقعی ۱۴ روز آینده'), h('span', { class: 'grow' }), h('span', { class: 'chip', style: { background: conflicts.length ? 'var(--danger-bg)' : 'var(--c-visit)' } }, String(conflicts.length))),
           ...(conflicts.length ? conflicts.slice(0,3).map(pair => h('button', { type:'button', class:'item hov', style:{textAlign:'start',width:'100%'}, onClick:()=>openCal(pair.day,'day') },
-            h('span',{class:'grow',style:{minWidth:0}}, h('b',null,D.longS(pair.day)), h('small',{class:'muted',style:{display:'block'}}, A.time(pair.a.start)+'–'+A.time(pair.a.end)+' · '+(pair.a.title||'')+' / '+(pair.b.title||'')),
+            h('span',{class:'grow',style:{minWidth:0}}, h('b',null,D.longS(pair.day)), h('small',{class:'muted',style:{display:'block'}}, A.time(pair.a.start)+'–'+A.time(pair.a.end)+' · '+(pair.a.title||'')+' / '+(pair.b.title||''))),
             h('span',{class:'chip',style:{background:'var(--danger-bg)'}},'تداخل'))) : [h('p',{class:'small muted'},'در دو هفته آینده تداخل زمانی پیدا نشد.') ]));
         if (key === 'tregua') return h('div', { class: 'stack', style: { gap: '8px', width: '100%' } },
           h('div', { class: 'row' }, h('span', { class: 'grow' }, 'یادآور پیش‌فرض'), h('span', { class: 'chip' }, S.remind ? S.remind + ' دقیقه قبل' : 'خاموش')),
