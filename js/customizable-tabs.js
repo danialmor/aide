@@ -19,11 +19,22 @@
     ['timer', 'زمان‌سنج‌ها', 'Timers'],
     ['people', 'افراد', 'People'],
     ['themes', 'تم‌ها', 'Themes'],
+    ['layouts', 'قالب‌ها', 'Layouts'],
+    ['moxen-anaquel', 'قالب Anaquel', 'Anaquel'],
+    ['moxen-convite', 'قالب Convite', 'Convite'],
+    ['moxen-epoca', 'قالب Época', 'Época'],
+    ['moxen-lunario', 'قالب Lunario', 'Lunario'],
+    ['moxen-parangon', 'قالب Parangón', 'Parangón'],
+    ['moxen-semana', 'قالب Semana', 'Semana'],
+    ['moxen-solape', 'قالب Solape', 'Solape'],
+    ['moxen-tregua', 'قالب Tregua', 'Tregua'],
+    ['moxen-turno', 'قالب Turno', 'Turno'],
+    ['moxen-vencimientos', 'قالب Vencimientos', 'Vencimientos'],
     ['manager', 'مدیرعامل', 'Manager'],
     ['users', 'کاربران', 'Users'],
     ['settings', 'تنظیمات', 'Settings']
   ];
-  const MANAGER_SECTIONS = new Set(['manager', 'themes', 'settings']);
+  const MANAGER_SECTIONS = new Set(['manager', 'themes', 'settings', 'layouts', 'moxen-anaquel', 'moxen-convite', 'moxen-epoca', 'moxen-lunario', 'moxen-parangon', 'moxen-semana', 'moxen-solape', 'moxen-tregua', 'moxen-turno', 'moxen-vencimientos']);
   const defaults = () => [];
   function availableSections() {
     if (A.role === 'manager') return SECTIONS.filter(([id]) => MANAGER_SECTIONS.has(id));
