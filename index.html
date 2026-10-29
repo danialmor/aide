@@ -1886,6 +1886,9 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     // One-time migration: existing workspaces open in Shamsi by default. After this marker is saved,
     // the user's explicit Gregorian/Shamsi choice is respected on every subsequent login.
     if (!st.calendarSystemInit) { st.calSystem = 'jalali'; st.weekStart = 5; st.calendarSystemInit = true; setTimeout(() => A.save('settings'), 0); }
+    // One-time migration for every account: unify all integrated Moxen views on the
+    // Shamsi calendar. The user can still change the single global calendar in Settings.
+    if (!st.moxenCalendarUnified) { st.calSystem = 'jalali'; st.weekStart = 5; st.moxenCalendarUnified = true; setTimeout(() => A.save('settings'), 0); }
     if (data.settings && !data.settings.themeMode) st.themeMode = { paper: 'light', dusk: 'dark', auto: 'auto' }[data.settings.theme] || 'auto';   // from the older theme setting
     A.applyTheme();
   };
@@ -7466,7 +7469,10 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   };
   A.setLang = function (l) {
     const S = A.settings(); S.lang = l;
-    if (l === 'fa') { S.dir = 'rtl'; S.calSystem = 'jalali'; S.weekStart = 5; S.hijriOffset = S.hijriOffset || 0; } else { S.dir = 'ltr'; S.calSystem = 'gregorian'; S.weekStart = 0; }
+    if (l === 'fa') { S.dir = 'rtl'; S.hijriOffset = S.hijriOffset || 0; }
+    else { S.dir = 'ltr'; }
+    // Language controls the interface direction only. Calendar system and week
+    // rules are account preferences shared by every page and template.
     A.clearHolidayCache && A.clearHolidayCache(); A.save('settings'); A.flush().catch(error => { A.setSaveStatus && A.setSaveStatus('error', error.message); A.reportSaveFailure && A.reportSaveFailure(error); });
     A.rebuild();                                                  // redraw the menu and page in the new language
   };
