@@ -125,16 +125,29 @@
     root.append(card([title(dateLabel(s.selected),'جزئیات روز'),...selected.map(evCard),btn('＋ رویداد جدید',()=>addEvent(s.selected),true)]));
   }
   function renderParangon(root,s) {
-    const today=D.today(), a=Number.isFinite(s.from)?s.from:today-6, b=Number.isFinite(s.to)?s.to:today, span=Math.max(1,Math.min(366,b-a+1)), prevA=a-span,prevB=a-1;
+    const today=D.today(), a=Number.isFinite(s.from)?s.from:today-6, b=Number.isFinite(s.to)?Math.max(a,s.to):today;
+    const span=Math.max(1,Math.min(366,b-a+1)), prevA=a-span, prevB=a-1;
     const current=rangeEvents(a,b), previous=rangeEvents(prevA,prevB), max=Math.max(1,current.length,previous.length);
-    root.append(card([title('Parangón · مقایسه بازه‌ها','دو بازه را انتخاب کنید و تعداد رویدادها را با دوره قبل مقایسه کنید.',chip('COMPARE')),
-      h('div',{class:'row wrap'},h('label',{class:'small'},'شروع بازه ',h('input',{type:'date',value:D.iso(a),onChange:e=>{const n=D.parse(e.target.value);if(n!=null){s.from=n;A.route();}},style:{display:'block',maxWidth:'100%'}})),h('label',{class:'small'},'پایان بازه ',h('input',{type:'date',value:D.iso(b),onChange:e=>{const n=D.parse(e.target.value);if(n!=null){s.to=Math.max(n,a);A.route();}},style:{display:'block',maxWidth:'100%'}}))),
-      h('div',{class:'row wrap',style:{marginTop:'10px'}},btn('۷ روز',()=>{s.from=today-6;s.to=today;A.route();}),btn('۳۰ روز',()=>{s.from=today-29;s.to=today;A.route();}),btn('سال تا امروز',()=>{s.from=D.sYearStart?D.sYearStart(today):today-364;s.to=today;A.route();},true)]));
-    root.append(card([h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:'10px'}},...[
-      {name:'بازه انتخابی',n:current.length,color:'var(--accent)'},{name:'بازه قبلی',n:previous.length,color:'var(--muted)'},{name:'اختلاف',n:current.length-previous.length,color:current.length>=previous.length?'var(--ok, var(--accent))':'var(--danger)'}
-    ].map(x=>h('div',{style:{padding:'14px',background:'var(--canvas)',border:'1px solid var(--line)',borderRadius:'12px'}},h('small',{class:'muted'},x.name),h('b',{style:{display:'block',fontSize:'28px',margin:'8px 0'}},(x.n>0?'+':'')+x.n),h('div',{style:{height:'7px',background:'var(--line)',borderRadius:'9px',overflow:'hidden'}},h('span',{style:{display:'block',height:'100%',width:Math.abs(x.n)/max*100+'%',background:x.color}}))))]),
-      h('p',{class:'small muted'},dateLabel(a)+' تا '+dateLabel(b)+' در برابر '+dateLabel(prevA)+' تا '+dateLabel(prevB))]));
-    root.append(card([title('رویدادهای بازه فعلی',current.length+' مورد'),...(current.slice(0,30).map(evCard))]));
+    const stats=[{name:'بازه انتخابی',n:current.length,color:'var(--accent)'},{name:'بازه قبلی',n:previous.length,color:'var(--muted)'},{name:'اختلاف',n:current.length-previous.length,color:current.length>=previous.length?'var(--accent)':'var(--danger)'}];
+    const bars=h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:'10px'}},
+      ...stats.map(x=>h('div',{style:{padding:'14px',background:'var(--canvas)',border:'1px solid var(--line)',borderRadius:'12px'}},
+        h('small',{class:'muted'},x.name),
+        h('b',{style:{display:'block',fontSize:'28px',margin:'8px 0'}},(x.n>0?'+':'')+x.n),
+        h('div',{style:{height:'7px',background:'var(--line)',borderRadius:'9px',overflow:'hidden'}},
+          h('span',{style:{display:'block',height:'100%',width:Math.abs(x.n)/max*100+'%',background:x.color}})))));
+    root.append(card([
+      title('Parangón · مقایسه بازه‌ها','دو بازه را انتخاب کنید و تعداد رویدادها را با دوره قبل مقایسه کنید.',chip('COMPARE')),
+      h('div',{class:'row wrap'},
+        h('label',{class:'small'},'شروع بازه ',h('input',{type:'date',value:D.iso(a),onChange:e=>{const n=D.parse(e.target.value);if(n!=null){s.from=n;A.route();}},style:{display:'block',maxWidth:'100%'}})),
+        h('label',{class:'small'},'پایان بازه ',h('input',{type:'date',value:D.iso(b),onChange:e=>{const n=D.parse(e.target.value);if(n!=null){s.to=Math.max(n,a);A.route();}},style:{display:'block',maxWidth:'100%'}}))),
+      h('div',{class:'row wrap',style:{marginTop:'10px'}},
+        btn('۷ روز',()=>{s.from=today-6;s.to=today;A.route();}),
+        btn('۳۰ روز',()=>{s.from=today-29;s.to=today;A.route();}),
+        btn('سال تا امروز',()=>{s.from=D.sYearStart?D.sYearStart(today):today-364;s.to=today;A.route();},true)
+      )
+    ]));
+    root.append(card([bars,h('p',{class:'small muted'},dateLabel(a)+' تا '+dateLabel(b)+' در برابر '+dateLabel(prevA)+' تا '+dateLabel(prevB))]));
+    root.append(card([title('رویدادهای بازه فعلی',current.length+' مورد'),...current.slice(0,30).map(evCard)]));
   }
   function renderSemana(root,s) {
     const ws=A.settings().weekStart==null?(D.isJ()?5:0):A.settings().weekStart, first=D.weekStart(s.anchor,ws), startHour=Math.max(0,Math.min(22,Number(s.startHour==null?8:s.startHour))), endHour=Math.max(startHour+2,Math.min(24,Number(s.endHour==null?20:s.endHour)));
@@ -142,7 +155,7 @@
       h('div',{class:'row wrap'},btn('‹ هفته قبل',()=>{s.anchor-=7;A.route();}),btn('امروز',()=>{s.anchor=D.today();s.selected=D.today();A.route();},true),btn('هفته بعد ›',()=>{s.anchor+=7;A.route();}))),
       h('div',{class:'row wrap',style:{marginBottom:'8px'}},h('label',{class:'small'},'از ساعت ',h('select',{value:startHour,onChange:e=>{s.startHour=+e.target.value;A.route();}},...Array.from({length:18},(_,i)=>h('option',{value:i},String(i).padStart(2,'0')+':00')))),h('label',{class:'small'},'تا ساعت ',h('select',{value:endHour,onChange:e=>{s.endHour=+e.target.value;A.route();}},...Array.from({length:24},(_,i)=>h('option',{value:i+1},String(i+1).padStart(2,'0')+':00')))))]));
     const grid=h('div',{style:{display:'grid',gridTemplateColumns:'48px repeat(7,minmax(0,1fr))',gap:'3px',overflowX:'auto'}});
-    grid.append(h('div',{}),...Array.from({length:7},(_,i)=>h('button',{type:'button',class:'btn',style:{padding:'6px 2px',fontSize:'11px'},onClick:()=>{s.selected=first+i;A.route();}},D.wletter((ws+i)%7)+' '+D.dnum(first+i)));
+    grid.append(h('div',{}),...Array.from({length:7},(_,i)=>h('button',{type:'button',class:'btn',style:{padding:'6px 2px',fontSize:'11px'},onClick:()=>{s.selected=first+i;A.route();}},D.wletter((ws+i)%7)+' '+D.dnum(first+i))));
     for(let hr=startHour;hr<endHour;hr++){
       grid.append(h('div',{class:'small muted',style:{paddingTop:'8px',fontSize:'10px'}},String(hr).padStart(2,'0')+':00'));
       for(let i=0;i<7;i++){
@@ -169,14 +182,43 @@
     lines.push('END:VCALENDAR');const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename||'aide-calendar.ics';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
   }
   function renderSolape(root,s) {
-    const local=rangeEvents(D.today()-30,D.today()+120), imported=s.imported||[], all=local.map(o=>Object.assign({source:'AIDE'},o)).concat(imported.map(o=>Object.assign({source:'ICS'},o)));
+    const local=rangeEvents(D.today()-30,D.today()+120), imported=s.imported||[];
+    const all=local.map(o=>Object.assign({source:'AIDE'},o)).concat(imported.map(o=>Object.assign({source:'ICS'},o)));
     const pairs=[];
-    for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const a=all[i],b=all[j];if(a.day!==b.day||a.allDay||b.allDay||a.source===b.source)continue;if((a.start||0)<(b.end||0)&&(b.start||0)<(a.end||0))pairs.push({a,b,day:a.day});}
-    root.append(card([title('Solape · بررسی تداخل‌ها','رویدادهای AIDE را با یک فایل ICS مقایسه کنید؛ فایل واردشده فقط برای بررسی همین نشست خوانده می‌شود.',chip('ICS')),
-      h('label',{class:'btn',style:{display:'inline-flex',alignItems:'center',cursor:'pointer'}},'＋ واردکردن فایل ICS',h('input',{type:'file',accept:'.ics,textContent:'',style:{display:'none'},onChange:e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{s.imported=parseICS(String(reader.result)).map((o,i)=>{const day=D.parse(o.start.date);return day==null?null:{id:'ics-'+i,title:o.title||'رویداد واردشده',day,start:o.start.minute==null?0:o.start.minute,end:o.end&&o.end.minute!=null?o.end.minute:(o.start.minute||0)+60,allDay:o.start.minute==null,source:'ICS'};}).filter(Boolean);A.route();};reader.readAsText(f);}})),
-      btn('خروجی تقویم AIDE',()=>downloadICS(local,'aide-calendar.ics'),true)]));
-    root.append(card([title('نتیجه بررسی',pairs.length+' تداخل پیدا شد'),
-      pairs.length?h('div',{class:'stack'},...pairs.slice(0,40).map(p=>h('div',{class:'item',style:{alignItems:'start'}},h('span',{class:'grow'},h('b',null,dateLabel(p.day)),h('small',{class:'muted',style:{display:'block'}},(p.a.title||'رویداد AIDE')+' ('+A.time(p.a.start)+') ↔ '+(p.b.title||'رویداد ICS')+' ('+A.time(p.b.start)+')')),btn('ایجاد رویداد در زمان دیگر',()=>addEvent(p.day,Math.min(23*60,(p.a.end||p.a.start+60))),true)))):h('p',{class:'muted'},'تداخل بین رویدادهای AIDE و فایل واردشده پیدا نشد.')]));
+    for(let i=0;i<all.length;i++) for(let j=i+1;j<all.length;j++) {
+      const a=all[i],b=all[j];
+      if(a.day!==b.day||a.allDay||b.allDay||a.source===b.source) continue;
+      if((a.start||0)<(b.end||0)&&(b.start||0)<(a.end||0)) pairs.push({a,b,day:a.day});
+    }
+    const fileInput=h('input',{type:'file',accept:'.ics',style:{display:'none'},onChange:e=>{
+      const f=e.target.files&&e.target.files[0]; if(!f)return;
+      const reader=new FileReader();
+      reader.onload=()=>{
+        s.imported=parseICS(String(reader.result)).map((o,i)=>{
+          const day=o.start&&D.parse(o.start.date);
+          return day==null?null:{id:'ics-'+i,title:o.title||'رویداد واردشده',day,start:o.start.minute==null?0:o.start.minute,
+            end:o.end&&o.end.minute!=null?o.end.minute:(o.start.minute||0)+60,allDay:o.start.minute==null,source:'ICS'};
+        }).filter(Boolean);
+        A.route();
+      };
+      reader.readAsText(f);
+    }});
+    root.append(card([
+      title('Solape · بررسی تداخل‌ها','رویدادهای AIDE را با فایل ICS مقایسه کنید. فایل واردشده فقط برای بررسی همین نشست خوانده می‌شود.',chip('ICS')),
+      h('label',{class:'btn',style:{display:'inline-flex',alignItems:'center',cursor:'pointer'}},'＋ واردکردن فایل ICS',fileInput),
+      btn('خروجی تقویم AIDE',()=>downloadICS(local,'aide-calendar.ics'),true)
+    ]));
+    root.append(card([
+      title('نتیجه بررسی',pairs.length+' تداخل پیدا شد'),
+      pairs.length ? h('div',{class:'stack'},...pairs.slice(0,40).map(p=>
+        h('div',{class:'item',style:{alignItems:'start'}},
+          h('span',{class:'grow'},
+            h('b',null,dateLabel(p.day)),
+            h('small',{class:'muted',style:{display:'block'}},(p.a.title||'رویداد AIDE')+' ('+A.time(p.a.start)+') ↔ '+(p.b.title||'رویداد ICS')+' ('+A.time(p.b.start)+')')),
+          btn('ساخت رویداد در زمان دیگر',()=>addEvent(p.day,Math.min(23*60,(p.a.end||p.a.start+60))),true)
+        )
+      )) : h('p',{class:'muted'},'تداخل بین رویدادهای AIDE و فایل واردشده پیدا نشد.')
+    ]));
   }
   function addMonths(day,n){return D.sAddMonths(day,n);}
   function renderTregua(root,s) {
