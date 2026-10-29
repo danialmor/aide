@@ -1722,6 +1722,26 @@ html[lang="fa"] :is(input[type=email],input[type=password],input[type=tel],input
 }
 html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 
+/* One calendar control for all native date fields. Stored values remain ISO/Gregorian; visible dates follow AIDE's active calendar. */
+.aide-date-source { position:absolute !important; width:1px !important; height:1px !important; min-height:1px !important; opacity:0 !important; overflow:hidden !important; clip-path:inset(50%) !important; pointer-events:none !important; }
+.aide-date-proxy { width:100%; min-width:0; min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 13px; text-align:start; white-space:normal; border:1px solid var(--line); border-radius:14px; background:var(--canvas); color:var(--ink); box-shadow:none; }
+.aide-date-proxy:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+.aide-date-proxy .aide-date-main { font-weight:600; overflow-wrap:anywhere; }
+.aide-date-proxy .aide-date-sub { display:block; color:var(--faint); font-size:11px; font-weight:400; margin-top:2px; }
+.aide-date-proxy .aide-date-icon { color:var(--accent-ink); flex:none; font-size:18px; }
+.aide-jp { min-width:0; display:grid; gap:12px; }
+.aide-jp-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.aide-jp-weekdays,.aide-jp-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; }
+.aide-jp-weekday { min-width:0; text-align:center; padding:4px 0; color:var(--faint); font-size:12px; }
+.aide-jp-day { min-width:0; min-height:42px; padding:3px 1px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border:1px solid var(--line); border-radius:10px; background:var(--canvas); color:var(--ink); cursor:pointer; }
+.aide-jp-day small { font-size:9px; color:var(--faint); line-height:1; }
+.aide-jp-day.out { opacity:.42; }
+.aide-jp-day.today { border-color:var(--accent); background:var(--today-bg); font-weight:800; }
+.aide-jp-day.selected { color:white; background:var(--accent); border-color:var(--accent); }
+.aide-jp-day.selected small { color:rgba(255,255,255,.82); }
+.aide-jp-day.holiday:not(.selected) { box-shadow:inset 0 -3px 0 var(--danger); }
+.aide-jp-dot { width:4px; height:4px; border-radius:50%; background:var(--b-visit); }
+@media(max-width:560px){ .aide-jp-weekdays,.aide-jp-grid{gap:2px}.aide-jp-day{min-height:38px;border-radius:8px}.aide-jp-day small{font-size:8px} }
 </style>
 <script>
   // apply the saved theme before first paint (no flash)
@@ -7565,6 +7585,123 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
         status,
         rows));
       load();
+    };
+  })();
+
+  /* ── unified calendar date controls ──────────────────────────────────
+     HTML date fields keep ISO values for APIs and recurrence logic, while the
+     visible selector uses the same A.date engine, week start and holidays as
+     the Day/Week/Month/Year/Agenda views. */
+  (function installUnifiedCalendarDatePicker() {
+    'use strict';
+    const A = window.Aide;
+    if (!A || !A.date || !A.date.isJ) return;
+    const D = A.date, h = A.h;
+    const enhanced = new WeakMap();
+    const fa = () => A.isFa ? A.isFa() : A.settings().lang === 'fa';
+    const tr = (faText, enText) => fa() ? faText : enText;
+    const dayFromInput = input => D.parse(input.value);
+    const displayParts = input => {
+      const day = dayFromInput(input);
+      if (day == null) return { main: tr('انتخاب تاریخ','Choose a date'), sub: tr('تقویم شمسی یکپارچه','Unified calendar') };
+      return {
+        main: D.longS(day),
+        sub: D.isJ() ? D.long(day) : (D.sec(day) || '')
+      };
+    };
+    function sync(input) {
+      const button = enhanced.get(input);
+      if (!button) return;
+      const parts = displayParts(input);
+      const main = button.querySelector('.aide-date-main'), sub = button.querySelector('.aide-date-sub');
+      if (main) main.textContent = parts.main;
+      if (sub) { sub.textContent = parts.sub; sub.hidden = !parts.sub; }
+      button.setAttribute('aria-label', parts.main + (parts.sub ? ', ' + parts.sub : ''));
+      button.dataset.iso = input.value || '';
+    }
+    const allowed = (input, day) => {
+      const min = D.parse(input.min), max = D.parse(input.max);
+      return (min == null || day >= min) && (max == null || day <= max);
+    };
+    function openPicker(input) {
+      let selected = dayFromInput(input);
+      if (selected == null) selected = D.today();
+      let cursor = D.sMonthStart(selected);
+      const monthTitle = h('b', { style:{fontSize:'16px',textAlign:'center',flex:'1',minWidth:0} }, D.mtitle(cursor));
+      const grid = h('div', { class:'aide-jp-grid', role:'grid', 'aria-label':tr('انتخاب روز','Choose a day') });
+      const weekdays = h('div', { class:'aide-jp-weekdays', role:'row' },
+        ...Array.from({length:7},(_,i)=>h('span',{class:'aide-jp-weekday',role:'columnheader'},D.wname((A.settings().weekStart == null ? (D.isJ()?5:0) : A.settings().weekStart)+i > 6 ? ((A.settings().weekStart == null ? (D.isJ()?5:0) : A.settings().weekStart)+i)%7 : (A.settings().weekStart == null ? (D.isJ()?5:0) : A.settings().weekStart)+i).slice(0,fa()?2:3))));
+      const hint = h('p',{class:'small muted'},tr('تاریخ در داده‌ها به قالب استاندارد ذخیره می‌شود؛ نمایش از تقویم حساب پیروی می‌کند.','Dates are stored in a stable ISO format; display follows your account calendar.'));
+      const renderGrid = () => {
+        cursor = D.sMonthStart(cursor);
+        monthTitle.textContent = D.mtitle(cursor);
+        const first = D.sMonthStart(cursor), length = D.sMonthLen(first);
+        const week = A.settings().weekStart == null ? (D.isJ()?5:0) : A.settings().weekStart;
+        const start = D.weekStart(first, week);
+        const total = Math.ceil(((first-start)+length)/7)*7;
+        const cells = [];
+        for(let i=0;i<total;i++) {
+          const day = start+i, inMonth = day >= first && day < first+length;
+          const events = A.ev && A.ev.expand ? A.ev.expand(day,day) : [];
+          const holiday = A.holiday ? A.holiday(day) : [];
+          const isSelected = day === dayFromInput(input), isToday = day === D.today();
+          const cell = h('button',{
+            type:'button', role:'gridcell',
+            class:'aide-jp-day'+(!inMonth?' out':'')+(isToday?' today':'')+(isSelected?' selected':'')+(holiday.length?' holiday':''),
+            disabled:!allowed(input,day),
+            'aria-selected':String(isSelected),
+            'aria-label':D.longS(day)+(holiday.length?' · '+holiday.map(x=>x.name).join(', '):''),
+            title:D.longS(day)+(D.isJ()?' · '+D.long(day):''),
+            onClick:()=>{
+              input.value = D.iso(day);
+              input.dispatchEvent(new Event('input',{bubbles:true}));
+              input.dispatchEvent(new Event('change',{bubbles:true}));
+              sync(input);
+              modal.close();
+            }
+          },h('span',null,D.dnum(day)),D.dsec(day)?h('small',null,D.dsec(day)):null,events.length||holiday.length?h('i',{class:'aide-jp-dot',style:{background:holiday.length?'var(--danger)':'var(--b-visit)'}}):null);
+          cells.push(cell);
+        }
+        grid.replaceChildren(...cells);
+      };
+      const prev = h('button',{type:'button',class:'btn sm', 'aria-label':tr('ماه قبل','Previous month'),onClick:()=>{cursor=D.sAddMonths(cursor,-1);renderGrid();}},'‹');
+      const next = h('button',{type:'button',class:'btn sm', 'aria-label':tr('ماه بعد','Next month'),onClick:()=>{cursor=D.sAddMonths(cursor,1);renderGrid();}},'›');
+      const body = h('div',{class:'aide-jp'},h('div',{class:'aide-jp-head'},prev,monthTitle,next),weekdays,grid,h('div',{class:'row wrap'},h('span',{class:'grow small muted'},tr('ماه و روز بر اساس تنظیم تقویم حساب','Month and day follow account calendar settings')),h('button',{type:'button',class:'btn sm',onClick:()=>{input.value=D.iso(D.today());input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));sync(input);modal.close();}},tr('امروز','Today'))),hint);
+      const modal = A.modal({title:tr('انتخاب تاریخ','Choose date'),body});
+      renderGrid();
+    }
+    function enhance(input) {
+      if (!input || input.type !== 'date' || enhanced.has(input) || input.dataset.aideDateSkip === 'true') return;
+      if (!input.parentNode) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'aide-date-proxy';
+      button.innerHTML = '<span class="aide-date-copy"><span class="aide-date-main"></span><small class="aide-date-sub"></small></span><span class="aide-date-icon" aria-hidden="true">▦</span>';
+      button.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); openPicker(input); });
+      input.classList.add('aide-date-source');
+      input.tabIndex = -1;
+      input.setAttribute('aria-hidden','true');
+      input.insertAdjacentElement('afterend',button);
+      enhanced.set(input,button);
+      input.addEventListener('input',()=>sync(input));
+      input.addEventListener('change',()=>sync(input));
+      sync(input);
+    }
+    function scan(node) {
+      if (!node || node.nodeType !== 1) return;
+      if (node.matches && node.matches('input[type="date"]')) enhance(node);
+      if (node.querySelectorAll) node.querySelectorAll('input[type="date"]').forEach(enhance);
+    }
+    A.enhanceCalendarDateInputs = () => scan(document.body);
+    const observer = new MutationObserver(mutations => mutations.forEach(m => m.addedNodes.forEach(scan)));
+    observer.observe(document.body,{childList:true,subtree:true});
+    A.enhanceCalendarDateInputs();
+    const previousRoute = A.route;
+    if (typeof previousRoute === 'function') A.route = function() {
+      const result = previousRoute.apply(this,arguments);
+      A.enhanceCalendarDateInputs();
+      document.querySelectorAll('input[type="date"]').forEach(sync);
+      return result;
     };
   })();
 
