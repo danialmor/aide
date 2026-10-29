@@ -182,7 +182,7 @@
     lines.push('END:VCALENDAR');const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename||'aide-calendar.ics';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
   }
   function renderSolape(root,s) {
-    const local=rangeEvents(D.today()-30,D.today()+120), imported=s.imported||[];
+    const local=rangeEvents(D.today()-30,D.today()+120), settings=A.settings(), imported=s.imported||settings.moxenSolapeImported||[];
     const all=local.map(o=>Object.assign({source:'AIDE'},o)).concat(imported.map(o=>Object.assign({source:'ICS'},o)));
     const pairs=[];
     for(let i=0;i<all.length;i++) for(let j=i+1;j<all.length;j++) {
@@ -199,6 +199,7 @@
           return day==null?null:{id:'ics-'+i,title:o.title||'رویداد واردشده',day,start:o.start.minute==null?0:o.start.minute,
             end:o.end&&o.end.minute!=null?o.end.minute:(o.start.minute||0)+60,allDay:o.start.minute==null,source:'ICS'};
         }).filter(Boolean);
+        settings.moxenSolapeImported=s.imported; A.save('settings');
         A.route();
       };
       reader.readAsText(f);
@@ -267,7 +268,7 @@
         h('input',{name:'date',type:'date',required:true,value:D.iso(s.selected)}),
         h('button',{type:'submit',class:'btn primary'},'＋ ثبت سررسید'))]));
     root.append(card([title('فهرست پرداخت‌ها','قابل لغو و بازگردانی'),
-      active.length?h('div',{class:'stack'},...bills.map(b=>h('div',{class:'item',style:{opacity:b.cancelled?.55:1}},h('span',{class:'grow',style:{minWidth:0}},h('b',{style:{textDecoration:b.cancelled?'line-through':'none'}},b.name),h('small',{class:'muted',style:{display:'block'}},b.date+' · '+Number(b.amount).toLocaleString('fa-IR'))),b.cancelled?btn('بازگردانی',()=>{b.cancelled=false;persist();A.route();},true):btn('لغو',()=>{b.cancelled=true;persist();A.route();})))):h('p',{class:'muted'},'هنوز سررسیدی ثبت نشده است.')]));
+      bills.length?h('div',{class:'stack'},...bills.map(b=>h('div',{class:'item',style:{opacity:b.cancelled?.55:1}},h('span',{class:'grow',style:{minWidth:0}},h('b',{style:{textDecoration:b.cancelled?'line-through':'none'}},b.name),h('small',{class:'muted',style:{display:'block'}},b.date+' · '+Number(b.amount).toLocaleString('fa-IR'))),b.cancelled?btn('بازگردانی',()=>{b.cancelled=false;persist();A.route();},true):btn('لغو',()=>{b.cancelled=true;persist();A.route();})))):h('p',{class:'muted'},'هنوز سررسیدی ثبت نشده است.')]));
   }
   const renderers={
     'moxen-anaquel':renderAnaquel,'moxen-convite':renderConvite,'moxen-epoca':renderEpoca,'moxen-lunario':renderLunario,
