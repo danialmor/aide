@@ -3964,84 +3964,191 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     });
   }
 
-  /* ── integrated Moxen-inspired layouts ─────────────────────────────
-     These are adapted application experiences, not a standalone template
-     library. They open the corresponding AIDE features and share its online
-     data model, access rules, and Persian/Gregorian date engine. */
+  /* ── Moxen-inspired layouts, connected to live AIDE data ────────────
+     Calendar dates are epoch-day numbers internally; all visible calendar
+     calculations go through A.date and the active account calendar setting. */
   A.views.layouts = {
     title: 'قالب‌ها و چیدمان‌ها',
-    sub: 'چیدمان‌های یکپارچه‌شده با تقویم و داده‌های AIDE',
+    sub: 'قالب‌های کاربردی متصل به داده‌ها، تقویم شمسی و تنظیمات AIDE',
     actions: () => [
-      h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem, title: 'تغییر تقویم شمسی و میلادی' }, D.isJ() ? 'تقویم شمسی ✓' : 'تقویم میلادی ✓'),
+      h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem, title: 'تغییر تقویم سراسری' }, D.isJ() ? 'تقویم شمسی ✓' : 'تقویم میلادی ✓'),
       h('button', { class: 'btn primary', type: 'button', onClick: () => { location.hash = '#/calendar'; A.route(); } }, A.ico('calendar'), 'رفتن به تقویم')
     ],
     render(root) {
-      const today = D.today();
-      const fmt = n => D.dnum(n);
-      const cell = (text, color, extra = {}) => h('span', { style: Object.assign({ display: 'grid', placeItems: 'center', minHeight: '16px', padding: '2px', borderRadius: '5px', background: color || 'var(--line-fine)', color: 'var(--ink)', fontSize: '10px', minWidth: 0 }, extra) }, text);
-      const bar = (width, color, label = '') => h('div', { style: { height: '9px', width, maxWidth: '100%', borderRadius: '99px', background: color, position: 'relative', overflow: 'hidden' } }, label ? h('span', { style: { fontSize: '7px', lineHeight: '9px', color: 'white', paddingInline: '4px', whiteSpace: 'nowrap' } }, label) : null);
-      const miniCard = (children, extra = {}) => h('div', { style: Object.assign({ padding: '7px', border: '1px solid var(--line)', borderRadius: '10px', background: 'var(--canvas)', minWidth: 0, overflow: 'hidden' }, extra) }, children);
-      const calendarGrid = (selected = 16, count = 35) => h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: '3px' } }, Array.from({ length: count }, (_, i) => cell(String((i % 30) + 1), i + 1 === selected ? 'var(--accent)' : (i % 9 === 4 ? 'var(--c-meeting)' : 'var(--line-fine)'), i + 1 === selected ? { color: 'white', fontWeight: 700 } : {})));
+      const S = A.settings(), today = D.today();
+      const monthStart = D.sMonthStart(today), monthLen = D.sMonthLen(monthStart);
+      const yearStart = D.sYearStart(today);
+      const monthStarts = []; let monthCursor = yearStart;
+      for (let i = 0; i < 12; i++) { monthStarts.push(monthCursor); monthCursor += D.sMonthLen(monthCursor); }
+      const yearEnd = monthCursor - 1;
+      const yearEvents = A.ev.expand(yearStart, yearEnd);
+      const byDay = Object.create(null);
+      yearEvents.forEach(o => { (byDay[o.day] ||= []).push(o); });
+      Object.values(byDay).forEach(list => list.sort((a,b) => (a.start || 0) - (b.start || 0)));
+      const dayEvents = day => byDay[day] || [];
+      const dueTasks = A.db.data.tasks.filter(t => !t.done && t.due && D.parse(t.due) != null)
+        .sort((a,b) => D.parse(a.due)-D.parse(b.due));
+      const dueGroups = {
+        overdue: dueTasks.filter(t => D.parse(t.due) < today),
+        today: dueTasks.filter(t => D.parse(t.due) === today),
+        upcoming: dueTasks.filter(t => D.parse(t.due) > today)
+      };
+      const pendingRequests = A.db.data.requests.filter(r => r.status === 'pending');
+      const weekStart = D.weekStart(today, S.weekStart == null ? (D.isJ() ? 5 : 0) : S.weekStart);
+      const upcomingOccs = A.ev.expand(today, today + 13);
+      const conflicts = [];
+      const conflictKeys = new Set();
+      const byUpcomingDay = Object.create(null);
+      upcomingOccs.filter(o => !o.allDay && o.end > o.start).forEach(o => (byUpcomingDay[o.day] ||= []).push(o));
+      Object.entries(byUpcomingDay).forEach(([day, list]) => {
+        list.sort((a,b) => a.start-b.start);
+        for (let i=0;i<list.length;i++) for (let j=i+1;j<list.length;j++) {
+          if (list[j].start >= list[i].end) break;
+          if (list[i].start < list[j].end && list[j].start < list[i].end) {
+            const a = list[i], b = list[j], key = day + ':' + [a.ev && a.ev.id || a.id, b.ev && b.ev.id || b.id].sort().join(':');
+            if (conflictKeys.has(key)) continue;
+            conflictKeys.add(key); conflicts.push({ day: +day, a, b });
+          }
+        }
+      });
+      const openCal = (day, view = 'day') => {
+        if (A.ui && A.ui.cal) { A.ui.cal.anchor = day; A.ui.cal.view = view; }
+        location.hash = '#/calendar'; A.route();
+      };
+      const openRoute = route => { location.hash = '#/' + route; A.route(); };
+      const eventButton = o => h('button', { type: 'button', class: 'item hov', style: Object.assign({ textAlign: 'start', width: '100%', background: 'var(--canvas)', borderInlineStart: '3px solid var(--b-' + (o.cat || o.ev && o.ev.cat || 'meeting') + ')' }, A.catStyle(o.cat || o.ev && o.ev.cat || 'meeting')), onClick: () => A.ev.edit(o.ev || o) },
+        h('span', { class: 'grow', style: { minWidth: 0 } }, h('b', { dir: 'auto' }, o.title || o.ev && o.ev.title || 'رویداد'), h('small', { class: 'muted', style: { display: 'block' } }, (o.allDay ? 'تمام روز' : A.time(o.start) + ' – ' + A.time(o.end)))),
+        h('span', { class: 'small muted' }, D.dnum(o.day)));
+      const taskButton = t => h('button', { type: 'button', class: 'item hov', style: { textAlign: 'start', width: '100%' }, onClick: () => openRoute('tasks') },
+        h('span', { class: 'grow', style: { minWidth: 0 } }, h('b', { dir: 'auto' }, t.title || 'کار بدون عنوان'), h('small', { class: 'muted', style: { display: 'block' } }, t.due ? D.longS(D.parse(t.due)) : 'بدون موعد')),
+        h('span', { class: 'chip', style: { background: D.parse(t.due) < today ? 'var(--danger-bg)' : 'var(--c-travel)' } }, D.parse(t.due) < today ? 'گذشته' : D.parse(t.due) === today ? 'امروز' : 'پیش رو'));
+      const cellStyle = (day, active, eventCount, compact = false) => ({
+        minWidth: 0, minHeight: compact ? '20px' : '43px', padding: compact ? '1px' : '3px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1px',
+        borderRadius: compact ? '5px' : '9px', border: '1px solid ' + (day === today ? 'var(--accent)' : 'var(--line)'),
+        background: day === today ? 'var(--today-bg)' : eventCount ? 'var(--paper)' : 'var(--canvas)',
+        color: active ? 'var(--ink)' : 'var(--faint)', opacity: active ? 1 : .42, cursor: 'pointer', overflow: 'hidden'
+      });
+      const miniMonth = (first, compact = false) => {
+        const len = D.sMonthLen(first), start = D.weekStart(first, S.weekStart == null ? (D.isJ() ? 5 : 0) : S.weekStart);
+        const total = Math.ceil(((first - start) + len) / 7) * 7;
+        const labels = Array.from({ length: 7 }, (_, i) => h('span', { style: { fontSize: compact ? '8px' : '10px', textAlign: 'center', color: 'var(--faint)', minWidth: 0 } }, D.wletter((S.weekStart + i) % 7)));
+        const cells = Array.from({ length: total }, (_, i) => {
+          const day = start + i, active = day >= first && day < first + len, evs = dayEvents(day), holiday = active && A.isHoliday(day);
+          return h('button', {
+            type: 'button',
+            'aria-label': D.longS(day) + ' · ' + evs.length + ' رویداد',
+            title: D.longS(day) + (D.isJ() ? ' · ' + D.long(day) : '') + (holiday ? ' · ' + A.holiday(day).map(x=>x.name).join('، ') : ''),
+            style: cellStyle(day, active, evs.length, compact),
+            onClick: () => openCal(day, compact ? 'day' : 'day')
+          }, h('span', { style: { fontSize: compact ? '8px' : '12px', fontWeight: day === today ? 800 : 600, lineHeight: 1.1 } }, D.dnum(day)),
+             !compact && D.dsec(day) ? h('small', { class: 'muted', style: { fontSize: '8px', lineHeight: 1 } }, D.dsec(day)) : null,
+             evs.length || holiday ? h('i', { style: { width: compact ? '3px' : '5px', height: compact ? '3px' : '5px', borderRadius: '50%', background: holiday ? 'var(--danger)' : 'var(--accent)', flex: 'none' } }) : null);
+        });
+        return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: compact ? '2px' : '4px', minWidth: 0 } }, ...labels, ...cells);
+      };
+      const miniCard = (children, extra = {}) => h('div', { style: Object.assign({ padding: '10px', border: '1px solid var(--line)', borderRadius: '13px', background: 'var(--canvas)', minWidth: 0, overflow: 'hidden' }, extra) }, children);
+      const bar = (percent, color) => h('div', { style: { height: '7px', borderRadius: '99px', background: 'var(--line-fine)', overflow: 'hidden', width: '100%' } }, h('i', { style: { display: 'block', width: Math.max(0,Math.min(100,percent)) + '%', height: '100%', background: color, borderRadius: '99px' } }));
+      const cardHead = (title, note) => h('div', { class: 'row wrap', style: { justifyContent: 'space-between', gap: '7px' } }, h('b', null, title), note ? h('span', { class: 'small muted' }, note) : null);
+      const compactList = (items, emptyText) => items.length ? h('div', { class: 'stack', style: { gap: '5px' } }, ...items) : h('p', { class: 'small muted', style: { padding: '8px 0' } }, emptyText);
       const previewFor = key => {
-        if (key === 'anaquel') return h('div', { style: { display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr', gap: '6px' } },
-          miniCard([h('div', { class: 'small muted' }, 'ساعت'), h('div', { style: { fontSize: '24px', fontWeight: 700, letterSpacing: '-1px' } }, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), h('div', { class: 'small muted' }, D.dnum(today) + ' · ' + D.mname(today))]),
-          miniCard([h('div', { class: 'small muted' }, 'رویدادهای امروز'), h('div', { style: { fontSize: '23px', fontWeight: 700 } }, String(A.ev ? A.ev.expand(today, today).length : 0)), bar('80%', 'var(--b-visit)')]),
-          miniCard([h('div', { class: 'small muted' }, 'پیشرفت'), h('div', { style: { fontSize: '20px', fontWeight: 700 } }, '72%'), bar('72%', 'var(--accent)')]));
-        if (key === 'convite') return h('div', { style: { display: 'grid', gridTemplateColumns: '70px 1fr', gap: '10px', alignItems: 'center' } },
-          miniCard([h('div', { class: 'small muted', style: { textAlign: 'center' } }, D.mname(today)), h('div', { style: { fontSize: '28px', fontWeight: 800, textAlign: 'center', color: 'var(--accent-ink)' } }, fmt(today)), h('div', { class: 'small muted', style: { textAlign: 'center' } }, D.wname(D.dow(today)))], { background: 'var(--paper)' }),
-          h('div', { class: 'stack', style: { gap: '7px' } }, h('b', null, 'درخواست حضور'), h('div', { class: 'small muted' }, 'تأیید، پاسخ و ثبت رویداد'), h('div', { class: 'row', style: { gap: '5px' } }, ...['var(--b-meeting)','var(--b-visit)','var(--b-travel)','var(--accent)'].map(color => h('span', { style: { width: '22px', height: '22px', borderRadius: '50%', background: color, border: '2px solid var(--canvas)' } })))));
-        if (key === 'epoca') return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: '6px' } }, Array.from({ length: 12 }, (_, i) => miniCard([h('div', { class: 'small muted' }, String(i + 1)), h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '3px', marginTop: '4px' } }, Array.from({ length: 8 }, (_, j) => h('i', { style: { width: '5px', height: '5px', borderRadius: '50%', background: (i * 3 + j) % 5 === 0 ? 'var(--accent)' : 'var(--b-meeting)' } })))], { padding: '5px' })));
-        if (key === 'lunario') return h('div', { class: 'stack', style: { gap: '6px' } }, h('div', { class: 'row' }, h('b', null, D.mtitle(D.sMonthStart(today))), h('span', { class: 'grow' }), h('span', { class: 'small muted' }, '◐  ◑  ●')), calendarGrid(Number(D.dnum(today)), 35), h('div', { class: 'small muted' }, 'رویدادهای چندروزه · تقویم ماهانه'));
-        if (key === 'parangon') return h('div', { class: 'stack', style: { gap: '8px' } },
-          h('div', { class: 'row wrap' }, h('span', { class: 'chip' }, D.longS(today)), h('span', { class: 'muted small' }, 'تا'), h('span', { class: 'chip' }, D.longS(today + 13))),
-          h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(12,minmax(0,1fr))', alignItems: 'end', gap: '4px', height: '45px' } }, ...[18,26,23,36,42,29,48,34,55,41,61,70].map((n, i) => h('i', { style: { height: n + '%', borderRadius: '5px 5px 2px 2px', background: i > 8 ? 'var(--accent)' : 'var(--b-meeting)' } }))),
-          h('div', { class: 'small muted' }, 'نمایش بازه و روند فعالیت‌ها'));
-        if (key === 'semana') return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: '4px' } }, ...Array.from({ length: 7 }, (_, i) => h('div', { style: { minWidth: 0, padding: '4px', borderRadius: '7px', border: '1px solid var(--line)', background: i === 2 ? 'var(--today-bg)' : 'var(--canvas)' } }, h('div', { class: 'small muted', style: { textAlign: 'center' } }, D.wletter((D.dow(today) + i) % 7), h('div', { style: { fontWeight: 700, fontSize: '10px' } }, fmt(today + i))), h('div', { class: 'stack', style: { gap: '4px', marginTop: '5px' } }, bar('100%', 'var(--b-meeting)'), i % 2 ? bar('80%', 'var(--b-visit)') : null))));
-        if (key === 'solape') return h('div', { class: 'stack', style: { gap: '7px' } },
-          h('div', { class: 'row' }, h('span', { class: 'chip', style: { background: 'var(--c-meeting)' } }, '09:00 · جلسه'), h('span', { class: 'grow' }), h('span', { class: 'small muted' }, '30 دقیقه')),
-          h('div', { style: { position: 'relative', padding: '7px 10px', background: 'var(--danger-bg)', borderRadius: '9px', color: 'var(--danger)', fontWeight: 600 } }, '09:15 · تداخل زمان', h('div', { style: { position: 'absolute', top: '50%', left: '0', right: '0', height: '2px', background: 'var(--danger)', opacity: .65 } })),
-          h('div', { class: 'small muted' }, 'تشخیص تداخل و رفتن به هفته مربوطه'));
-        if (key === 'tregua') return h('div', { class: 'stack', style: { gap: '8px' } },
-          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'یادآورها'), h('span', { class: 'chip', style: { background: 'var(--c-visit)' } }, 'فعال')),
-          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'قفل خودکار'), h('span', { class: 'chip' }, String(A.settings().lockMin) + ' min')),
-          h('div', { style: { padding: '10px', borderRadius: '9px', background: 'var(--c-travel)', fontWeight: 600 } }, 'زمان آرامش و تنظیمات اعلان‌ها'));
-        if (key === 'turno') return h('div', { class: 'stack', style: { gap: '8px' } },
-          h('div', { class: 'row wrap' }, ...['09:00','10:30','12:00','14:30'].map((s,i)=>h('span',{class:'chip',style:{background:i===1?'var(--accent)':'var(--canvas)',color:i===1?'white':'var(--ink)'}},s))),
-          h('div', { class: 'row' }, h('span', { class: 'small muted' }, D.longS(today)), h('span', { class: 'grow' }), h('span', { class: 'chip', style: { background: 'var(--c-visit)' } }, 'تأیید زمان')));
-        return h('div', { class: 'stack', style: { gap: '8px' } },
-          h('div', { class: 'row wrap' }, ...[0,1,2,3,4,5,6].map((n,i)=>h('span',{class:'chip',style:{background:n===2?'var(--c-personal)':'var(--canvas)'}},fmt(today+n)))),
-          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'موعد بعدی'), h('b', null, D.longS(today + 2))),
-          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'کارهای نزدیک موعد'), h('span', { class: 'chip', style: { background: 'var(--c-travel)' } }, String(A.db.data.tasks.filter(t => !t.done && t.due).length))));
+        if (key === 'anaquel') return h('div', { class: 'stack', style: { gap: '8px', width: '100%' } },
+          h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: '6px' } },
+            miniCard([h('span', { class: 'small muted' }, 'ساعت فعلی'), h('b', { style: { fontSize: 'clamp(17px,3vw,25px)' } }, new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), h('small', { class: 'muted' }, D.dnum(today) + ' · ' + D.mname(today))]),
+            miniCard([h('span', { class: 'small muted' }, 'رویداد امروز'), h('b', { style: { fontSize: '23px' } }, String(dayEvents(today).length)), bar(dayEvents(today).length ? 100 : 0, 'var(--b-visit)')]),
+            miniCard([h('span', { class: 'small muted' }, 'کارهای باز'), h('b', { style: { fontSize: '23px' } }, String(A.db.data.tasks.filter(t => !t.done).length)), bar(A.db.data.tasks.length ? A.db.data.tasks.filter(t=>t.done).length/A.db.data.tasks.length*100 : 0, 'var(--accent)') ])),
+          h('div', { class: 'stack', style: { gap: '4px' } }, ...dayEvents(today).slice(0,2).map(o => eventButton(o))));
+        if (key === 'convite') {
+          const req = pendingRequests[0];
+          const next = A.ev.expand(today, today + 30).filter(o => o.day >= today).sort((a,b)=>a.day-b.day || (a.start||0)-(b.start||0))[0];
+          return h('div', { class: 'row', style: { gap: '10px', alignItems: 'stretch', width: '100%' } },
+            miniCard([h('small', { class: 'muted' }, D.mname(today)), h('b', { style: { display: 'block', fontSize: '28px', textAlign: 'center' } }, D.dnum(today)), h('small', { class: 'muted' }, D.wname(D.dow(today)))], { flex: '0 0 86px', background: 'var(--paper)' }),
+            h('div', { class: 'stack', style: { gap: '7px', minWidth: 0, flex: 1 } },
+              h('b', null, req ? (req.who || req.name || 'درخواست جدید') : 'دعوت و تأیید حضور'),
+              h('p', { class: 'small muted' }, req ? (req.purpose || req.subject || 'درخواست منتظر بررسی') : pendingRequests.length + ' درخواست منتظر بررسی'),
+              h('div', { class: 'row wrap' }, h('span', { class: 'chip' }, 'در انتظار: ' + pendingRequests.length), h('span', { class: 'chip' }, 'قرار بعدی: ' + (next ? D.dnum(next.day) + ' ' + D.mname(next.day) : '—')))));
+        }
+        if (key === 'epoca') return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: '7px', width: '100%' } },
+          ...monthStarts.map(first => h('button', { type: 'button', class: 'card', style: { padding: '6px', minWidth: 0, cursor: 'pointer', textAlign: 'start', background: 'var(--canvas)' }, onClick: () => openCal(first, 'month') },
+            h('b', { style: { display: 'block', fontSize: '10px', marginBottom: '4px', overflowWrap: 'anywhere' } }, D.mname(first)),
+            miniMonth(first, true),
+            h('small', { class: 'muted', style: { display: 'block', marginTop: '4px' } }, dayEvents(first).length + ' رویداد در روز اول'))));
+        if (key === 'lunario') return h('div', { class: 'stack', style: { gap: '7px', width: '100%' } },
+          cardHead(D.mtitle(monthStart), monthLen + ' روز'),
+          miniMonth(monthStart, false),
+          h('div', { class: 'small muted' }, 'نشانگرها از رویدادها و تعطیلات واقعی همین ماه می‌آیند.'));
+        if (key === 'parangon') {
+          const currentCounts = Array.from({ length: 7 }, (_,i)=>A.ev.expand(today+i,today+i).length);
+          const previousStart = today - 7;
+          const previousCounts = Array.from({ length: 7 }, (_,i)=>A.ev.expand(previousStart+i,previousStart+i).length);
+          const maxCount = Math.max(1,...currentCounts,...previousCounts);
+          return h('div', { class: 'stack', style: { gap: '8px', width: '100%' } },
+            h('div', { class: 'row wrap' }, h('span', { class: 'chip' }, D.longS(previousStart) + ' – ' + D.longS(today-1)), h('span', { class: 'muted small' }, 'در مقایسه با'), h('span', { class: 'chip' }, D.longS(today) + ' – ' + D.longS(today+6))),
+            h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: '5px', alignItems: 'end', minHeight: '62px' } },
+              ...currentCounts.map((n,i)=>h('button',{type:'button',title:D.longS(today+i)+' · '+n+' رویداد',style:{minWidth:0,display:'flex',flexDirection:'column',justifyContent:'end',alignItems:'center',gap:'4px',border:0,background:'transparent',cursor:'pointer',height:'62px'},onClick:()=>openCal(today+i,'day')},
+                h('small',{className:'muted'},String(n)),
+                h('span',{style:{display:'block',width:'70%',height:Math.max(4,n/maxCount*38)+'px',borderRadius:'6px 6px 2px 2px',background:'var(--accent)'}}),
+                h('small',{className:'muted'},D.dnum(today+i))))),
+            h('div', { class: 'small muted' }, 'هفته قبل: ' + previousCounts.reduce((a,b)=>a+b,0) + ' · هفت روز آینده: ' + currentCounts.reduce((a,b)=>a+b,0) + ' رویداد'));
+        }
+        if (key === 'semana') return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: '4px', width: '100%' } },
+          ...Array.from({ length: 7 }, (_, i) => {
+            const day = weekStart + i, events = A.ev.expand(day,day).sort((a,b)=>(a.start||0)-(b.start||0));
+            return h('button', { type: 'button', style: { minWidth: 0, minHeight: '110px', padding: '5px', borderRadius: '10px', border: '1px solid ' + (day===today?'var(--accent)':'var(--line)'), background: day===today?'var(--today-bg)':'var(--canvas)', textAlign: 'start', cursor: 'pointer' }, onClick: () => openCal(day,'day') },
+              h('small', { class: 'muted', style: { display: 'block', textAlign: 'center' } }, D.wletter(D.dow(day))),
+              h('b', { style: { display: 'block', textAlign: 'center', marginBottom: '5px' } }, D.dnum(day)),
+              h('div', { class: 'stack', style: { gap: '4px' } }, ...events.slice(0,3).map(o=>h('span',{style:{display:'block',padding:'3px',borderRadius:'4px',fontSize:'9px',background:'var(--c-'+(o.cat||'meeting')+')',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}},(o.allDay?'':A.time(o.start)+' ')+(o.title||''))), events.length>3?h('small',{class:'muted'},'+'+(events.length-3)):null);
+          }));
+        if (key === 'solape') return h('div', { class: 'stack', style: { gap: '7px', width: '100%' } },
+          h('div', { class: 'row wrap' }, h('b', null, 'تداخل‌های واقعی ۱۴ روز آینده'), h('span', { class: 'grow' }), h('span', { class: 'chip', style: { background: conflicts.length ? 'var(--danger-bg)' : 'var(--c-visit)' } }, String(conflicts.length))),
+          conflicts.length ? ...[] : null);
+        if (key === 'tregua') return h('div', { class: 'stack', style: { gap: '8px', width: '100%' } },
+          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'یادآور پیش‌فرض'), h('span', { class: 'chip' }, S.remind ? S.remind + ' دقیقه قبل' : 'خاموش')),
+          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'قفل خودکار'), h('span', { class: 'chip' }, S.lockMin ? S.lockMin + ' دقیقه' : 'خاموش')),
+          h('div', { class: 'row' }, h('span', { class: 'grow' }, 'وضعیت ذخیره آنلاین'), h('span', { class: 'chip', 'data-aide-save-status': '' }, 'وضعیت ذخیره را در تنظیمات ببینید')),
+          h('button', { class: 'btn', type: 'button', onClick: () => openRoute('settings') }, 'تنظیم یادآورها و امنیت'));
+        if (key === 'turno') {
+          const windows = A.windows(30, 7, today).slice(0,4);
+          return h('div', { class: 'stack', style: { gap: '7px', width: '100%' } },
+            h('p', { class: 'small muted' }, 'بازه‌های آزاد بر پایه دسترسی‌های هفتگی، رویدادها، تعطیلات و زمان حائل'),
+            windows.length ? h('div', { class: 'stack', style: { gap: '5px' } }, ...windows.map(w=>h('button',{type:'button',class:'item hov',style:{textAlign:'start',width:'100%'},onClick:()=>openCal(w.day,'day')},h('span',{class:'grow'},D.longS(w.day)),h('span',{class:'chip'},A.time(w.from)+'–'+A.time(w.to))))) : h('p',{class:'muted small'},'در هفت روز آینده بازه آزاد ۳۰ دقیقه‌ای ثبت نشده است.'),
+            h('button', { class: 'btn', type: 'button', onClick: () => openRoute('availability') }, 'مدیریت زمان‌های آزاد'));
+        }
+        const closest = dueTasks.slice(0,3);
+        return h('div', { class: 'stack', style: { gap: '7px', width: '100%' } },
+          h('div', { class: 'row wrap' }, h('span', { class: 'chip', style: { background: 'var(--danger-bg)' } }, 'گذشته: ' + dueGroups.overdue.length), h('span', { class: 'chip' }, 'امروز: ' + dueGroups.today.length), h('span', { class: 'chip' }, 'پیش رو: ' + dueGroups.upcoming.length)),
+          compactList(closest.map(taskButton), 'کارِ سررسیددارِ باز وجود ندارد.'),
+          h('button', { class: 'btn', type: 'button', onClick: () => openRoute('tasks') }, 'بازکردن فهرست کارها'));
       };
       const items = [
-        { key: 'anaquel', name: 'Anaquel', label: 'داشبورد موزاییکی', description: 'نمای فشرده از ساعت، برنامه روز و خلاصه فعالیت‌ها.', route: 'today' },
-        { key: 'convite', name: 'Convite', label: 'دعوت و تأیید حضور', description: 'دسترسی سریع به درخواست‌ها و پیگیری پاسخ‌ها.', route: 'requests' },
-        { key: 'epoca', name: 'Época', label: 'بزرگ‌نمایی زمان', description: 'مرور سال و حرکت بین سطح سال، ماه و روز.', route: 'calendar', calView: 'year' },
-        { key: 'lunario', name: 'Lunario', label: 'تقویم ماهانه', description: 'نمای ماه با نشانگر رویدادها و اطلاعات تقویمی.', route: 'calendar', calView: 'month' },
-        { key: 'parangon', name: 'Parangón', label: 'بازه و روند', description: 'نمای بازه‌های زمانی برای مرور برنامه و فعالیت‌ها.', route: 'calendar', calView: 'agenda' },
-        { key: 'semana', name: 'Semana', label: 'برنامه هفتگی', description: 'برنامه هفت‌روزه با رویدادهای رنگی و تمرکز روی امروز.', route: 'calendar', calView: 'week' },
-        { key: 'solape', name: 'Solape', label: 'تداخل تقویم', description: 'بازکردن نمای هفته برای بررسی رویدادهای هم‌زمان.', route: 'calendar', calView: 'week' },
-        { key: 'tregua', name: 'Tregua', label: 'تنظیمات آرامش و اعلان‌ها', description: 'ورود سریع به تنظیمات یادآورها و قفل خودکار.', route: 'settings' },
-        { key: 'turno', name: 'Turno', label: 'رزرو زمان', description: 'رفتن به زمان‌های آزاد و هماهنگی قرارها.', route: 'availability' },
-        { key: 'vencimientos', name: 'Vencimientos', label: 'موعدها و سررسیدها', description: 'مرور کارهای دارای موعد و موارد نزدیک سررسید.', route: 'tasks' }
+        { key: 'anaquel', name: 'Anaquel', label: 'داشبورد موزاییکی', description: 'خلاصه زنده ساعت، رویدادهای امروز و کارهای باز.', route: 'today' },
+        { key: 'convite', name: 'Convite', label: 'دعوت و تأیید حضور', description: 'دسترسی سریع به درخواست‌های واقعی و قرار بعدی.', route: 'requests' },
+        { key: 'epoca', name: 'Época', label: 'مرور سال شمسی', description: 'دوازده ماه واقعی در تقویم فعال و نقاط روزهای دارای رویداد.', route: 'calendar', calView: 'year' },
+        { key: 'lunario', name: 'Lunario', label: 'تقویم ماهانه', description: 'روزهای ماه، رویدادها، تعطیلات و تقویم دوم.', route: 'calendar', calView: 'month' },
+        { key: 'parangón', name: 'Parangón', label: 'بازه و روند', description: 'مقایسه تعداد رویدادهای هفت روز گذشته و هفت روز آینده.', route: 'calendar', calView: 'agenda' },
+        { key: 'semana', name: 'Semana', label: 'برنامه هفتگی', description: 'نمای هفت‌روزه با رویدادهای واقعی و روز شروع مطابق تنظیمات.', route: 'calendar', calView: 'week' },
+        { key: 'solape', name: 'Solape', label: 'تداخل تقویم', description: 'تشخیص تداخل واقعی بین رویدادهای هم‌پوشان.', route: 'calendar', calView: 'week' },
+        { key: 'tregua', name: 'Tregua', label: 'آرامش و اعلان‌ها', description: 'وضعیت یادآورها، قفل خودکار و ذخیره آنلاین.', route: 'settings' },
+        { key: 'turno', name: 'Turno', label: 'رزرو زمان', description: 'بازه‌های آزاد واقعی بر اساس برنامه، تداخل‌ها و تعطیلات.', route: 'availability' },
+        { key: 'vencimientos', name: 'Vencimientos', label: 'موعدها و سررسیدها', description: 'کارهای باز با موعد شمسی، دسته‌بندی‌شده بر اساس وضعیت.', route: 'tasks' }
       ];
       const intro = h('div', { class: 'card', style: { background: 'var(--paper)', marginBottom: '14px' } },
         h('div', { class: 'row wrap', style: { alignItems: 'start', gap: '12px' } },
           h('div', { class: 'grow', style: { minWidth: '220px' } },
-            h('h2', { style: { fontSize: '21px', marginBottom: '5px' } }, 'چیدمان‌های آماده، درون خود سامانه'),
-            h('p', { class: 'muted' }, 'این‌ها به بخش‌های واقعی AIDE وصل هستند؛ داده‌ها، سطح دسترسی و ذخیره آنلاین فعلی حفظ می‌شود. انتخاب هر کارت فقط نمای مربوط را باز می‌کند.')),
+            h('h2', { style: { fontSize: '21px', marginBottom: '5px' } }, 'قالب‌های آماده، متصل به سامانه'),
+            h('p', { class: 'muted' }, 'همه پیش‌نمایش‌ها از داده واقعی AIDE استفاده می‌کنند. تاریخ‌ها در داده‌ها به قالب استاندارد ذخیره می‌شوند، اما نمایش، ترتیب هفته، تعطیلات و نام ماه از موتور تقویم یکپارچه سامانه پیروی می‌کنند.')),
           h('div', { style: { minWidth: '220px', padding: '12px 14px', borderRadius: '14px', background: 'var(--canvas)', border: '1px solid var(--line)' } },
-            h('div', { class: 'small muted' }, 'امروز · تاریخ شمسی / میلادی'),
+            h('div', { class: 'small muted' }, 'امروز · تاریخ تقویم فعال'),
             h('b', { style: { display: 'block', margin: '3px 0' }, dir: 'auto' }, D.longS(today)),
             h('span', { class: 'small muted', dir: 'auto' }, D.long(today)),
             h('div', { class: 'row', style: { marginTop: '8px' } }, h('span', { class: 'chip' }, D.isJ() ? 'تقویم شمسی فعال' : 'تقویم میلادی فعال'), h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem }, 'تغییر تقویم')))));
       const cards = items.map(item => h('article', { class: 'card', style: { padding: '13px', minWidth: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '11px' } },
-        h('div', { style: { padding: '10px', minHeight: '106px', borderRadius: '14px', background: 'var(--cream)', border: '1px solid var(--line)', display: 'flex', alignItems: 'stretch' } }, previewFor(item.key)),
+        h('div', { style: { padding: '10px', minHeight: '126px', borderRadius: '14px', background: 'var(--cream)', border: '1px solid var(--line)', display: 'flex', alignItems: 'stretch', overflow: 'hidden' } }, previewFor(item.key)),
         h('div', { class: 'row wrap', style: { alignItems: 'start', gap: '8px' } }, h('div', { class: 'grow', style: { minWidth: '150px' } }, h('h3', { style: { fontSize: '16px', marginBottom: '3px' } }, item.name), h('div', { style: { fontWeight: 700 } }, item.label)), h('span', { class: 'chip' }, 'Moxen · AIDE')),
         h('p', { class: 'muted small', style: { minHeight: '36px' } }, item.description),
-        h('button', { class: 'btn primary', type: 'button', onClick: () => { if (item.calView && A.ui && A.ui.cal) A.ui.cal.view = item.calView; if (A.ui && A.ui.cal) A.ui.cal.anchor = D.today(); location.hash = '#/' + item.route; A.route(); } }, 'بازکردن نمای یکپارچه')));
+        h('button', { class: 'btn primary', type: 'button', onClick: () => { if (item.calView && A.ui && A.ui.cal) A.ui.cal.view = item.calView; if (A.ui && A.ui.cal) A.ui.cal.anchor = today; openRoute(item.route); } }, 'بازکردن نمای یکپارچه')));
       root.append(intro, h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,270px),1fr))', gap: '12px', alignItems: 'start' } }, cards),
-        h('p', { class: 'small muted', style: { marginTop: '14px', textAlign: 'center' } }, 'الگوهای طراحی با الهام از منابع Moxen و با تطبیق رابط و متن برای AIDE. منبع: moxen.cl/recursos.'));
+        h('p', { class: 'small muted', style: { marginTop: '14px', textAlign: 'center' } }, 'الگوهای طراحی با اقتباس و تغییر برای محصول نهایی AIDE. منبع طراحی: Moxen · moxen.cl/recursos.'));
     }
   };
 
