@@ -3854,10 +3854,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 (function () {
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
-  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['layouts', 'قالب‌ها', 'calendar'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
+  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['layouts', 'قالب‌ها', 'calendar'], ['moxen-anaquel', 'Anaquel', 'calendar'], ['moxen-convite', 'Convite', 'calendar'], ['moxen-epoca', 'Época', 'calendar'], ['moxen-lunario', 'Lunario', 'calendar'], ['moxen-parangon', 'Parangón', 'calendar'], ['moxen-semana', 'Semana', 'calendar'], ['moxen-solape', 'Solape', 'calendar'], ['moxen-tregua', 'Tregua', 'calendar'], ['moxen-turno', 'Turno', 'calendar'], ['moxen-vencimientos', 'Vencimientos', 'calendar'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
   const hiddenSections = () => Array.isArray(A.settings().hiddenSections) ? A.settings().hiddenSections : [];
   const roleAllowsSection = id => A.role === 'manager'
-    ? ['manager', 'themes', 'layouts', 'settings'].includes(id)
+    ? ['manager', 'themes', 'layouts', 'settings', 'moxen-anaquel', 'moxen-convite', 'moxen-epoca', 'moxen-lunario', 'moxen-parangon', 'moxen-semana', 'moxen-solape', 'moxen-tregua', 'moxen-turno', 'moxen-vencimientos'].includes(id)
     : id !== 'manager' && (id !== 'users' || A.role === 'admin');
   const sectionAllowed = id => roleAllowsSection(id) && (id === 'settings' || !hiddenSections().includes(id));
   const tabsFor = () => {
@@ -7706,6 +7706,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   })();
 
   </script>
+  <script src="./moxen-calendar-tabs.js?v=1"></script>
   <script src="./js/customizable-tabs.js"></script>
   <script>
     Aide.boot();
