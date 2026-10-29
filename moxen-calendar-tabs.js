@@ -56,7 +56,7 @@
       h('div',{class:'grow',style:{minWidth:'180px'}},h('h2',{style:{margin:'0 0 4px'}},spec.fa),h('p',{class:'muted small'},spec.desc)),
       chip(D.isJ()?'تقویم شمسی فعال':'تقویم میلادی فعال'));
     const stats=card([h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(115px,1fr))',gap:'9px'}},
-      ...[['امروز',D.dnum(today)+' '+D.mname(today)],['رویدادهای ۳۰ روز آینده',String(events.length)],['کارهای باز سررسیددار',String(tasks.length)]].map(([a,b])=>h('div',{style:{padding:'12px',borderRadius:'12px',background:'var(--canvas)',border:'1px solid var(--line)'}},h('div',{class:'small muted'},a),h('b',{style:{display:'block',fontSize:'20px',marginTop:'5px'}},b)))]));
+      ...[['امروز',D.dnum(today)+' '+D.mname(today)],['رویدادهای ۳۰ روز آینده',String(events.length)],['کارهای باز سررسیددار',String(tasks.length)]].map(([a,b])=>h('div',{style:{padding:'12px',borderRadius:'12px',background:'var(--canvas)',border:'1px solid var(--line)'}},h('div',{class:'small muted'},a),h('b',{style:{display:'block',fontSize:'20px',marginTop:'5px'}},b))))]));
     let special=[];
     if(spec.mode==='appointments') special=events.slice(0,6).map(eventCard);
     else if(spec.mode==='due') special=tasks.slice(0,6).map(t=>h('button',{type:'button',class:'item hov',style:{width:'100%',textAlign:'start'},onClick:()=>{location.hash='#/tasks';A.route();}},h('span',{class:'grow'},h('b',null,t.title),h('small',{class:'muted',style:{display:'block'}},D.longS(D.parse(t.due)))),chip('سررسید')));
