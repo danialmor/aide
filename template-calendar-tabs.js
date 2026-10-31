@@ -1,23 +1,20 @@
-/* AIDE · Independent Moxen-inspired calendar experiences.
- * Native AIDE implementation: shared calendar engine + AIDE events/settings.
- * No original template source is bundled. Per-account preferences are saved through A.save().
- */
+/* AIDE · Rebuilt template tabs with distinctive workflows. Shared AIDE data and online settings remain intact. */
 (function () {
   'use strict';
   const A = window.Aide;
   if (!A || !A.views || !A.date || !A.ev) return;
   const D = A.date, E = A.ev, h = A.h;
   const specs = [
-    ['moxen-anaquel','Anaquel','تقویم بِن‌تو و داشبورد تعاملی'],
-    ['moxen-convite','Convite','دعوت‌نامه و تأیید حضور'],
-    ['moxen-epoca','Época','مرور پیوسته سال تا روز'],
-    ['moxen-lunario','Lunario','تقویم ماهانه با جزئیات روز'],
-    ['moxen-parangon','Parangón','مقایسه دو بازه زمانی'],
-    ['moxen-semana','Semana','برنامه‌ریز هفتگی زمان‌محور'],
-    ['moxen-solape','Solape','تشخیص تداخل و واردکردن ICS'],
-    ['moxen-tregua','Tregua','وقفه موقت و تاریخ بازگشت'],
-    ['moxen-turno','Turno','انتخاب زمان آزاد و رزرو'],
-    ['moxen-vencimientos','Vencimientos','تقویم سررسید و هزینه‌ها']
+    ['template-anaquel','Anaquel','تقویم بِن‌تو و داشبورد تعاملی'],
+    ['template-convite','Convite','دعوت‌نامه و تأیید حضور'],
+    ['template-epoca','Época','مرور پیوسته سال تا روز'],
+    ['template-lunario','Lunario','تقویم ماهانه با جزئیات روز'],
+    ['template-parangon','Parangón','مقایسه دو بازه زمانی'],
+    ['template-semana','Semana','برنامه‌ریز هفتگی زمان‌محور'],
+    ['template-solape','Solape','تشخیص تداخل و واردکردن ICS'],
+    ['template-tregua','Tregua','وقفه موقت و تاریخ بازگشت'],
+    ['template-turno','Turno','انتخاب زمان آزاد و رزرو'],
+    ['template-vencimientos','Vencimientos','تقویم سررسید و هزینه‌ها']
   ];
   const state = A.ui.moxenDistinct || (A.ui.moxenDistinct = {});
   const esc = s => String(s == null ? '' : s);
@@ -44,6 +41,8 @@
   const dateLabel = day => D.longS(day);
   const moonPhase = day => { const synodic=29.530588853, epoch=Date.UTC(2000,0,6,18,14)/86400000, age=((day-epoch)%synodic+synodic)%synodic; const names=['ماه نو','هلال افزاینده','تربیع اول','کوژ افزاینده','بدر','کوژ کاهنده','تربیع آخر','هلال کاهنده']; const icons=['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘']; const idx=Math.round(age/synodic*8)%8; return {name:names[idx],icon:icons[idx],age}; };
   const money = n => Number(n||0).toLocaleString('fa-IR');
+  const legacyTabs = { 'moxen-anaquel':'template-anaquel','moxen-convite':'template-convite','moxen-epoca':'template-epoca','moxen-lunario':'template-lunario','moxen-parangon':'template-parangon','moxen-semana':'template-semana','moxen-solape':'template-solape','moxen-tregua':'template-tregua','moxen-turno':'template-turno','moxen-vencimientos':'template-vencimientos' };
+  function redirectLegacyTab(){const m=(location.hash||'').match(new RegExp('^#/(moxen-[a-z-]+)'));if(m&&legacyTabs[m[1]])location.replace('#/'+legacyTabs[m[1]]+(location.hash.slice(m[0].length)||''));}
   const moveMonth = (s,delta) => {s.anchor=D.sAddMonths(s.anchor,delta);s.selected=s.anchor;A.route();};
   const monthGrid = (s, opts={}) => {
     const first=D.sMonthStart(s.anchor), len=D.sMonthLen(first), settings=A.settings();
@@ -85,6 +84,10 @@
     root.append(card([title('Anaquel · داشبورد تقویمی','کارت‌ها را انتخاب کنید تا بزرگ شوند؛ داده‌ها از تقویم اصلی AIDE خوانده می‌شوند.',chip('BENTO'))]),
       h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:'10px',marginBottom:'12px'}},...tiles.map(t=>h('button',{type:'button',class:'card hov',onClick:()=>{s.openTile=t.id;A.route();},style:{padding:'16px',textAlign:'start',minHeight:open===t.id?'145px':'108px',gridColumn:open===t.id?'span 2':'span 1',border:'1px solid '+(open===t.id?'var(--accent)':'var(--line)'),background:open===t.id?'var(--today-bg)':'var(--paper)',transition:'all .22s'}},
         h('span',{class:'small muted'},t.name),h('b',{style:{display:'block',fontSize:'22px',margin:'12px 0 5px'}},t.value),h('span',{class:'small muted'},open===t.id?t.detail:'برای گسترش انتخاب کنید')))));
+    const now=new Date(), steps=Number(st('templateAnaquelSteps',4200)), target=Number(st('templateAnaquelTarget',8000)), pct=Math.min(100,Math.round(steps/Math.max(1,target)*100));
+    const audio=h('audio',{controls:true,preload:'none',style:{width:'100%',marginTop:'8px'}});
+    const audioFile=h('input',{type:'file',accept:'audio/*',style:{maxWidth:'100%'},onChange:e=>{const f=e.target.files&&e.target.files[0];if(f){if(s.audioUrl)URL.revokeObjectURL(s.audioUrl);s.audioUrl=URL.createObjectURL(f);audio.src=s.audioUrl;audio.play().catch(()=>{});}}});
+    root.append(card([title('پنل زنده · ساعت و فعالیت','ساعت محلی، هدف فعالیت روزانه و مینی‌پلیر موسیقی'),h('div',{class:'row wrap',style:{gap:'16px',alignItems:'center'}},h('div',{style:{width:'108px',height:'108px',borderRadius:'50%',border:'2px solid var(--line)',display:'grid',placeItems:'center',background:'radial-gradient(circle,var(--paper) 0 52%,var(--canvas) 53%)',fontSize:'25px',fontWeight:'750'}},now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})),h('div',{class:'grow',style:{minWidth:'160px'}},h('b',{style:{fontSize:'20px',display:'block'}},dateLabel(today)),h('label',{class:'small'},'قدم‌های امروز ',h('input',{type:'number',min:'0',step:'100',value:steps,onChange:e=>{A.settings().templateAnaquelSteps=Math.max(0,Number(e.target.value)||0);A.save('settings');A.route();},style:{display:'block',maxWidth:'150px',marginTop:'4px'}})),h('label',{class:'small'},'هدف روزانه ',h('input',{type:'number',min:'1',step:'500',value:target,onChange:e=>{A.settings().templateAnaquelTarget=Math.max(1,Number(e.target.value)||8000);A.save('settings');A.route();},style:{display:'block',maxWidth:'150px',marginTop:'4px'}})),h('div',{style:{height:'8px',background:'var(--line)',borderRadius:'9px',overflow:'hidden',marginTop:'8px'}},h('span',{style:{display:'block',height:'100%',width:pct+'%',background:'var(--accent)'}})),h('small',{class:'muted'},pct+'٪ از هدف'))),h('div',{style:{marginTop:'10px',padding:'10px',border:'1px solid var(--line)',borderRadius:'12px'}},h('b',null,'مینی‌پلیر موسیقی'),h('p',{class:'small muted'},'فایل صوتی را از دستگاه انتخاب کنید؛ فایل روی سرور آپلود نمی‌شود.'),audioFile,audio)]));
     if(open==='calendar')root.append(calendarPanel(s,{compact:true,round:true}));
     else if(open==='agenda')root.append(card([title('رویدادهای نزدیک','۱۵ روز آینده'),...(events.length?events.map(evCard):[h('p',{class:'muted'},'رویدادی ثبت نشده است.')])]));
     else if(open==='focus')root.append(card([title(dateLabel(s.selected),'برنامه روز'),...dayEvents(s.selected).map(evCard),btn('＋ افزودن رویداد',()=>addEvent(s.selected),true)]));
@@ -99,6 +102,8 @@
         h('div',{style:{padding:'12px',border:'1px solid var(--line)',borderRadius:'12px',background:'var(--canvas)'}},h('small',{class:'muted'},'ساعت در منطقه انتخابی'),h('b',{style:{display:'block',fontSize:'24px',marginTop:'6px'}},zoneTime()),h('select',{value:invitePrefs.timeZone,onChange:e=>{invitePrefs.timeZone=e.target.value;settingsSaveInvite(invitePrefs);A.route();},style:{marginTop:'8px'}},...Array.from(new Set([invitePrefs.timeZone,'UTC','Europe/Berlin','Europe/London','America/New_York','Asia/Dubai','Asia/Tehran'])).map(z=>h('option',{value:z},z)))),
         h('div',{style:{padding:'12px',border:'1px solid var(--line)',borderRadius:'12px',background:'var(--canvas)'}},h('small',{class:'muted'},'یادآورهای این تب'),h('b',{style:{display:'block',fontSize:'18px',margin:'8px 0'}},invitePrefs.reminders?'فعال':'غیرفعال'),btn(invitePrefs.reminders?'خاموش‌کردن یادآور':'فعال‌کردن یادآور',()=>{invitePrefs.reminders=!invitePrefs.reminders;settingsSaveInvite(invitePrefs);A.route();},true))),
       h('p',{class:'small muted'},'وضعیت حضور و تنظیمات این تب در تنظیمات آنلاین حساب ذخیره می‌شوند. فایل ICS برای افزودن به تقویم دستگاه قابل دانلود است.')]));
+    const yesCount=Object.values(rsvps).filter(v=>v==='yes').length, noCount=Object.values(rsvps).filter(v=>v==='no').length;
+    root.append(card([title('وضعیت دعوت‌ها','خلاصه پاسخ‌های ثبت‌شده در حساب فعلی'),h('div',{class:'row wrap'},chip('حضور: '+yesCount),chip('عدم حضور: '+noCount),chip('بدون پاسخ: '+Math.max(0,events.length-yesCount-noCount))),btn('اشتراک‌گذاری لینک دعوت‌ها',()=>{const url=location.href;if(navigator.share)navigator.share({title:'دعوت‌نامه‌های AIDE',url}).catch(()=>{});else if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(url).then(()=>A.toast&&A.toast('لینک کپی شد')).catch(()=>window.prompt('لینک را کپی کنید',url));else window.prompt('لینک را کپی کنید',url);},true)]));
     if(!events.length){root.append(card([h('p',{class:'muted'},'در ۹۰ روز آینده رویدادی پیدا نشد.'),btn('＋ ساخت رویداد',()=>addEvent(D.today()),true)]));return;}
     root.append(card(events.slice(0,30).map(o=>{
       const id=String((o.ev&&o.ev.id)||o.id||o.day+'-'+o.start+'-'+o.title), status=rsvps[id]||'pending';
@@ -131,7 +136,7 @@
   }
   function renderLunario(root,s) {
     const g=monthGrid(s), selected=dayEvents(s.selected), monthEvents=rangeEvents(g.first,g.first+g.len-1);
-    const multi=monthEvents.filter(o=>o.ev&&o.ev.endDate&&D.parse(o.ev.endDate)>o.day);
+    const multi=monthEvents.filter(o=>o.ev&&o.ev.allDay&&(o.ev.span||1)>1&&D.parse(o.ev.date)===o.day);
     root.append(card([title('Lunario · تقویم ماهانه','نمای ماه، شمار رویدادهای هر روز و جزئیات روز انتخابی.',
       h('div',{class:'row wrap'},btn('‹ ماه قبل',()=>moveMonth(s,-1)),btn('امروز',()=>{s.anchor=D.today();s.selected=D.today();A.route();},true),btn('ماه بعد ›',()=>moveMonth(s,1))))]));
     root.append(card([g.grid]));
@@ -183,7 +188,7 @@
       grid.append(h('div',{class:'small muted',style:{paddingTop:'8px',fontSize:'10px'}},String(hr).padStart(2,'0')+':00'));
       for(let i=0;i<7;i++){
         const day=first+i, minute=hr*60, evs=dayEvents(day).filter(o=>!o.allDay&&o.start<minute+60&&o.end>minute);
-        grid.append(h('button',{type:'button',title:dateLabel(day)+' '+String(hr).padStart(2,'0')+':00',onClick:()=>{s.pendingSlot={day,minute};A.route();},style:{minWidth:'0',minHeight:'38px',padding:'3px',border:'1px solid var(--line)',borderRadius:'5px',background:evs.length?'var(--today-bg)':'var(--canvas)',fontSize:'10px',overflow:'hidden',textAlign:'start'}},evs.length?evs.map(o=>o.title||'رویداد').join('، '):'＋'));
+        grid.append(h('button',{type:'button',title:dateLabel(day)+' '+String(hr).padStart(2,'0')+':00',onClick:()=>{s.pendingSlot={day,minute};A.route();},onDragOver:e=>e.preventDefault(),onDrop:e=>{e.preventDefault();const o=window.__aideTemplateDraggedEvent;if(o){E.edit(o.ev||o,{date:D.iso(day),start:minute,dur:o.dur||Math.max(15,(o.end||minute+60)-(o.start||minute))});window.__aideTemplateDraggedEvent=null;}},style:{minWidth:'0',minHeight:'38px',padding:'3px',border:'1px solid var(--line)',borderRadius:'5px',background:evs.length?'var(--today-bg)':'var(--canvas)',fontSize:'10px',overflow:'hidden',textAlign:'start'}},evs.length?evs.map(o=>h('span',{draggable:true,onDragStart:e=>{e.stopPropagation();e.dataTransfer.setData('text/plain',String(o.id||o.title||'event'));window.__aideTemplateDraggedEvent=o;},onClick:e=>{e.stopPropagation();openEvent(o);},style:{display:'block',cursor:'grab',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},o.title||'رویداد')):'＋'));
       }
     }
     root.append(card([grid]));
@@ -218,23 +223,14 @@
         if(!(s.ignoredConflicts||[]).includes(key)) pairs.push({a,b,day:a.day,key});
       }
     }
-    const fileInput=h('input',{type:'file',accept:'.ics',style:{display:'none'},onChange:e=>{
-      const f=e.target.files&&e.target.files[0]; if(!f)return;
-      const reader=new FileReader();
-      reader.onload=()=>{
-        s.imported=parseICS(String(reader.result)).map((o,i)=>{
-          const day=o.start&&D.parse(o.start.date);
-          return day==null?null:{id:'ics-'+i,title:o.title||'رویداد واردشده',day,start:o.start.minute==null?0:o.start.minute,
-            end:o.end&&o.end.minute!=null?o.end.minute:(o.start.minute||0)+60,allDay:o.start.minute==null,source:'ICS'};
-        }).filter(Boolean);
-        settings.moxenSolapeImported=s.imported; A.save('settings');
-        A.route();
-      };
-      reader.readAsText(f);
+    const fileInput=h('input',{type:'file',accept:'.ics,text/calendar',multiple:true,style:{display:'none'},onChange:async e=>{
+      const files=Array.from(e.target.files||[]);if(!files.length)return;
+      const sets=await Promise.all(files.map(async(f,fi)=>({name:f.name,events:parseICS(await f.text()).map((o,i)=>{const day=o.start&&D.parse(o.start.date);return day==null?null:{id:'ics-'+fi+'-'+i,title:o.title||'رویداد واردشده',day,start:o.start.minute==null?0:o.start.minute,end:o.end&&o.end.minute!=null?o.end.minute:(o.start.minute||0)+60,allDay:o.start.minute==null,source:'ICS '+(fi+1),sourceName:f.name};}).filter(Boolean)})));
+      s.imported=sets.flatMap(x=>x.events);settings.moxenSolapeImported=s.imported;A.save('settings');A.route();
     }});
     root.append(card([
-      title('Solape · بررسی تداخل‌ها','رویدادهای AIDE را با فایل ICS مقایسه کنید. فایل واردشده فقط برای بررسی همین نشست خوانده می‌شود.',chip('ICS')),
-      h('label',{class:'btn',style:{display:'inline-flex',alignItems:'center',cursor:'pointer'}},'＋ واردکردن فایل ICS',fileInput),
+      title('Solape · بررسی تداخل‌ها','یک یا چند فایل ICS را وارد کنید؛ هر تقویم با AIDE و سایر فایل‌ها بررسی می‌شود.',chip('ICS')),
+      h('label',{class:'btn',style:{display:'inline-flex',alignItems:'center',cursor:'pointer'}},'＋ واردکردن یک یا چند فایل ICS',fileInput),
       btn('خروجی تقویم AIDE',()=>downloadICS(local,'aide-calendar.ics'),true),
       btn('حذف فایل واردشده',()=>{s.imported=[];settings.moxenSolapeImported=[];A.save('settings');A.route();}),
       btn('خروجی ترکیبی',()=>downloadICS(local.concat(imported),'aide-combined-calendar.ics'))
@@ -245,7 +241,7 @@
         h('div',{class:'item',style:{alignItems:'start'}},
           h('span',{class:'grow'},
             h('b',null,dateLabel(p.day)),
-            h('small',{class:'muted',style:{display:'block'}},(p.a.title||'رویداد AIDE')+' ('+A.time(p.a.start)+') ↔ '+(p.b.title||'رویداد ICS')+' ('+A.time(p.b.start)+')')),
+            h('small',{class:'muted',style:{display:'block'}},(p.a.title||'رویداد AIDE')+' ('+(p.a.sourceName||p.a.source||'AIDE')+' · '+A.time(p.a.start)+') ↔ '+(p.b.title||'رویداد ICS')+' ('+(p.b.sourceName||p.b.source||'ICS')+' · '+A.time(p.b.start)+')')),
           btn('ساخت رویداد در زمان دیگر',()=>addEvent(p.day,Math.min(23*60,(p.a.end||p.a.start+60))),true),
           btn('نادیده‌گرفتن این تداخل',()=>{s.ignoredConflicts=s.ignoredConflicts||[];s.ignoredConflicts.push(p.key);A.route();})
         )
@@ -278,8 +274,9 @@
       h('div',{class:'row wrap',style:{marginTop:'12px'}},btn('روز قبل',()=>{s.selected--;s.anchor=s.selected;s.slot=null;A.route();}),btn('امروز',()=>{s.selected=D.today();s.anchor=s.selected;s.slot=null;A.route();},true),btn('روز بعد',()=>{s.selected++;s.anchor=s.selected;s.slot=null;A.route();}))]));
     root.append(card([title(dateLabel(day),'بازه‌های یک‌ساعته آزاد'),
       slots.length?h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(92px,1fr))',gap:'8px'}},...slots.map(t=>btn(A.time(t)+' – '+A.time(t+60),()=>{s.slot=t;A.route();},s.slot===t))):h('p',{class:'muted'},'در این روز بازه آزادی در ساعات کاری تنظیم‌شده وجود ندارد.'),
-      s.slot!=null?h('div',{class:'card',style:{padding:'12px',marginTop:'12px',background:'var(--today-bg)'}},h('b',null,'رزرو انتخاب‌شده: '+A.time(s.slot)),h('p',{class:'small muted'},'با تأیید، فرم رویداد AIDE با تاریخ و ساعت انتخابی باز می‌شود.'),btn('تأیید و ثبت در تقویم',()=>addEvent(day,s.slot),true)):null,
+      s.slot!=null?h('div',{class:'card',style:{padding:'12px',marginTop:'12px',background:'var(--today-bg)'}},h('b',null,'رزرو انتخاب‌شده: '+A.time(s.slot)),h('label',{class:'small',style:{display:'block',marginTop:'8px'}},'عنوان رزرو',h('input',{value:s.bookingTitle||'',placeholder:'مثلاً جلسه مشاوره',onChange:e=>{s.bookingTitle=e.target.value;},style:{display:'block',marginTop:'4px',maxWidth:'100%'}})),h('p',{class:'small muted'},'با تأیید، رزرو در تنظیمات آنلاین این حساب ثبت می‌شود؛ سپس می‌توانید آن را به تقویم اصلی اضافه کنید.'),btn('تأیید رزرو',()=>{const title=(s.bookingTitle||'رزرو Turno').trim();s.confirmed={day,slot:s.slot,title};const arr=A.settings().templateTurnoBookings||[];arr.push({id:'turno-'+Date.now(),date:D.iso(day),start:s.slot,title,createdAt:new Date().toISOString()});A.settings().templateTurnoBookings=arr;A.save('settings');A.route();},true)):null,
       btn('دانلود برنامه روز',()=>downloadICS(dayEvents(day),'aide-day.ics'))]));
+    if(s.confirmed)root.append(card([title('رزرو تأیید شد',dateLabel(s.confirmed.day)+' · '+A.time(s.confirmed.slot),chip('✓')),h('h3',null,s.confirmed.title),h('p',{class:'small muted'},'این رزرو در تنظیمات آنلاین حساب ذخیره شده است.'),h('div',{class:'row wrap'},btn('افزودن به تقویم اصلی',()=>addEvent(s.confirmed.day,s.confirmed.slot),true),btn('دانلود فایل ICS',()=>downloadICS([{day:s.confirmed.day,start:s.confirmed.slot,end:s.confirmed.slot+60,title:s.confirmed.title,allDay:false}],'turno-booking.ics')),btn('رزرو دیگر',()=>{s.confirmed=null;s.slot=null;A.route();}))]));
   }
   function renderVencimientos(root,s) {
     const settings=A.settings(), bills=Array.isArray(settings.moxenBills)?settings.moxenBills:[], first=D.sMonthStart(s.anchor), len=D.sMonthLen(s.anchor), yearStart=D.sYearStart?D.sYearStart(first):first-364, mode=s.totalMode||'month';
@@ -307,9 +304,9 @@
       btn('بازگردانی آخرین لغو',()=>{const b=[...bills].reverse().find(x=>x.cancelled);if(b){b.cancelled=false;persist();A.route();}},true)]));
   }
   const renderers={
-    'moxen-anaquel':renderAnaquel,'moxen-convite':renderConvite,'moxen-epoca':renderEpoca,'moxen-lunario':renderLunario,
-    'moxen-parangon':renderParangon,'moxen-semana':renderSemana,'moxen-solape':renderSolape,'moxen-tregua':renderTregua,
-    'moxen-turno':renderTurno,'moxen-vencimientos':renderVencimientos
+    'template-anaquel':renderAnaquel,'template-convite':renderConvite,'template-epoca':renderEpoca,'template-lunario':renderLunario,
+    'template-parangon':renderParangon,'template-semana':renderSemana,'template-solape':renderSolape,'template-tregua':renderTregua,
+    'template-turno':renderTurno,'template-vencimientos':renderVencimientos
   };
   specs.forEach(([key,name,desc])=>{
     A.views[key]={title:name,sub:desc,flush:false,render(root){
@@ -320,4 +317,5 @@
       renderers[key](root,s);
     }};
   });
+  redirectLegacyTab(); window.addEventListener('hashchange',redirectLegacyTab);
 })();

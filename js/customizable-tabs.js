@@ -20,21 +20,21 @@
     ['people', 'افراد', 'People'],
     ['themes', 'تم‌ها', 'Themes'],
     ['layouts', 'قالب‌ها', 'Layouts'],
-    ['moxen-anaquel', 'قالب Anaquel', 'Anaquel'],
-    ['moxen-convite', 'قالب Convite', 'Convite'],
-    ['moxen-epoca', 'قالب Época', 'Época'],
-    ['moxen-lunario', 'قالب Lunario', 'Lunario'],
-    ['moxen-parangon', 'قالب Parangón', 'Parangón'],
-    ['moxen-semana', 'قالب Semana', 'Semana'],
-    ['moxen-solape', 'قالب Solape', 'Solape'],
-    ['moxen-tregua', 'قالب Tregua', 'Tregua'],
-    ['moxen-turno', 'قالب Turno', 'Turno'],
-    ['moxen-vencimientos', 'قالب Vencimientos', 'Vencimientos'],
+    ['template-anaquel', 'قالب Anaquel', 'Anaquel'],
+    ['template-convite', 'قالب Convite', 'Convite'],
+    ['template-epoca', 'قالب Época', 'Época'],
+    ['template-lunario', 'قالب Lunario', 'Lunario'],
+    ['template-parangon', 'قالب Parangón', 'Parangón'],
+    ['template-semana', 'قالب Semana', 'Semana'],
+    ['template-solape', 'قالب Solape', 'Solape'],
+    ['template-tregua', 'قالب Tregua', 'Tregua'],
+    ['template-turno', 'قالب Turno', 'Turno'],
+    ['template-vencimientos', 'قالب Vencimientos', 'Vencimientos'],
     ['manager', 'مدیرعامل', 'Manager'],
     ['users', 'کاربران', 'Users'],
     ['settings', 'تنظیمات', 'Settings']
   ];
-  const MANAGER_SECTIONS = new Set(['manager', 'themes', 'settings', 'layouts', 'moxen-anaquel', 'moxen-convite', 'moxen-epoca', 'moxen-lunario', 'moxen-parangon', 'moxen-semana', 'moxen-solape', 'moxen-tregua', 'moxen-turno', 'moxen-vencimientos']);
+  const MANAGER_SECTIONS = new Set(['manager', 'themes', 'settings', 'layouts', 'template-anaquel', 'template-convite', 'template-epoca', 'template-lunario', 'template-parangon', 'template-semana', 'template-solape', 'template-tregua', 'template-turno', 'template-vencimientos']);
   const defaults = () => [];
   function availableSections() {
     if (A.role === 'manager') return SECTIONS.filter(([id]) => MANAGER_SECTIONS.has(id));
@@ -42,7 +42,8 @@
   }
   function isVisible(id) {
     const hidden = A.settings().hiddenSections || defaults();
-    return id === 'settings' || !hidden.includes(id);
+    const legacy = id.replace(/^template-/, 'moxen-');
+    return id === 'settings' || (!hidden.includes(id) && !hidden.includes(legacy));
   }
   function applyVisibility() {
     if (!A.db || !A.db.data) return;
@@ -69,12 +70,12 @@
       availableSections().forEach(([id, fa, en]) => {
         const input = h('input', {
           type: 'checkbox',
-          checked: id === 'settings' || !S.hiddenSections.includes(id),
+          checked: id === 'settings' || isVisible(id),
           disabled: id === 'settings',
           'aria-label': 'نمایش ' + fa,
           onChange: e => {
             const hidden = new Set(A.settings().hiddenSections || []);
-            if (e.target.checked) hidden.delete(id);
+            if (e.target.checked) { hidden.delete(id); hidden.delete(id.replace(/^template-/, 'moxen-')); }
             else if (id !== 'settings') hidden.add(id);
             A.settings().hiddenSections = Array.from(hidden);
             A.save('settings');
