@@ -96,11 +96,21 @@
       const id=String((o.ev&&o.ev.id)||o.id||o.day+'-'+o.start+'-'+o.title), status=rsvps[id]||'pending';
       return h('div',{class:'item',style:{marginBottom:'8px',alignItems:'start'}},
         h('span',{class:'grow',style:{minWidth:0}},h('b',null,o.title||'رویداد'),h('small',{class:'muted',style:{display:'block'}},dateLabel(o.day)+' · '+(o.allDay?'تمام روز':A.time(o.start)))),
-        h('div',{class:'row wrap'},btn(status==='yes'?'حاضر می‌شوم ✓':'حضور دارم',()=>{rsvps[id]='yes';persist();A.route();},status==='yes'),btn(status==='no'?'عدم حضور ✓':'نمی‌رسم',()=>{rsvps[id]='no';persist();A.route();},false),btn('ICS',()=>downloadICS([o],'aide-invitation.ics'))));
+        h('div',{class:'row wrap'},btn(status==='yes'?'حاضر می‌شوم ✓':'حضور دارم',()=>{rsvps[id]='yes';persist();A.route();},status==='yes'),btn(status==='no'?'عدم حضور ✓':'نمی‌رسم',()=>{rsvps[id]='no';persist();A.route();},false),btn('ICS',()=>downloadICS([o],'aide-invitation.ics')),btn('متن دعوت',()=>{const txt='دعوت به '+(o.title||'رویداد')+String.fromCharCode(10)+'زمان: '+dateLabel(o.day)+' '+(o.allDay?'تمام روز':A.time(o.start))+String.fromCharCode(10)+'وضعیت حضور: '+(rsvps[id]==='yes'?'حاضر می‌شوم':rsvps[id]==='no'?'عدم حضور':'پاسخ داده نشده');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).catch(()=>window.prompt('متن دعوت را کپی کنید',txt));else window.prompt('متن دعوت را کپی کنید',txt);})));
     })));
   }
   function renderEpoca(root,s) {
     const mode=s.mode||'year', today=D.today();
+    if(!root.__epocaZoomBound){
+      root.__epocaZoomBound=true;
+      root.addEventListener('wheel',e=>{
+        if(!e.ctrlKey&&!e.metaKey&&Math.abs(e.deltaY)<18)return;
+        if(e.cancelable)e.preventDefault();
+        const order=['year','month','week','day'], at=order.indexOf(s.mode||'year');
+        s.mode=order[Math.max(0,Math.min(3,at+(e.deltaY>0?1:-1)))];
+        A.route();
+      },{passive:false});
+    }
     root.append(card([title('Época · مرور پیوسته','با انتخاب سال، ماه، هفته یا روز بین مقیاس‌ها جابه‌جا شوید.',
       h('div',{class:'row wrap'},...['year','month','week','day'].map(m=>btn(({year:'سال',month:'ماه',week:'هفته',day:'روز'})[m],()=>{s.mode=m;A.route();},mode===m))))]));
     if(mode==='year'){
@@ -115,10 +125,12 @@
     root.append(card([btn('← مقیاس بزرگ‌تر',()=>{s.mode=mode==='day'?'week':mode==='week'?'month':'year';A.route();}),btn('امروز',()=>{s.anchor=today;s.selected=today;A.route();}),btn('مقیاس کوچک‌تر →',()=>{s.mode=mode==='year'?'month':mode==='month'?'week':'day';A.route();},true)]));
   }
   function renderLunario(root,s) {
-    const g=monthGrid(s), selected=dayEvents(s.selected);
+    const g=monthGrid(s), selected=dayEvents(s.selected), monthEvents=rangeEvents(g.first,g.first+g.len-1);
+    const multi=monthEvents.filter(o=>o.ev&&o.ev.endDate&&D.parse(o.ev.endDate)>o.day);
     root.append(card([title('Lunario · تقویم ماهانه','نمای ماه، شمار رویدادهای هر روز و جزئیات روز انتخابی.',
       h('div',{class:'row wrap'},btn('‹ ماه قبل',()=>moveMonth(s,-1)),btn('امروز',()=>{s.anchor=D.today();s.selected=D.today();A.route();},true),btn('ماه بعد ›',()=>moveMonth(s,1))))]));
     root.append(card([g.grid]));
+    if(multi.length)root.append(card([title('رویدادهای چندروزه','رویدادهایی که بیش از یک روز ادامه دارند'),...multi.slice(0,20).map(evCard)]));
     const weeks=[];for(let i=0;i<g.count;i+=7)weeks.push(g.occ.filter(o=>o.day>=g.start+i&&o.day<g.start+i+7).length);
     root.append(card([title('تراکم هفته‌ها','نمای خلاصه تعداد رویدادها'),
       h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,minmax(0,1fr))',gap:'4px',alignItems:'end',height:'62px'}},...weeks.map((n,i)=>h('div',{title:'هفته '+(i+1)+': '+n+' رویداد',style:{height:Math.max(8,Math.min(58,n*5+8))+'px',borderRadius:'6px 6px 2px 2px',background:'var(--accent)',opacity:.45+n/(Math.max(1,...weeks))*0.5}})))]));
@@ -126,9 +138,9 @@
   }
   function renderParangon(root,s) {
     const today=D.today(), a=Number.isFinite(s.from)?s.from:today-6, b=Number.isFinite(s.to)?Math.max(a,s.to):today;
-    const span=Math.max(1,Math.min(366,b-a+1)), prevA=a-span, prevB=a-1;
+    const span=Math.max(1,Math.min(366,b-a+1)), prevA=s.compare==='year'?a-364:a-span, prevB=s.compare==='year'?b-364:a-1;
     const current=rangeEvents(a,b), previous=rangeEvents(prevA,prevB), max=Math.max(1,current.length,previous.length);
-    const stats=[{name:'بازه انتخابی',n:current.length,color:'var(--accent)'},{name:'بازه قبلی',n:previous.length,color:'var(--muted)'},{name:'اختلاف',n:current.length-previous.length,color:current.length>=previous.length?'var(--accent)':'var(--danger)'}];
+    const stats=[{name:'بازه انتخابی',n:current.length,color:'var(--accent)'},{name:s.compare==='year'?'همین بازه در سال قبل':'بازه قبلی',n:previous.length,color:'var(--muted)'},{name:'اختلاف',n:current.length-previous.length,color:current.length>=previous.length?'var(--accent)':'var(--danger)'}];
     const bars=h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:'10px'}},
       ...stats.map(x=>h('div',{style:{padding:'14px',background:'var(--canvas)',border:'1px solid var(--line)',borderRadius:'12px'}},
         h('small',{class:'muted'},x.name),
@@ -143,10 +155,15 @@
       h('div',{class:'row wrap',style:{marginTop:'10px'}},
         btn('۷ روز',()=>{s.from=today-6;s.to=today;A.route();}),
         btn('۳۰ روز',()=>{s.from=today-29;s.to=today;A.route();}),
-        btn('سال تا امروز',()=>{s.from=D.sYearStart?D.sYearStart(today):today-364;s.to=today;A.route();},true)
+        btn('سال تا امروز',()=>{s.from=D.sYearStart?D.sYearStart(today):today-364;s.to=today;A.route();}),
+        btn(s.compare==='year'?'مقایسه با بازه قبلی':'مقایسه با سال قبل',()=>{s.compare=s.compare==='year'?'period':'year';A.route();},true)
       )
     ]));
-    root.append(card([bars,h('p',{class:'small muted'},dateLabel(a)+' تا '+dateLabel(b)+' در برابر '+dateLabel(prevA)+' تا '+dateLabel(prevB))]));
+    const nBars=Math.min(span,31), dailyCurrent=Array.from({length:nBars},(_,i)=>rangeEvents(a+Math.floor(i*span/nBars),a+Math.floor(i*span/nBars)).length), dailyPrevious=Array.from({length:nBars},(_,i)=>rangeEvents(prevA+Math.floor(i*span/nBars),prevA+Math.floor(i*span/nBars)).length);
+    const miniChart=h('div',{style:{display:'grid',gridTemplateColumns:'repeat('+nBars+',minmax(2px,1fr))',gap:'3px',height:'64px',alignItems:'end',marginTop:'12px'}},
+      ...dailyCurrent.map((n,i)=>h('div',{title:dateLabel(a+Math.floor(i*span/nBars))+': '+n+' رویداد',style:{height:Math.max(4,Math.min(60,n*12+4))+'px',background:'var(--accent)',borderRadius:'3px 3px 0 0',position:'relative'}},
+        h('span',{style:{position:'absolute',bottom:0,left:0,right:0,height:Math.max(2,Math.min(58,dailyPrevious[i]*12+2))+'px',borderTop:'2px dashed var(--ink)',opacity:.6}}))));
+    root.append(card([bars,miniChart,h('p',{class:'small muted'},dateLabel(a)+' تا '+dateLabel(b)+' در برابر '+dateLabel(prevA)+' تا '+dateLabel(prevB))]));
     root.append(card([title('رویدادهای بازه فعلی',current.length+' مورد'),...current.slice(0,30).map(evCard)]));
   }
   function renderSemana(root,s) {
@@ -188,7 +205,10 @@
     for(let i=0;i<all.length;i++) for(let j=i+1;j<all.length;j++) {
       const a=all[i],b=all[j];
       if(a.day!==b.day||a.allDay||b.allDay||a.source===b.source) continue;
-      if((a.start||0)<(b.end||0)&&(b.start||0)<(a.end||0)) pairs.push({a,b,day:a.day});
+      if((a.start||0)<(b.end||0)&&(b.start||0)<(a.end||0)) {
+        const key=[a.id||a.title||'',b.id||b.title||'',a.day,a.start,b.start].join('|');
+        if(!(s.ignoredConflicts||[]).includes(key)) pairs.push({a,b,day:a.day,key});
+      }
     }
     const fileInput=h('input',{type:'file',accept:'.ics',style:{display:'none'},onChange:e=>{
       const f=e.target.files&&e.target.files[0]; if(!f)return;
@@ -207,7 +227,9 @@
     root.append(card([
       title('Solape · بررسی تداخل‌ها','رویدادهای AIDE را با فایل ICS مقایسه کنید. فایل واردشده فقط برای بررسی همین نشست خوانده می‌شود.',chip('ICS')),
       h('label',{class:'btn',style:{display:'inline-flex',alignItems:'center',cursor:'pointer'}},'＋ واردکردن فایل ICS',fileInput),
-      btn('خروجی تقویم AIDE',()=>downloadICS(local,'aide-calendar.ics'),true)
+      btn('خروجی تقویم AIDE',()=>downloadICS(local,'aide-calendar.ics'),true),
+      btn('حذف فایل واردشده',()=>{s.imported=[];settings.moxenSolapeImported=[];A.save('settings');A.route();}),
+      btn('خروجی ترکیبی',()=>downloadICS(local.concat(imported),'aide-combined-calendar.ics'))
     ]));
     root.append(card([
       title('نتیجه بررسی',pairs.length+' تداخل پیدا شد'),
@@ -216,7 +238,8 @@
           h('span',{class:'grow'},
             h('b',null,dateLabel(p.day)),
             h('small',{class:'muted',style:{display:'block'}},(p.a.title||'رویداد AIDE')+' ('+A.time(p.a.start)+') ↔ '+(p.b.title||'رویداد ICS')+' ('+A.time(p.b.start)+')')),
-          btn('ساخت رویداد در زمان دیگر',()=>addEvent(p.day,Math.min(23*60,(p.a.end||p.a.start+60))),true)
+          btn('ساخت رویداد در زمان دیگر',()=>addEvent(p.day,Math.min(23*60,(p.a.end||p.a.start+60))),true),
+          btn('نادیده‌گرفتن این تداخل',()=>{s.ignoredConflicts=s.ignoredConflicts||[];s.ignoredConflicts.push(p.key);A.route();})
         )
       )) : h('p',{class:'muted'},'تداخل بین رویدادهای AIDE و فایل واردشده پیدا نشد.')
     ]));
@@ -251,13 +274,15 @@
       btn('دانلود برنامه روز',()=>downloadICS(dayEvents(day),'aide-day.ics'))]));
   }
   function renderVencimientos(root,s) {
-    const settings=A.settings(), bills=Array.isArray(settings.moxenBills)?settings.moxenBills:[], first=D.sMonthStart(s.anchor), len=D.sMonthLen(first), yearStart=D.sYearStart?D.sYearStart(first):first-364;
+    const settings=A.settings(), bills=Array.isArray(settings.moxenBills)?settings.moxenBills:[], first=D.sMonthStart(s.anchor), len=D.sMonthLen(s.anchor), yearStart=D.sYearStart?D.sYearStart(first):first-364, mode=s.totalMode||'month';
     const active=bills.filter(b=>!b.cancelled), monthBills=active.filter(b=>{const day=D.parse(b.date);return day!=null&&day>=first&&day<first+len;}), total=monthBills.reduce((n,b)=>n+(Number(b.amount)||0),0);
-    const yearly=active.filter(b=>{const day=D.parse(b.date);return day!=null&&day>=yearStart&&day<yearStart+365;}).reduce((n,b)=>n+(Number(b.amount)||0),0);
+    const yearlyBills=active.filter(b=>{const day=D.parse(b.date);return day!=null&&day>=yearStart&&day<yearStart+365;}), yearly=yearlyBills.reduce((n,b)=>n+(Number(b.amount)||0),0);
+    const displayed=mode==='year'?yearlyBills:monthBills, displayedTotal=mode==='year'?yearly:total;
     root.append(card([title('Vencimientos · تقویم سررسیدها','سررسیدهای پرداخت، مبلغ ماهانه و جمع سالانه؛ فهرست در تنظیمات آنلاین حساب ذخیره می‌شود.',
       h('div',{class:'row wrap'},btn('‹ ماه قبل',()=>moveMonth(s,-1)),btn('امروز',()=>{s.anchor=D.today();s.selected=D.today();A.route();},true),btn('ماه بعد ›',()=>moveMonth(s,1)))),
+      h('div',{class:'row wrap',style:{marginBottom:'10px'}},btn('نمای ماهانه',()=>{s.totalMode='month';A.route();},mode==='month'),btn('نمای سالانه',()=>{s.totalMode='year';A.route();},mode==='year')),
       h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:'9px'}},...[
-        ['جمع ماه',total.toLocaleString('fa-IR')],['جمع سال',yearly.toLocaleString('fa-IR')],['پرداخت‌های ماه',String(monthBills.length)]
+        ['جمع ماه',total.toLocaleString('fa-IR')],['جمع سال',yearly.toLocaleString('fa-IR')],['جمع نمای فعلی',displayedTotal.toLocaleString('fa-IR')],['تعداد پرداخت‌ها',String(displayed.length)]
       ].map(x=>h('div',{style:{padding:'12px',background:'var(--canvas)',border:'1px solid var(--line)',borderRadius:'12px'}},h('small',{class:'muted'},x[0]),h('b',{style:{display:'block',fontSize:'21px',marginTop:'7px'}},x[1]))))]));
     const g=monthGrid(s,{compact:true});
     root.append(card([g.grid]));
@@ -267,8 +292,9 @@
         h('input',{name:'amount',type:'number',min:'0',step:'any',required:true,placeholder:'مبلغ'}),
         h('input',{name:'date',type:'date',required:true,value:D.iso(s.selected)}),
         h('button',{type:'submit',class:'btn primary'},'＋ ثبت سررسید'))]));
-    root.append(card([title('فهرست پرداخت‌ها','قابل لغو و بازگردانی'),
-      bills.length?h('div',{class:'stack'},...bills.map(b=>h('div',{class:'item',style:{opacity:b.cancelled?.55:1}},h('span',{class:'grow',style:{minWidth:0}},h('b',{style:{textDecoration:b.cancelled?'line-through':'none'}},b.name),h('small',{class:'muted',style:{display:'block'}},b.date+' · '+Number(b.amount).toLocaleString('fa-IR'))),b.cancelled?btn('بازگردانی',()=>{b.cancelled=false;persist();A.route();},true):btn('لغو',()=>{b.cancelled=true;persist();A.route();})))):h('p',{class:'muted'},'هنوز سررسیدی ثبت نشده است.')]));
+    root.append(card([title('فهرست پرداخت‌ها','لغو، بازگردانی و فیلتر بر اساس ماه یا سال'),
+      bills.length?h('div',{class:'stack'},...bills.filter(b=>mode==='year'||(D.parse(b.date)!=null&&D.parse(b.date)>=first&&D.parse(b.date)<first+len)||b.cancelled).map(b=>h('div',{class:'item',style:{opacity:b.cancelled?.55:1}},h('span',{class:'grow',style:{minWidth:0}},h('b',{style:{textDecoration:b.cancelled?'line-through':'none'}},b.name),h('small',{class:'muted',style:{display:'block'}},b.date+' · '+Number(b.amount).toLocaleString('fa-IR'))),b.cancelled?btn('بازگردانی',()=>{b.cancelled=false;persist();A.route();},true):btn('لغو',()=>{b.cancelled=true;persist();A.route();},false)))):h('p',{class:'muted'},'هنوز سررسیدی ثبت نشده است.'),
+      btn('بازگردانی آخرین لغو',()=>{const b=[...bills].reverse().find(x=>x.cancelled);if(b){b.cancelled=false;persist();A.route();}},true)]));
   }
   const renderers={
     'moxen-anaquel':renderAnaquel,'moxen-convite':renderConvite,'moxen-epoca':renderEpoca,'moxen-lunario':renderLunario,
