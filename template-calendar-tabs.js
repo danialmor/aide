@@ -102,6 +102,8 @@
         h('div',{style:{padding:'12px',border:'1px solid var(--line)',borderRadius:'12px',background:'var(--canvas)'}},h('small',{class:'muted'},'ساعت در منطقه انتخابی'),h('b',{style:{display:'block',fontSize:'24px',marginTop:'6px'}},zoneTime()),h('select',{value:invitePrefs.timeZone,onChange:e=>{invitePrefs.timeZone=e.target.value;settingsSaveInvite(invitePrefs);A.route();},style:{marginTop:'8px'}},...Array.from(new Set([invitePrefs.timeZone,'UTC','Europe/Berlin','Europe/London','America/New_York','Asia/Dubai','Asia/Tehran'])).map(z=>h('option',{value:z},z)))),
         h('div',{style:{padding:'12px',border:'1px solid var(--line)',borderRadius:'12px',background:'var(--canvas)'}},h('small',{class:'muted'},'یادآورهای این تب'),h('b',{style:{display:'block',fontSize:'18px',margin:'8px 0'}},invitePrefs.reminders?'فعال':'غیرفعال'),btn(invitePrefs.reminders?'خاموش‌کردن یادآور':'فعال‌کردن یادآور',()=>{invitePrefs.reminders=!invitePrefs.reminders;settingsSaveInvite(invitePrefs);A.route();},true))),
       h('p',{class:'small muted'},'وضعیت حضور و تنظیمات این تب در تنظیمات آنلاین حساب ذخیره می‌شوند. فایل ICS برای افزودن به تقویم دستگاه قابل دانلود است.')]));
+    const yesCount=Object.values(rsvps).filter(v=>v==='yes').length, noCount=Object.values(rsvps).filter(v=>v==='no').length;
+    root.append(card([title('وضعیت دعوت‌ها','خلاصه پاسخ‌های ثبت‌شده در حساب فعلی'),h('div',{class:'row wrap'},chip('حضور: '+yesCount),chip('عدم حضور: '+noCount),chip('بدون پاسخ: '+Math.max(0,events.length-yesCount-noCount))),btn('اشتراک‌گذاری لینک دعوت‌ها',()=>{const url=location.href;if(navigator.share)navigator.share({title:'دعوت‌نامه‌های AIDE',url}).catch(()=>{});else if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(url).then(()=>A.toast&&A.toast('لینک کپی شد')).catch(()=>window.prompt('لینک را کپی کنید',url));else window.prompt('لینک را کپی کنید',url);},true)]));
     if(!events.length){root.append(card([h('p',{class:'muted'},'در ۹۰ روز آینده رویدادی پیدا نشد.'),btn('＋ ساخت رویداد',()=>addEvent(D.today()),true)]));return;}
     root.append(card(events.slice(0,30).map(o=>{
       const id=String((o.ev&&o.ev.id)||o.id||o.day+'-'+o.start+'-'+o.title), status=rsvps[id]||'pending';
@@ -134,7 +136,7 @@
   }
   function renderLunario(root,s) {
     const g=monthGrid(s), selected=dayEvents(s.selected), monthEvents=rangeEvents(g.first,g.first+g.len-1);
-    const multi=monthEvents.filter(o=>o.ev&&o.ev.endDate&&D.parse(o.ev.endDate)>o.day);
+    const multi=monthEvents.filter(o=>o.ev&&o.ev.allDay&&(o.ev.span||1)>1&&D.parse(o.ev.date)===o.day);
     root.append(card([title('Lunario · تقویم ماهانه','نمای ماه، شمار رویدادهای هر روز و جزئیات روز انتخابی.',
       h('div',{class:'row wrap'},btn('‹ ماه قبل',()=>moveMonth(s,-1)),btn('امروز',()=>{s.anchor=D.today();s.selected=D.today();A.route();},true),btn('ماه بعد ›',()=>moveMonth(s,1))))]));
     root.append(card([g.grid]));
@@ -272,8 +274,9 @@
       h('div',{class:'row wrap',style:{marginTop:'12px'}},btn('روز قبل',()=>{s.selected--;s.anchor=s.selected;s.slot=null;A.route();}),btn('امروز',()=>{s.selected=D.today();s.anchor=s.selected;s.slot=null;A.route();},true),btn('روز بعد',()=>{s.selected++;s.anchor=s.selected;s.slot=null;A.route();}))]));
     root.append(card([title(dateLabel(day),'بازه‌های یک‌ساعته آزاد'),
       slots.length?h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(92px,1fr))',gap:'8px'}},...slots.map(t=>btn(A.time(t)+' – '+A.time(t+60),()=>{s.slot=t;A.route();},s.slot===t))):h('p',{class:'muted'},'در این روز بازه آزادی در ساعات کاری تنظیم‌شده وجود ندارد.'),
-      s.slot!=null?h('div',{class:'card',style:{padding:'12px',marginTop:'12px',background:'var(--today-bg)'}},h('b',null,'رزرو انتخاب‌شده: '+A.time(s.slot)),h('p',{class:'small muted'},'با تأیید، فرم رویداد AIDE با تاریخ و ساعت انتخابی باز می‌شود.'),btn('تأیید و ثبت در تقویم',()=>addEvent(day,s.slot),true)):null,
+      s.slot!=null?h('div',{class:'card',style:{padding:'12px',marginTop:'12px',background:'var(--today-bg)'}},h('b',null,'رزرو انتخاب‌شده: '+A.time(s.slot)),h('label',{class:'small',style:{display:'block',marginTop:'8px'}},'عنوان رزرو',h('input',{value:s.bookingTitle||'',placeholder:'مثلاً جلسه مشاوره',onChange:e=>{s.bookingTitle=e.target.value;},style:{display:'block',marginTop:'4px',maxWidth:'100%'}})),h('p',{class:'small muted'},'با تأیید، رزرو در تنظیمات آنلاین این حساب ثبت می‌شود؛ سپس می‌توانید آن را به تقویم اصلی اضافه کنید.'),btn('تأیید رزرو',()=>{const title=(s.bookingTitle||'رزرو Turno').trim();s.confirmed={day,slot:s.slot,title};const arr=A.settings().templateTurnoBookings||[];arr.push({id:'turno-'+Date.now(),date:D.iso(day),start:s.slot,title,createdAt:new Date().toISOString()});A.settings().templateTurnoBookings=arr;A.save('settings');A.route();},true)):null,
       btn('دانلود برنامه روز',()=>downloadICS(dayEvents(day),'aide-day.ics'))]));
+    if(s.confirmed)root.append(card([title('رزرو تأیید شد',dateLabel(s.confirmed.day)+' · '+A.time(s.confirmed.slot),chip('✓')),h('h3',null,s.confirmed.title),h('p',{class:'small muted'},'این رزرو در تنظیمات آنلاین حساب ذخیره شده است.'),h('div',{class:'row wrap'},btn('افزودن به تقویم اصلی',()=>addEvent(s.confirmed.day,s.confirmed.slot),true),btn('دانلود فایل ICS',()=>downloadICS([{day:s.confirmed.day,start:s.confirmed.slot,end:s.confirmed.slot+60,title:s.confirmed.title,allDay:false}],'turno-booking.ics')),btn('رزرو دیگر',()=>{s.confirmed=null;s.slot=null;A.route();}))]));
   }
   function renderVencimientos(root,s) {
     const settings=A.settings(), bills=Array.isArray(settings.moxenBills)?settings.moxenBills:[], first=D.sMonthStart(s.anchor), len=D.sMonthLen(s.anchor), yearStart=D.sYearStart?D.sYearStart(first):first-364, mode=s.totalMode||'month';
