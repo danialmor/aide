@@ -27,6 +27,7 @@
     return settings[key];
   };
   const persist = () => A.save('settings');
+  const settingsSaveInvite = value => { A.settings().moxenConvitePrefs=value; A.save('settings'); };
   const dayEvents = day => E.expand(day,day).sort((a,b)=>(a.start||0)-(b.start||0));
   const rangeEvents = (a,b) => E.expand(a,b).sort((x,y)=>x.day-y.day||(x.start||0)-(y.start||0));
   const btn = (label, fn, primary=false, extra={}) => h('button',Object.assign({type:'button',class:primary?'btn primary':'btn',onClick:fn},extra),label);
@@ -41,6 +42,8 @@
     h('span',{class:'grow',style:{minWidth:0}},h('b',{dir:'auto'},o.title||o.ev&&o.ev.title||'رویداد بدون عنوان'),h('small',{class:'muted',style:{display:'block'}},D.longS(o.day)+' · '+(o.allDay?'تمام روز':A.time(o.start)+'–'+A.time(o.end)))),
     chip(D.dnum(o.day)));
   const dateLabel = day => D.longS(day);
+  const moonPhase = day => { const synodic=29.530588853, epoch=Date.UTC(2000,0,6,18,14)/86400000, age=((day-epoch)%synodic+synodic)%synodic; const names=['ماه نو','هلال افزاینده','تربیع اول','کوژ افزاینده','بدر','کوژ کاهنده','تربیع آخر','هلال کاهنده']; const icons=['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘']; const idx=Math.round(age/synodic*8)%8; return {name:names[idx],icon:icons[idx],age}; };
+  const money = n => Number(n||0).toLocaleString('fa-IR');
   const moveMonth = (s,delta) => {s.anchor=D.sAddMonths(s.anchor,delta);s.selected=s.anchor;A.route();};
   const monthGrid = (s, opts={}) => {
     const first=D.sMonthStart(s.anchor), len=D.sMonthLen(first), settings=A.settings();
@@ -89,8 +92,13 @@
   }
   function renderConvite(root,s) {
     const events=rangeEvents(D.today(),D.today()+90), rsvps=st('moxenConviteRsvp',{});
-    root.append(card([title('Convite · دعوت‌نامه‌ها','تأیید حضور برای رویدادهای موجود در AIDE',chip('RSVP')),
-      h('p',{class:'small muted'},'وضعیت حضور ذخیره می‌شود و به حساب فعلی شما متصل است. برای اشتراک‌گذاری، فایل تقویم رویداد ساخته می‌شود.')]));
+    const invitePrefs=st('moxenConvitePrefs',{timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',reminders:true});
+    const zoneTime=()=>{try{return new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:invitePrefs.timeZone}).format(new Date());}catch(_){return '—';}};
+    root.append(card([title('Convite · دعوت‌نامه‌ها','تأیید حضور، ساعت محلی و یادآور رویدادها',chip('RSVP')),
+      h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'10px',marginBottom:'10px'}},
+        h('div',{style:{padding:'12px',border:'1px solid var(--line)',borderRadius:'12px',background:'var(--canvas)'}},h('small',{class:'muted'},'ساعت در منطقه انتخابی'),h('b',{style:{display:'block',fontSize:'24px',marginTop:'6px'}},zoneTime()),h('select',{value:invitePrefs.timeZone,onChange:e=>{invitePrefs.timeZone=e.target.value;settingsSaveInvite(invitePrefs);A.route();},style:{marginTop:'8px'}},...Array.from(new Set([invitePrefs.timeZone,'UTC','Europe/Berlin','Europe/London','America/New_York','Asia/Dubai','Asia/Tehran'])).map(z=>h('option',{value:z},z)))),
+        h('div',{style:{padding:'12px',border:'1px solid var(--line)',borderRadius:'12px',background:'var(--canvas)'}},h('small',{class:'muted'},'یادآورهای این تب'),h('b',{style:{display:'block',fontSize:'18px',margin:'8px 0'}},invitePrefs.reminders?'فعال':'غیرفعال'),btn(invitePrefs.reminders?'خاموش‌کردن یادآور':'فعال‌کردن یادآور',()=>{invitePrefs.reminders=!invitePrefs.reminders;settingsSaveInvite(invitePrefs);A.route();},true))),
+      h('p',{class:'small muted'},'وضعیت حضور و تنظیمات این تب در تنظیمات آنلاین حساب ذخیره می‌شوند. فایل ICS برای افزودن به تقویم دستگاه قابل دانلود است.')]));
     if(!events.length){root.append(card([h('p',{class:'muted'},'در ۹۰ روز آینده رویدادی پیدا نشد.'),btn('＋ ساخت رویداد',()=>addEvent(D.today()),true)]));return;}
     root.append(card(events.slice(0,30).map(o=>{
       const id=String((o.ev&&o.ev.id)||o.id||o.day+'-'+o.start+'-'+o.title), status=rsvps[id]||'pending';
@@ -103,13 +111,10 @@
     const mode=s.mode||'year', today=D.today();
     if(!root.__epocaZoomBound){
       root.__epocaZoomBound=true;
-      root.addEventListener('wheel',e=>{
-        if(!e.ctrlKey&&!e.metaKey&&Math.abs(e.deltaY)<18)return;
-        if(e.cancelable)e.preventDefault();
-        const order=['year','month','week','day'], at=order.indexOf(s.mode||'year');
-        s.mode=order[Math.max(0,Math.min(3,at+(e.deltaY>0?1:-1)))];
-        A.route();
-      },{passive:false});
+      const zoom=dir=>{const order=['year','month','week','day'],at=order.indexOf(s.mode||'year');s.mode=order[Math.max(0,Math.min(3,at+dir))];A.route();};
+      root.addEventListener('wheel',e=>{if(!e.ctrlKey&&!e.metaKey&&Math.abs(e.deltaY)<18)return;if(e.cancelable)e.preventDefault();zoom(e.deltaY>0?1:-1);},{passive:false});
+      let pinchStart=0;root.addEventListener('touchstart',e=>{if(e.touches&&e.touches.length===2)pinchStart=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);},{passive:true});
+      root.addEventListener('touchend',e=>{if(!pinchStart||!e.changedTouches)return;const order=['year','month','week','day'];const end=e.changedTouches.length===2?Math.hypot(e.changedTouches[0].clientX-e.changedTouches[1].clientX,e.changedTouches[0].clientY-e.changedTouches[1].clientY):pinchStart; if(Math.abs(end-pinchStart)>55)zoom(end<pinchStart?1:-1);pinchStart=0;},{passive:true});
     }
     root.append(card([title('Época · مرور پیوسته','با انتخاب سال، ماه، هفته یا روز بین مقیاس‌ها جابه‌جا شوید.',
       h('div',{class:'row wrap'},...['year','month','week','day'].map(m=>btn(({year:'سال',month:'ماه',week:'هفته',day:'روز'})[m],()=>{s.mode=m;A.route();},mode===m))))]));
@@ -134,7 +139,8 @@
     const weeks=[];for(let i=0;i<g.count;i+=7)weeks.push(g.occ.filter(o=>o.day>=g.start+i&&o.day<g.start+i+7).length);
     root.append(card([title('تراکم هفته‌ها','نمای خلاصه تعداد رویدادها'),
       h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,minmax(0,1fr))',gap:'4px',alignItems:'end',height:'62px'}},...weeks.map((n,i)=>h('div',{title:'هفته '+(i+1)+': '+n+' رویداد',style:{height:Math.max(8,Math.min(58,n*5+8))+'px',borderRadius:'6px 6px 2px 2px',background:'var(--accent)',opacity:.45+n/(Math.max(1,...weeks))*0.5}})))]));
-    root.append(card([title(dateLabel(s.selected),'جزئیات روز'),...selected.map(evCard),btn('＋ رویداد جدید',()=>addEvent(s.selected),true)]));
+    const moon=moonPhase(s.selected);
+    root.append(card([title(dateLabel(s.selected),'جزئیات روز'),h('div',{class:'row',style:{padding:'10px 12px',marginBottom:'8px',border:'1px solid var(--line)',borderRadius:'12px',background:'var(--canvas)'}},h('span',{style:{fontSize:'30px'}},moon.icon),h('span',{class:'grow'},h('b',null,moon.name),h('small',{class:'muted',style:{display:'block'}},'سن تقریبی ماه: '+moon.age.toFixed(1)+' روز')),chip('فاز ماه')), ...selected.map(evCard),btn('＋ رویداد جدید',()=>addEvent(s.selected),true)]));
   }
   function renderParangon(root,s) {
     const today=D.today(), a=Number.isFinite(s.from)?s.from:today-6, b=Number.isFinite(s.to)?Math.max(a,s.to):today;
@@ -170,17 +176,19 @@
     const ws=A.settings().weekStart==null?(D.isJ()?5:0):A.settings().weekStart, first=D.weekStart(s.anchor,ws), startHour=Math.max(0,Math.min(22,Number(s.startHour==null?8:s.startHour))), endHour=Math.max(startHour+2,Math.min(24,Number(s.endHour==null?20:s.endHour)));
     root.append(card([title('Semana · برنامه‌ریز هفتگی','روی هر بازه خالی بزنید تا رویداد در همان روز و ساعت ساخته شود؛ رویدادهای هم‌زمان در فهرست همان روز دیده می‌شوند.',
       h('div',{class:'row wrap'},btn('‹ هفته قبل',()=>{s.anchor-=7;A.route();}),btn('امروز',()=>{s.anchor=D.today();s.selected=D.today();A.route();},true),btn('هفته بعد ›',()=>{s.anchor+=7;A.route();}))),
-      h('div',{class:'row wrap',style:{marginBottom:'8px'}},h('label',{class:'small'},'از ساعت ',h('select',{value:startHour,onChange:e=>{s.startHour=+e.target.value;A.route();}},...Array.from({length:18},(_,i)=>h('option',{value:i},String(i).padStart(2,'0')+':00')))),h('label',{class:'small'},'تا ساعت ',h('select',{value:endHour,onChange:e=>{s.endHour=+e.target.value;A.route();}},...Array.from({length:24},(_,i)=>h('option',{value:i+1},String(i+1).padStart(2,'0')+':00')))))]));
+      h('div',{class:'row wrap',style:{marginBottom:'8px'}},h('span',{class:'chip'},'اکنون · '+A.time((new Date().getHours()*60)+new Date().getMinutes())),h('label',{class:'small'},'از ساعت ',h('select',{value:startHour,onChange:e=>{s.startHour=+e.target.value;A.route();}},...Array.from({length:18},(_,i)=>h('option',{value:i},String(i).padStart(2,'0')+':00')))),h('label',{class:'small'},'تا ساعت ',h('select',{value:endHour,onChange:e=>{s.endHour=+e.target.value;A.route();}},...Array.from({length:24},(_,i)=>h('option',{value:i+1},String(i+1).padStart(2,'0')+':00')))))]));
     const grid=h('div',{style:{display:'grid',gridTemplateColumns:'48px repeat(7,minmax(0,1fr))',gap:'3px',overflowX:'auto'}});
     grid.append(h('div',{}),...Array.from({length:7},(_,i)=>h('button',{type:'button',class:'btn',style:{padding:'6px 2px',fontSize:'11px'},onClick:()=>{s.selected=first+i;A.route();}},D.wletter((ws+i)%7)+' '+D.dnum(first+i))));
     for(let hr=startHour;hr<endHour;hr++){
       grid.append(h('div',{class:'small muted',style:{paddingTop:'8px',fontSize:'10px'}},String(hr).padStart(2,'0')+':00'));
       for(let i=0;i<7;i++){
         const day=first+i, minute=hr*60, evs=dayEvents(day).filter(o=>!o.allDay&&o.start<minute+60&&o.end>minute);
-        grid.append(h('button',{type:'button',title:dateLabel(day)+' '+String(hr).padStart(2,'0')+':00',onClick:()=>addEvent(day,minute),style:{minWidth:'0',minHeight:'38px',padding:'3px',border:'1px solid var(--line)',borderRadius:'5px',background:evs.length?'var(--today-bg)':'var(--canvas)',fontSize:'10px',overflow:'hidden',textAlign:'start'}},evs.length?evs.map(o=>o.title||'رویداد').join('، '):'＋'));
+        grid.append(h('button',{type:'button',title:dateLabel(day)+' '+String(hr).padStart(2,'0')+':00',onClick:()=>{s.pendingSlot={day,minute};A.route();},style:{minWidth:'0',minHeight:'38px',padding:'3px',border:'1px solid var(--line)',borderRadius:'5px',background:evs.length?'var(--today-bg)':'var(--canvas)',fontSize:'10px',overflow:'hidden',textAlign:'start'}},evs.length?evs.map(o=>o.title||'رویداد').join('، '):'＋'));
       }
     }
-    root.append(card([grid]),card([title('برنامه روز انتخابی',dateLabel(s.selected)),...dayEvents(s.selected).map(evCard),btn('＋ ثبت رویداد در این روز',()=>addEvent(s.selected),true)]));
+    root.append(card([grid]));
+    if(s.pendingSlot){const p=s.pendingSlot;root.append(card([title('انتخاب دقیق زمان',dateLabel(p.day)+' · ساعت '+A.time(p.minute)),h('p',{class:'small muted'},'زمان شروع با دقت ۱۵ دقیقه انتخاب می‌شود.'),h('div',{class:'row wrap'},... [0,15,30,45].map(q=>btn(A.time(p.minute+q),()=>{s.pendingSlot=null;addEvent(p.day,p.minute+q);},q===0)),btn('لغو',()=>{s.pendingSlot=null;A.route();}))]));}
+    root.append(card([title('برنامه روز انتخابی',dateLabel(s.selected)),...dayEvents(s.selected).map(evCard),btn('＋ ثبت رویداد در این روز',()=>addEvent(s.selected),true)]));
   }
   function parseICS(text) {
     const lines=text.replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'').split(/\r?\n/), items=[];let cur=null;
@@ -282,10 +290,12 @@
       h('div',{class:'row wrap'},btn('‹ ماه قبل',()=>moveMonth(s,-1)),btn('امروز',()=>{s.anchor=D.today();s.selected=D.today();A.route();},true),btn('ماه بعد ›',()=>moveMonth(s,1)))),
       h('div',{class:'row wrap',style:{marginBottom:'10px'}},btn('نمای ماهانه',()=>{s.totalMode='month';A.route();},mode==='month'),btn('نمای سالانه',()=>{s.totalMode='year';A.route();},mode==='year')),
       h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:'9px'}},...[
-        ['جمع ماه',total.toLocaleString('fa-IR')],['جمع سال',yearly.toLocaleString('fa-IR')],['جمع نمای فعلی',displayedTotal.toLocaleString('fa-IR')],['تعداد پرداخت‌ها',String(displayed.length)]
+        ['جمع ماه',money(total)],['جمع سال',money(yearly)],['جمع نمای فعلی',money(displayedTotal)],['صرفه‌جویی سالانه لغوشده‌ها',money(bills.filter(b=>b.cancelled).reduce((n,b)=>n+(Number(b.amount)||0),0)*12)],['تعداد پرداخت‌ها',String(displayed.length)]
       ].map(x=>h('div',{style:{padding:'12px',background:'var(--canvas)',border:'1px solid var(--line)',borderRadius:'12px'}},h('small',{class:'muted'},x[0]),h('b',{style:{display:'block',fontSize:'21px',marginTop:'7px'}},x[1]))))]));
     const g=monthGrid(s,{compact:true});
-    root.append(card([g.grid]));
+    const dueByDay={};active.forEach(b=>{const d=D.parse(b.date);if(d!=null&&d>=g.first&&d<g.first+g.len)(dueByDay[d]||(dueByDay[d]=[])).push(b);});
+    const billGrid=h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,minmax(0,1fr))',gap:'4px'}},...Array.from({length:7},(_,i)=>h('div',{class:'small muted',style:{textAlign:'center',padding:'5px 0'}},D.wletter(((A.settings().weekStart==null?(D.isJ()?5:0):A.settings().weekStart)+i)%7))),...Array.from({length:g.count},(_,i)=>{const day=g.start+i,items=dueByDay[day]||[],inMonth=day>=g.first&&day<g.first+g.len;return h('button',{type:'button',title:dateLabel(day)+' · '+items.length+' سررسید',onClick:()=>{s.selected=day;A.route();},style:{minWidth:0,minHeight:'54px',padding:'3px',borderRadius:'10px',border:'1px solid '+(day===s.selected?'var(--accent)':'var(--line)'),background:day===s.selected?'var(--today-bg)':'var(--canvas)',opacity:inMonth?1:.35,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'4px'}},h('b',{style:{fontSize:'12px'}},D.dnum(day)),h('span',{style:{display:'flex',gap:'2px',flexWrap:'wrap',justifyContent:'center'}},...items.slice(0,4).map((b,j)=>h('i',{title:b.name,style:{width:'7px',height:'7px',borderRadius:'50%',background:['var(--accent)','var(--ok)','#8a72bd','#bf9a2e'][j%4],display:'inline-block'}})),items.length>4?h('small',{style:{fontSize:'9px'}},'+'+(items.length-4)):null));}));
+    root.append(card([billGrid]));
     root.append(card([title('افزودن سررسید','نام، مبلغ و تاریخ پرداخت'),
       h('form',{class:'stack',onSubmit:e=>{e.preventDefault();const f=e.currentTarget;const name=f.elements.name.value.trim(),amount=Number(f.elements.amount.value),date=f.elements.date.value;if(!name||!date||!Number.isFinite(amount))return;bills.push({id:'bill-'+Date.now(),name,amount,date,cancelled:false});settings.moxenBills=bills;persist();f.reset();A.route();}},
         h('input',{name:'name',required:true,placeholder:'نام سرویس یا پرداخت'}),
