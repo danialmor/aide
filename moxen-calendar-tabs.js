@@ -183,10 +183,12 @@
       grid.append(h('div',{class:'small muted',style:{paddingTop:'8px',fontSize:'10px'}},String(hr).padStart(2,'0')+':00'));
       for(let i=0;i<7;i++){
         const day=first+i, minute=hr*60, evs=dayEvents(day).filter(o=>!o.allDay&&o.start<minute+60&&o.end>minute);
-        grid.append(h('button',{type:'button',title:dateLabel(day)+' '+String(hr).padStart(2,'0')+':00',onClick:()=>addEvent(day,minute),style:{minWidth:'0',minHeight:'38px',padding:'3px',border:'1px solid var(--line)',borderRadius:'5px',background:evs.length?'var(--today-bg)':'var(--canvas)',fontSize:'10px',overflow:'hidden',textAlign:'start'}},evs.length?evs.map(o=>o.title||'رویداد').join('، '):'＋'));
+        grid.append(h('button',{type:'button',title:dateLabel(day)+' '+String(hr).padStart(2,'0')+':00',onClick:()=>{s.pendingSlot={day,minute};A.route();},style:{minWidth:'0',minHeight:'38px',padding:'3px',border:'1px solid var(--line)',borderRadius:'5px',background:evs.length?'var(--today-bg)':'var(--canvas)',fontSize:'10px',overflow:'hidden',textAlign:'start'}},evs.length?evs.map(o=>o.title||'رویداد').join('، '):'＋'));
       }
     }
-    root.append(card([grid]),card([title('برنامه روز انتخابی',dateLabel(s.selected)),...dayEvents(s.selected).map(evCard),btn('＋ ثبت رویداد در این روز',()=>addEvent(s.selected),true)]));
+    root.append(card([grid]));
+    if(s.pendingSlot){const p=s.pendingSlot;root.append(card([title('انتخاب دقیق زمان',dateLabel(p.day)+' · ساعت '+A.time(p.minute)),h('p',{class:'small muted'},'زمان شروع با دقت ۱۵ دقیقه انتخاب می‌شود.'),h('div',{class:'row wrap'},... [0,15,30,45].map(q=>btn(A.time(p.minute+q),()=>{s.pendingSlot=null;addEvent(p.day,p.minute+q);},q===0)),btn('لغو',()=>{s.pendingSlot=null;A.route();}))]));}
+    root.append(card([title('برنامه روز انتخابی',dateLabel(s.selected)),...dayEvents(s.selected).map(evCard),btn('＋ ثبت رویداد در این روز',()=>addEvent(s.selected),true)]));
   }
   function parseICS(text) {
     const lines=text.replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'').split(/\r?\n/), items=[];let cur=null;
