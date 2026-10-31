@@ -84,6 +84,10 @@
     root.append(card([title('Anaquel · داشبورد تقویمی','کارت‌ها را انتخاب کنید تا بزرگ شوند؛ داده‌ها از تقویم اصلی AIDE خوانده می‌شوند.',chip('BENTO'))]),
       h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:'10px',marginBottom:'12px'}},...tiles.map(t=>h('button',{type:'button',class:'card hov',onClick:()=>{s.openTile=t.id;A.route();},style:{padding:'16px',textAlign:'start',minHeight:open===t.id?'145px':'108px',gridColumn:open===t.id?'span 2':'span 1',border:'1px solid '+(open===t.id?'var(--accent)':'var(--line)'),background:open===t.id?'var(--today-bg)':'var(--paper)',transition:'all .22s'}},
         h('span',{class:'small muted'},t.name),h('b',{style:{display:'block',fontSize:'22px',margin:'12px 0 5px'}},t.value),h('span',{class:'small muted'},open===t.id?t.detail:'برای گسترش انتخاب کنید')))));
+    const now=new Date(), steps=Number(st('templateAnaquelSteps',4200)), target=Number(st('templateAnaquelTarget',8000)), pct=Math.min(100,Math.round(steps/Math.max(1,target)*100));
+    const audio=h('audio',{controls:true,preload:'none',style:{width:'100%',marginTop:'8px'}});
+    const audioFile=h('input',{type:'file',accept:'audio/*',style:{maxWidth:'100%'},onChange:e=>{const f=e.target.files&&e.target.files[0];if(f){if(s.audioUrl)URL.revokeObjectURL(s.audioUrl);s.audioUrl=URL.createObjectURL(f);audio.src=s.audioUrl;audio.play().catch(()=>{});}}});
+    root.append(card([title('پنل زنده · ساعت و فعالیت','ساعت محلی، هدف فعالیت روزانه و مینی‌پلیر موسیقی'),h('div',{class:'row wrap',style:{gap:'16px',alignItems:'center'}},h('div',{style:{width:'108px',height:'108px',borderRadius:'50%',border:'2px solid var(--line)',display:'grid',placeItems:'center',background:'radial-gradient(circle,var(--paper) 0 52%,var(--canvas) 53%)',fontSize:'25px',fontWeight:'750'}},now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})),h('div',{class:'grow',style:{minWidth:'160px'}},h('b',{style:{fontSize:'20px',display:'block'}},dateLabel(today)),h('label',{class:'small'},'قدم‌های امروز ',h('input',{type:'number',min:'0',step:'100',value:steps,onChange:e=>{A.settings().templateAnaquelSteps=Math.max(0,Number(e.target.value)||0);A.save('settings');A.route();},style:{display:'block',maxWidth:'150px',marginTop:'4px'}})),h('label',{class:'small'},'هدف روزانه ',h('input',{type:'number',min:'1',step:'500',value:target,onChange:e=>{A.settings().templateAnaquelTarget=Math.max(1,Number(e.target.value)||8000);A.save('settings');A.route();},style:{display:'block',maxWidth:'150px',marginTop:'4px'}})),h('div',{style:{height:'8px',background:'var(--line)',borderRadius:'9px',overflow:'hidden',marginTop:'8px'}},h('span',{style:{display:'block',height:'100%',width:pct+'%',background:'var(--accent)'}})),h('small',{class:'muted'},pct+'٪ از هدف'))),h('div',{style:{marginTop:'10px',padding:'10px',border:'1px solid var(--line)',borderRadius:'12px'}},h('b',null,'مینی‌پلیر موسیقی'),h('p',{class:'small muted'},'فایل صوتی را از دستگاه انتخاب کنید؛ فایل روی سرور آپلود نمی‌شود.'),audioFile,audio)]));
     if(open==='calendar')root.append(calendarPanel(s,{compact:true,round:true}));
     else if(open==='agenda')root.append(card([title('رویدادهای نزدیک','۱۵ روز آینده'),...(events.length?events.map(evCard):[h('p',{class:'muted'},'رویدادی ثبت نشده است.')])]));
     else if(open==='focus')root.append(card([title(dateLabel(s.selected),'برنامه روز'),...dayEvents(s.selected).map(evCard),btn('＋ افزودن رویداد',()=>addEvent(s.selected),true)]));
@@ -182,7 +186,7 @@
       grid.append(h('div',{class:'small muted',style:{paddingTop:'8px',fontSize:'10px'}},String(hr).padStart(2,'0')+':00'));
       for(let i=0;i<7;i++){
         const day=first+i, minute=hr*60, evs=dayEvents(day).filter(o=>!o.allDay&&o.start<minute+60&&o.end>minute);
-        grid.append(h('button',{type:'button',title:dateLabel(day)+' '+String(hr).padStart(2,'0')+':00',onClick:()=>{s.pendingSlot={day,minute};A.route();},style:{minWidth:'0',minHeight:'38px',padding:'3px',border:'1px solid var(--line)',borderRadius:'5px',background:evs.length?'var(--today-bg)':'var(--canvas)',fontSize:'10px',overflow:'hidden',textAlign:'start'}},evs.length?evs.map(o=>o.title||'رویداد').join('، '):'＋'));
+        grid.append(h('button',{type:'button',title:dateLabel(day)+' '+String(hr).padStart(2,'0')+':00',onClick:()=>{s.pendingSlot={day,minute};A.route();},onDragOver:e=>e.preventDefault(),onDrop:e=>{e.preventDefault();const o=window.__aideTemplateDraggedEvent;if(o){E.edit(o.ev||o,{date:D.iso(day),start:minute,dur:o.dur||Math.max(15,(o.end||minute+60)-(o.start||minute))});window.__aideTemplateDraggedEvent=null;}},style:{minWidth:'0',minHeight:'38px',padding:'3px',border:'1px solid var(--line)',borderRadius:'5px',background:evs.length?'var(--today-bg)':'var(--canvas)',fontSize:'10px',overflow:'hidden',textAlign:'start'}},evs.length?evs.map(o=>h('span',{draggable:true,onDragStart:e=>{e.stopPropagation();e.dataTransfer.setData('text/plain',String(o.id||o.title||'event'));window.__aideTemplateDraggedEvent=o;},onClick:e=>{e.stopPropagation();openEvent(o);},style:{display:'block',cursor:'grab',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},o.title||'رویداد')):'＋'));
       }
     }
     root.append(card([grid]));
@@ -217,23 +221,14 @@
         if(!(s.ignoredConflicts||[]).includes(key)) pairs.push({a,b,day:a.day,key});
       }
     }
-    const fileInput=h('input',{type:'file',accept:'.ics',style:{display:'none'},onChange:e=>{
-      const f=e.target.files&&e.target.files[0]; if(!f)return;
-      const reader=new FileReader();
-      reader.onload=()=>{
-        s.imported=parseICS(String(reader.result)).map((o,i)=>{
-          const day=o.start&&D.parse(o.start.date);
-          return day==null?null:{id:'ics-'+i,title:o.title||'رویداد واردشده',day,start:o.start.minute==null?0:o.start.minute,
-            end:o.end&&o.end.minute!=null?o.end.minute:(o.start.minute||0)+60,allDay:o.start.minute==null,source:'ICS'};
-        }).filter(Boolean);
-        settings.moxenSolapeImported=s.imported; A.save('settings');
-        A.route();
-      };
-      reader.readAsText(f);
+    const fileInput=h('input',{type:'file',accept:'.ics,text/calendar',multiple:true,style:{display:'none'},onChange:async e=>{
+      const files=Array.from(e.target.files||[]);if(!files.length)return;
+      const sets=await Promise.all(files.map(async(f,fi)=>({name:f.name,events:parseICS(await f.text()).map((o,i)=>{const day=o.start&&D.parse(o.start.date);return day==null?null:{id:'ics-'+fi+'-'+i,title:o.title||'رویداد واردشده',day,start:o.start.minute==null?0:o.start.minute,end:o.end&&o.end.minute!=null?o.end.minute:(o.start.minute||0)+60,allDay:o.start.minute==null,source:'ICS '+(fi+1),sourceName:f.name};}).filter(Boolean)})));
+      s.imported=sets.flatMap(x=>x.events);settings.moxenSolapeImported=s.imported;A.save('settings');A.route();
     }});
     root.append(card([
-      title('Solape · بررسی تداخل‌ها','رویدادهای AIDE را با فایل ICS مقایسه کنید. فایل واردشده فقط برای بررسی همین نشست خوانده می‌شود.',chip('ICS')),
-      h('label',{class:'btn',style:{display:'inline-flex',alignItems:'center',cursor:'pointer'}},'＋ واردکردن فایل ICS',fileInput),
+      title('Solape · بررسی تداخل‌ها','یک یا چند فایل ICS را وارد کنید؛ هر تقویم با AIDE و سایر فایل‌ها بررسی می‌شود.',chip('ICS')),
+      h('label',{class:'btn',style:{display:'inline-flex',alignItems:'center',cursor:'pointer'}},'＋ واردکردن یک یا چند فایل ICS',fileInput),
       btn('خروجی تقویم AIDE',()=>downloadICS(local,'aide-calendar.ics'),true),
       btn('حذف فایل واردشده',()=>{s.imported=[];settings.moxenSolapeImported=[];A.save('settings');A.route();}),
       btn('خروجی ترکیبی',()=>downloadICS(local.concat(imported),'aide-combined-calendar.ics'))
@@ -244,7 +239,7 @@
         h('div',{class:'item',style:{alignItems:'start'}},
           h('span',{class:'grow'},
             h('b',null,dateLabel(p.day)),
-            h('small',{class:'muted',style:{display:'block'}},(p.a.title||'رویداد AIDE')+' ('+A.time(p.a.start)+') ↔ '+(p.b.title||'رویداد ICS')+' ('+A.time(p.b.start)+')')),
+            h('small',{class:'muted',style:{display:'block'}},(p.a.title||'رویداد AIDE')+' ('+(p.a.sourceName||p.a.source||'AIDE')+' · '+A.time(p.a.start)+') ↔ '+(p.b.title||'رویداد ICS')+' ('+(p.b.sourceName||p.b.source||'ICS')+' · '+A.time(p.b.start)+')')),
           btn('ساخت رویداد در زمان دیگر',()=>addEvent(p.day,Math.min(23*60,(p.a.end||p.a.start+60))),true),
           btn('نادیده‌گرفتن این تداخل',()=>{s.ignoredConflicts=s.ignoredConflicts||[];s.ignoredConflicts.push(p.key);A.route();})
         )
