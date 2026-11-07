@@ -3994,7 +3994,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     title: 'قالب‌ها و چیدمان‌ها',
     sub: 'قالب‌های کاربردی متصل به داده‌ها، تقویم شمسی و تنظیمات AIDE',
     actions: () => [
-      h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem, title: 'تغییر تقویم سراسری' }, D.isJ() ? 'تقویم شمسی ✓' : 'تقویم میلادی ✓'),
+      h('button', { class: 'btn sm', type: 'button', onClick: A.toggleCalendarSystem, title: 'تغییر تقویم سراسری' }, D.isJ() ? 'تقویم شمسی ✓' : 'تقویم میلادی ✓'),
       h('button', { class: 'btn primary', type: 'button', onClick: () => { location.hash = '#/calendar'; A.route(); } }, A.ico('calendar'), 'رفتن به تقویم')
     ],
     render(root) {
@@ -4166,7 +4166,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
             h('div', { class: 'small muted' }, 'امروز · تاریخ تقویم فعال'),
             h('b', { style: { display: 'block', margin: '3px 0' }, dir: 'auto' }, D.longS(today)),
             h('span', { class: 'small muted', dir: 'auto' }, D.long(today)),
-            h('div', { class: 'row', style: { marginTop: '8px' } }, h('span', { class: 'chip' }, D.isJ() ? 'تقویم شمسی فعال' : 'تقویم میلادی فعال'), h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem }, 'تغییر تقویم')))));
+            h('div', { class: 'row', style: { marginTop: '8px' } }, h('span', { class: 'chip' }, D.isJ() ? 'تقویم شمسی فعال' : 'تقویم میلادی فعال'), h('button', { class: 'btn sm', type: 'button', onClick: A.toggleCalendarSystem }, 'تغییر تقویم')))));
       const cards = items.map(item => h('article', { class: 'card', style: { padding: '13px', minWidth: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '11px' } },
         h('div', { style: { padding: '10px', minHeight: '126px', borderRadius: '14px', background: 'var(--cream)', border: '1px solid var(--line)', display: 'flex', alignItems: 'stretch', overflow: 'hidden' } }, previewFor(item.key)),
         h('div', { class: 'row wrap', style: { alignItems: 'start', gap: '8px' } }, h('div', { class: 'grow', style: { minWidth: '150px' } }, h('h3', { style: { fontSize: '16px', marginBottom: '3px' } }, item.name), h('div', { style: { fontWeight: 700 } }, item.label)), h('span', { class: 'chip' }, 'Moxen · AIDE')),
