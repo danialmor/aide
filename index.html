@@ -3343,7 +3343,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Next', onClick: () => move(1) }, A.dirIco('chevR')));
       const head = h('div', { class: 'cal-head' }, nav, h('div', { class: 'cal-title', 'aria-live': 'polite' }, title, sub ? h('small', null, sub) : null), h('span', { class: 'grow' }),
         seg,
-        h('button', { class: 'btn sm', type: 'button', onClick: toggleCalendarSystem, title: D.isJ() ? 'تغییر به تقویم میلادی' : 'تغییر به تقویم شمسی' }, D.isJ() ? 'تغییر به میلادی' : 'تغییر به شمسی'),
+        h('button', { class: 'btn sm', type: 'button', onClick: A.toggleCalendarSystem, title: D.isJ() ? 'تغییر به تقویم میلادی' : 'تغییر به تقویم شمسی' }, D.isJ() ? 'تغییر به میلادی' : 'تغییر به شمسی'),
         A.readOnly ? null : h('button', { class: 'btn primary', type: 'button', onClick: () => E.edit(null, { date: D.iso(view === 'day' ? a : D.today()) }) }, A.ico('plus'), h('span', { class: 'hide-sm' }, 'New')));
       const body = h('div', { class: 'cal-body view-enter' });
       root.append(head, catFilter(A.readOnly ? h('span') : quick), body);
@@ -3976,7 +3976,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     },
   };
 
-  function toggleCalendarSystem() {
+  A.toggleCalendarSystem = function toggleCalendarSystem() {
     const settings = A.settings();
     settings.calSystem = D.isJ() ? 'gregorian' : 'jalali';
     A.save('settings');
