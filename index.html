@@ -3057,8 +3057,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
   };
   A.showLogin = function(msg) {
     // VERTEX copy: no separate Aide sign-in — people sign in once on the VERTEX page and arrive here already signed in.
-    let vxAdmin = false; try { vxAdmin = (JSON.parse(localStorage.getItem('vxSess') || '{}') || {}).role === 'admin' } catch (e) { }
-    if (/\/VERTEX\//.test(location.pathname) && !vxAdmin) { const nx = location.pathname.replace(/[^/]*$/, ''); location.replace(location.pathname.split('/VERTEX/')[0] + '/VERTEX/admin/?aide=1&next=' + encodeURIComponent(location.origin + nx)); return; }
+    if (/\/VERTEX\//.test(location.pathname)) { const nx = location.pathname.replace(/[^/]*$/, ''); location.replace(location.pathname.split('/VERTEX/')[0] + '/VERTEX/admin/?aide=1&next=' + encodeURIComponent(location.origin + nx)); return; }
     const root = $('#login'); root.hidden = false; $('#app').hidden = true; root.replaceChildren();
     let mode = 'login';
     const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', autocorrect: 'off', spellcheck: 'false', inputmode: 'text', required: true, placeholder: 'Username' });
