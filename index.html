@@ -1792,6 +1792,15 @@ iframe.aide-tpl { border-radius: 0; }
   html:not([data-nav=side]) .main { background: transparent !important; }
   html:not([data-nav=side]) .side .nav a[href="#/settings"], html:not([data-nav=side]) .side .nav a[href="#/themes"], html:not([data-nav=side]) .side .nav a[href="#/users"] { display: none !important; }
   html:not([data-nav=side]) .main { grid-column: 1 !important; grid-row: 2 !important; min-height: 0; min-width: 0; }
+  html:not([data-nav=side]) .side .tb-settings, html:not([data-nav=side]) .side .tb-themes, html:not([data-nav=side]) .side .side-foot .lang-btn, html:not([data-nav=side]) .side .side-foot button[aria-label="Sign out"] { display: none !important; }
+  html:not([data-nav=side]) .side .brand { position: relative; cursor: pointer; }
+  html:not([data-nav=side]) .tb-drop { position: absolute; top: calc(100% + 10px); inset-inline-start: 0; z-index: 60; display: grid; gap: 8px; padding: 10px; border-radius: 26px; background: var(--paper); box-shadow: 0 1px 0 var(--rim) inset, 0 22px 44px -18px var(--shadow); transform-origin: top; animation: tbDrop .18s ease-out; }
+  html:not([data-nav=side]) .tb-drop[hidden] { display: none; }
+  html:not([data-nav=side]) .tb-drop button { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px 0 6px; border: 0; border-radius: 999px; background: transparent; color: var(--ink); font: inherit; font-size: 14px; white-space: nowrap; cursor: pointer; }
+  html:not([data-nav=side]) .tb-drop button:hover { background: var(--line-fine); }
+  html:not([data-nav=side]) .tb-drop .ci { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--canvas); font-weight: 700; font-size: 12px; }
+  html:not([data-nav=side]) .tb-drop .icon { width: 17px; height: 17px; }
+  @keyframes tbDrop { from { opacity: 0; transform: translateY(-6px) scaleY(.96); } }
 }
 
 /* tabs without a page title (owner's choice) */
@@ -7885,6 +7894,31 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   }
   setInterval(function () { navPref(); extras(); layoutChoice() }, 500);
   addEventListener('hashchange', function () { setTimeout(layoutChoice, 300) });
+})();
+</script>
+<script>
+/* Brand "A" menu (top bar): Settings, Themes, language and Sign out live in a drop-down under the A. */
+(function () {
+  var ico = function (d) { return '<svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="' + d + '"/></svg>' };
+  function build() {
+    var A = window.Aide, brand = document.querySelector('.side .brand'); if (!A || !brand || brand.querySelector('.tb-drop')) return;
+    var fa = A.isFa && A.isFa();
+    var drop = document.createElement('div'); drop.className = 'tb-drop'; drop.hidden = true; drop.setAttribute('role', 'menu');
+    var item = function (inner, label, fn) { var b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'menuitem'); b.innerHTML = '<span class="ci">' + inner + '</span><span></span>'; b.lastChild.textContent = label; b.onclick = function (e) { e.stopPropagation(); drop.hidden = true; fn() }; return b };
+    var click = function (sel) { var el = document.querySelector(sel); el && el.click() };
+    drop.append(
+      item(ico('M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15l1.6 1.2-2 3.4-1.9-.7a7 7 0 0 1-2.1 1.2L14.7 22h-4l-.3-1.9a7 7 0 0 1-2.1-1.2l-1.9.7-2-3.4L6 15a7 7 0 0 1 0-2.4L4.4 11.4l2-3.4 1.9.7a7 7 0 0 1 2.1-1.2L10.7 5h4l.3 1.9a7 7 0 0 1 2.1 1.2l1.9-.7 2 3.4-1.6 1.2a7 7 0 0 1 0 2.4z'), 'Settings', function () { location.hash = '#/settings' }),
+      item(ico('M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.6 0-1.3-1-1.6-1-2.6 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4-4-7.2-9-7.2zM7.5 12h.01M9.5 8h.01M14 7.5h.01'), 'Themes', function () { location.hash = '#/themes' }),
+      item(fa ? 'EN' : 'فا', fa ? 'English' : 'فارسی', function () { click('.side-foot .lang-btn') }),
+      item(ico('M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9'), 'Sign out', function () { click('.side-foot button[aria-label="Sign out"]') })
+    );
+    brand.appendChild(drop); brand.setAttribute('aria-haspopup', 'menu'); brand.tabIndex = 0;
+    brand.addEventListener('click', function (e) { if (document.documentElement.dataset.nav === 'side' || drop.contains(e.target)) return; e.stopPropagation(); drop.hidden = !drop.hidden });
+    brand.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); brand.click() } });
+  }
+  document.addEventListener('click', function () { var d = document.querySelector('.tb-drop'); if (d) d.hidden = true });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var d = document.querySelector('.tb-drop'); if (d) d.hidden = true } });
+  setInterval(build, 500);
 })();
 </script>
 </body>

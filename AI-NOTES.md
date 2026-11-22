@@ -65,3 +65,7 @@ the design decisions and anything that speeds up the next session.**
 - AI (step 4): `js/ai-bridge.js` loads the VERTEX assistant (`shared/ai/ai.js`) and sets `window.VX_CTX` with the desk's events, tasks, requests and people.
 - Team (step 5): `js/team.js` tab `team`: members of the VERTEX subscription (hub `GET /team/members`), per-member upcoming events (`event.for`), reminders (`task.forCode`), meetings and notices sent with hub `POST /notify`. VERTEX shows them in a bell on every platform (`shared/notify.js`, loaded by auth.js).
 - Lock = flip clock: `js/flipclock.js` intercepts the Lock buttons and shows a full-screen flip clock (time, Shamsi/Gregorian date, next meeting); tap to return, no sign-out.
+
+## 2026-11-22 — Brand "A" menu (top bar)
+- In top-bar mode, Settings, Themes, language (EN/فا) and Sign out are hidden from the bar and shown in a vertical drop-down under the brand "A" (`.tb-drop`, script near end of index.html). Side-menu mode is unchanged.
+- Pending (owner request): secretary keeps this full calendar; other users get an independent calendar per platform in their own desk; secretary can pick any user to view their work calendar.
