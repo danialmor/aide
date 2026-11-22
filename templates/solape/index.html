@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solape · Moxen</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- una hoja por peso: Gothic A1 trae un @font-face por cada peso y subconjunto -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@600&display=swap">
+<link rel="stylesheet" href="solape.css">
+<!-- ?tema=oscuro: la misma agenda de noche, con el papel de tinta tibia y el ultramar y el naranja aclarados -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <!-- solape.js se monta sobre [data-solape]. Lee de verdad archivos iCalendar (.ics): líneas plegadas, VEVENT, fechas con zona, RRULE diaria,
+       semanal y mensual con EXDATE y RECURRENCE-ID, y los despliega en una agenda por días; busca los choques por barrido de intervalos y
+       escribe un .ics unido con los cambios. Aquí están los marcos: las cabeceras, los calendarios, la agenda y la lista de choques. -->
+  <main class="so-escena" data-solape>
+    <div class="so-agenda-papel">
+      <i class="so-anillas" aria-hidden="true"></i>
+
+      <header class="so-cab">
+        <div class="so-marca">
+          <svg class="so-logo" viewBox="0 0 36 36" aria-hidden="true">
+            <rect x="4" y="6" width="28" height="26" rx="5" class="hoja"/>
+            <path d="M4 14h28" class="tira"/>
+            <path d="M11 4v5M25 4v5" class="aro"/>
+            <path d="M10 22l3-3 3 3 3-3 3 3 3-3 3 3" class="zig"/>
+          </svg>
+          <div><h1>Solape</h1><p>Lee tus calendarios .ics y encuentra lo que choca</p></div>
+        </div>
+
+        <div class="so-cuenta" data-cuenta>
+          <div class="so-cuenta-num"><span class="so-cuenta-rot" aria-hidden="true">choques</span>
+            <span class="so-n" data-n-ini aria-hidden="true"></span><span class="so-flecha" aria-hidden="true">→</span><span class="so-n so-n--ahora" data-n-ahora aria-hidden="true"></span>
+          </div>
+          <svg class="so-sello" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20.500" class="aro"/><circle cx="24" cy="24" r="16" class="aro2"/><path d="m14.500 25 6.500 6.500L33.500 17" class="visto" pathLength="1"/></svg>
+        </div>
+
+        <div class="so-cab-acc">
+          <button type="button" class="so-boton so-boton--claro" data-abrir><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.500 6.500V15a1.500 1.500 0 0 0 1.500 1.500h10a1.500 1.500 0 0 0 1.500-1.500V8.500A1.500 1.500 0 0 0 15 7h-5L8.500 5H5A1.500 1.500 0 0 0 3.500 6.500Z"/></svg><span>Abrir .ics</span></button>
+          <input type="file" accept=".ics,text/calendar" multiple class="so-oculto" data-archivo>
+          <button type="button" class="so-exporta" data-exporta>
+            <svg class="i-baja" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.500v9M6.500 9.500 10 13l3.500-3.500M4 15.500h12"/></svg>
+            <svg class="i-ok" viewBox="0 0 20 20" aria-hidden="true"><path d="m4.500 10.500 3.500 3.500 7.500-8" pathLength="1"/></svg>
+            <span data-exporta-t>Exportar .ics unido</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="so-fila" aria-label="Calendarios y semana">
+        <ul class="so-cals" data-cals aria-label="Calendarios"></ul>
+        <div class="so-semana" role="group" aria-label="Semana">
+          <button type="button" class="so-flecha-b" data-ant aria-label="Semana anterior"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 4.500-5.500 5.500 5.500 5.500"/></svg></button>
+          <div class="so-semana-txt"><b data-sem-rango>—</b><small data-sem-n>—</small></div>
+          <button type="button" class="so-flecha-b" data-sig aria-label="Semana siguiente"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 4.500 5.500 5.500L8 15.500"/></svg></button>
+          <ol class="so-puntos" data-puntos aria-hidden="true"></ol>
+        </div>
+      </section>
+
+      <div class="so-cuerpo">
+        <section class="so-agenda" data-agenda aria-label="Agenda de la semana">
+          <div class="so-dias" data-dias></div>
+          <div class="so-todo" data-todo></div>
+          <div class="so-horario" data-horario>
+            <div class="so-horas" data-horas aria-hidden="true"></div>
+            <div class="so-cols" data-cols></div>
+          </div>
+        </section>
+
+        <aside class="so-lateral" aria-label="Choques">
+          <header class="so-lat-cab"><h2>Choques</h2><span class="so-lat-n" data-lat-n></span><button type="button" class="so-deshacer" data-deshacer disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8.500h6.500a3.500 3.500 0 0 1 0 7H8M5 8.500l3-3M5 8.500l3 3"/></svg>Deshacer</button></header>
+          <ol class="so-lista" data-lista></ol>
+          <div class="so-vacio" data-vacio hidden>
+            <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20.500"/><path d="m14.500 25 6.500 6.500L33.500 17"/></svg>
+            <b>Sin choques</b><small>Los calendarios caben uno al lado del otro. Ya puedes exportar el unido.</small>
+          </div>
+        </aside>
+      </div>
+
+      <p class="so-pie" data-pie role="status" aria-live="polite"></p>
+    </div>
+    <div class="so-suelta" aria-hidden="true"><span>Suelta tus .ics</span></div>
+  </main>
+<script src="solape.js"></script>
+</body>
+</html>

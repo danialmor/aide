@@ -1,0 +1,201 @@
+/* Puntual · Moxen — estilos del temporizador de matriz de puntos y de la demostración.
+   Todos los colores están aquí arriba. La escena es una lavanda difusa (--pu-lavanda
+   con manchas rosa y violeta hondo) y el protagonista es un objeto negro (--pu-negro):
+   una píldora con una matriz de LEDs rojos (--pu-led, con su cresta clara y su fondo
+   hondo) y la cuenta en blanco. El ámbar (--pu-ambar) es solo de «Iniciar» y del ✓
+   final; --pu-led-apagado es el LED sin encender. --pu-tinta es el texto sobre la
+   lavanda. ?tema=oscuro pasa la escena a una noche violeta; la píldora sigue negra. */
+:root {
+  --pu-lavanda: #c8c2ff;
+  --pu-lavanda-1: #fde6ff;               /* la luz rosa de arriba */
+  --pu-lavanda-2: #b9b0fb;
+  --pu-lavanda-3: #8f84ec;               /* el violeta hondo de abajo */
+  --pu-tinta: #22194f;
+  --pu-tinta-suave: rgba(34, 25, 79, .72);
+  --pu-sombra: 62, 44, 150;              /* r, g, b de las sombras: un violeta, no negro */
+  --pu-luz: rgba(255, 238, 255, .7);
+
+  --pu-negro: #121214;
+  --pu-negro-2: #1b1b1f;
+  --pu-blanco: #ffffff;
+  --pu-humo: #9a9aa6;
+  --pu-led: #ff3b3b;
+  --pu-led-claro: #ff8f8a;
+  --pu-led-hondo: #c41a22;
+  --pu-led-apagado: #34161a;
+  --pu-ambar: #ffb938;
+  --pu-ambar-claro: #ffd98a;
+  --pu-ambar-t: #3a2300;
+  --pu-foco: #ffffff;
+
+  --pu-curva: cubic-bezier(.22, 1, .36, 1);
+  --pu-muelle: cubic-bezier(.34, 1.4, .64, 1);          /* puntual.js los cambia por resortes de verdad */
+  --pu-muelle-2: cubic-bezier(.34, 1.25, .64, 1);
+  --pu-sans: "Red Hat Display", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pu-num: "Tabular", ui-monospace, "SF Mono", Menlo, monospace;
+}
+:root[data-tema="oscuro"] {
+  --pu-lavanda: #2a2159;
+  --pu-lavanda-1: #4a3a96;
+  --pu-lavanda-2: #241c4e;
+  --pu-lavanda-3: #120d2e;
+  --pu-tinta: #ece8ff;
+  --pu-tinta-suave: rgba(236, 232, 255, .72);
+  --pu-sombra: 6, 3, 24;
+  --pu-luz: rgba(150, 128, 255, .28);
+  --pu-foco: #cfc6ff;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--pu-lavanda); color: var(--pu-tinta); }
+body { font-family: var(--pu-sans); font-weight: 700; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+button { font: inherit; color: inherit; }
+svg { display: block; }
+h1, h2, p, ul { margin: 0; padding: 0; }
+.pu-oculto { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pu-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+:focus-visible { outline: 2px solid var(--pu-foco); outline-offset: 4px; border-radius: 22px; }
+.pu-escena :focus-visible { box-shadow: 0 0 0 5px rgba(34, 25, 79, .5); }
+:root[data-tema="oscuro"] .pu-escena :focus-visible { box-shadow: 0 0 0 5px rgba(207, 198, 255, .3); }
+
+/* ── la escena: lavanda difusa con luz rosa arriba, violeta hondo abajo, aros y grano ── */
+.pu-escena { position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; min-height: 100vh; min-height: 100svh; padding: 24px 16px; overflow: hidden; background: var(--pu-lavanda); transition: background-color .5s; }
+.pu-fondo { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.pu-b1, .pu-b2, .pu-b3, .pu-aro { position: absolute; border-radius: 50%; }
+.pu-b1 { left: -10%; top: -48%; width: 82%; aspect-ratio: 1; background: radial-gradient(closest-side, var(--pu-lavanda-1), transparent); opacity: .95; }
+.pu-b2 { right: -22%; bottom: -62%; width: 94%; aspect-ratio: 1; background: radial-gradient(closest-side, var(--pu-lavanda-3), transparent); }
+.pu-b3 { left: 46%; top: 8%; width: 640px; height: 640px; margin-left: -320px; background: radial-gradient(closest-side, var(--pu-luz), transparent 70%); opacity: .7; }
+.pu-aro { left: 50%; top: 46%; width: 900px; height: 900px; margin: -450px 0 0 -450px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28); }
+.pu-aro::before, .pu-aro::after { content: ""; position: absolute; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); }
+.pu-aro::before { inset: 130px; }
+.pu-aro::after { inset: 260px; }
+:root[data-tema="oscuro"] .pu-aro, :root[data-tema="oscuro"] .pu-aro::before, :root[data-tema="oscuro"] .pu-aro::after { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07); }
+.pu-grano { position: absolute; inset: 0; opacity: .55; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3  0 0 0 0 .2  0 0 0 0 .6  0 0 0 .12 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root[data-tema="oscuro"] .pu-grano { mix-blend-mode: overlay; opacity: .4; }
+
+/* ── la caja: la tarjeta y lo que va debajo. Se centra sola, así que al abrirse sube ── */
+.pu-caja { position: relative; display: flex; flex-direction: column; align-items: center; width: min(520px, 100%); }
+.pu-tarjeta {
+  position: relative; display: grid; grid-template-rows: auto 0fr; width: 100%; border-radius: 75px; overflow: hidden; background: linear-gradient(180deg, var(--pu-negro-2), var(--pu-negro) 46%);
+  box-shadow: 0 56px 80px -38px rgba(var(--pu-sombra), .75), 0 22px 40px -22px rgba(var(--pu-sombra), .55), inset 0 0 0 1px rgba(255, 255, 255, .08), inset 0 1px 0 rgba(255, 255, 255, .15);
+  transition: grid-template-rows .8s var(--pu-muelle), border-radius .8s var(--pu-muelle), width .85s var(--pu-muelle), transform .5s var(--pu-muelle), background-color .35s, box-shadow .5s;
+}
+@media (hover: hover) { .pu-tarjeta[data-estado="reposo"]:hover { transform: translateY(-2px) scale(1.012); } }
+.pu-tarjeta[data-estado="reposo"]:active { transform: scale(.985); }
+.pu-tarjeta::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(90% 70% at 50% -30%, rgba(255, 255, 255, .1), transparent 62%); pointer-events: none; z-index: 3; }
+.pu-tarjeta[data-estado="ajuste"] { grid-template-rows: auto 1fr; border-radius: 46px; }
+.pu-tarjeta[data-estado="corre"] { box-shadow: 0 56px 80px -38px rgba(var(--pu-sombra), .75), 0 22px 40px -22px rgba(var(--pu-sombra), .55), 0 0 60px -10px rgba(255, 59, 59, .28), inset 0 0 0 1px rgba(255, 90, 90, .18), inset 0 1px 0 rgba(255, 255, 255, .15); }
+.pu-tarjeta.is-sacude { animation: pu-sacude .52s var(--pu-curva); }
+@keyframes pu-sacude { 0%, 100% { transform: none; } 14% { transform: translateX(-11px) rotate(-.4deg); } 34% { transform: translateX(10px) rotate(.35deg); } 54% { transform: translateX(-6px); } 74% { transform: translateX(3px); } }
+.pu-tarjeta.is-no { animation: pu-no .45s var(--pu-curva); }
+@keyframes pu-no { 0%, 100% { transform: none; } 20% { transform: translateX(-8px); } 45% { transform: translateX(7px); } 70% { transform: translateX(-3px); } }
+
+/* ── la cabeza de la tarjeta: la matriz y la cuenta ──────────────────── */
+.pu-cabeza { position: relative; z-index: 1; display: flex; align-items: center; gap: 34px; height: 150px; padding: 0 36px; cursor: pointer; outline-offset: -8px; transition: opacity .3s .1s; }
+.pu-cabeza:focus-visible { border-radius: 75px; }
+.pu-matriz { flex: none; display: grid; grid-template-columns: repeat(10, 10px); grid-auto-rows: 10px; gap: 6px; }
+.pu-led {
+  width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 36% 30%, var(--pu-led-claro) 0, var(--pu-led) 40%, var(--pu-led-hondo));
+  box-shadow: 0 0 10px 2px rgba(255, 40, 40, .75), inset 0 0 2px rgba(255, 170, 170, .8);
+  transition: background .2s, box-shadow .3s, transform .35s var(--pu-curva);
+}
+.pu-led.is-off { background: var(--pu-led-apagado); box-shadow: inset 0 1px 1px rgba(0, 0, 0, .55); transform: scale(.82); }
+/* un LED que acaba de apagarse suelta un último destello blanco */
+.pu-led.is-apaga { animation: pu-apaga .5s var(--pu-curva) both; }
+@keyframes pu-apaga { from { background: #fff; box-shadow: 0 0 18px 5px rgba(255, 130, 130, .95); transform: scale(1.55); } }
+/* al completarse un minuto, la matriz vuelve a encenderse siguiendo la espiral */
+.pu-matriz.is-onda .pu-led:not(.is-off) { animation: pu-enciende .5s calc(var(--k) * 11ms) var(--pu-curva) both; }
+@keyframes pu-enciende { from { background: var(--pu-led-apagado); box-shadow: none; transform: scale(.4); } 55% { background: #fff; box-shadow: 0 0 14px 4px rgba(255, 110, 110, .9); transform: scale(1.35); } }
+/* al llegar a cero, todos a la vez */
+.pu-matriz.is-destello .pu-led { animation: pu-destello 1s both; }
+@keyframes pu-destello {
+  0%, 24%, 48%, 72%, 100% { background: radial-gradient(circle at 36% 30%, var(--pu-led-claro), var(--pu-led) 50%, var(--pu-led-hondo)); box-shadow: 0 0 9px 1px rgba(255, 59, 59, .72), inset 0 0 2px rgba(255, 190, 190, .9); transform: none; }
+  10%, 36%, 60% { background: #fff; box-shadow: 0 0 20px 6px rgba(255, 90, 90, .98); transform: scale(1.3); }
+}
+.pu-tarjeta[data-estado="pausa"] .pu-matriz { animation: pu-respira 1.5s ease-in-out infinite; }
+@keyframes pu-respira { 50% { opacity: .4; } }
+
+.pu-lectura { flex: 1; min-width: 0; }
+.pu-tiempo { display: flex; align-items: center; height: 1em; overflow: hidden; margin-top: -2px; color: var(--pu-blanco); font: 500 72px/1 var(--pu-num); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.pu-col { display: block; height: 1em; overflow: hidden; width: .62em; text-align: center; }
+.pu-tira-d { display: block; line-height: 1; transform: translateY(calc(var(--d, 0) * -1em)); transition: transform var(--pu-roda, .26s) var(--pu-curva); }
+.pu-dp { display: block; width: .3em; text-align: center; line-height: .94; color: var(--pu-humo); transform: translateX(-.1em); }
+.pu-tarjeta[data-estado="corre"] .pu-dp { animation: pu-parpadea 1s steps(2, jump-none) infinite; }
+@keyframes pu-parpadea { 0% { opacity: 1; } 100% { opacity: .25; } }
+.pu-tarjeta[data-estado="pausa"] .pu-tiempo { animation: pu-respira 1.5s ease-in-out infinite; }
+.pu-etiqueta { display: flex; align-items: center; gap: 10px; margin-top: 13px; color: var(--pu-humo); font: 700 15px/1 var(--pu-sans); letter-spacing: .1em; text-transform: uppercase; }
+.pu-vel { padding: 5px 9px; border-radius: 999px; background: rgba(255, 59, 59, .16); color: var(--pu-led-claro); font: 500 12px/1 var(--pu-num); font-style: normal; letter-spacing: 0; text-transform: none; }
+
+/* ── el ajuste: dos tambores y «Iniciar» ─────────────────────────────── */
+.pu-ajuste { position: relative; z-index: 1; min-height: 0; overflow: hidden; }
+.pu-ajuste-in { padding: 0 30px 30px; opacity: 0; transform: translateY(14px); transition: opacity .25s, transform .6s var(--pu-curva); }
+.pu-tarjeta[data-estado="ajuste"] .pu-ajuste-in { opacity: 1; transform: none; transition: opacity .35s .12s, transform .7s .1s var(--pu-curva); }
+.pu-ajuste-in::before { content: ""; display: block; height: 1px; margin: 0 -30px 14px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .12), transparent); }
+.pu-tambores { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 232px; }
+.pu-banda { position: absolute; left: 4px; right: 4px; top: 50%; height: 60px; margin-top: -30px; border-radius: 20px; background: rgba(255, 255, 255, .075); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), inset 0 0 0 1px rgba(255, 255, 255, .05); pointer-events: none; }
+.pu-tambor { position: relative; flex: none; width: 158px; height: 100%; outline-offset: -4px; cursor: ns-resize; touch-action: none; -webkit-user-select: none; user-select: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 26%, #000 74%, transparent); mask-image: linear-gradient(transparent, #000 26%, #000 74%, transparent); }
+.pu-tambor:focus-visible { border-radius: 18px; }
+.pu-tira { position: absolute; inset: 0; perspective: 700px; }
+.pu-n { position: absolute; left: 0; right: 0; top: 50%; height: 56px; margin-top: -28px; display: grid; place-items: center; color: var(--pu-blanco); font: 500 42px/1 var(--pu-num); font-variant-numeric: tabular-nums; letter-spacing: -.03em; will-change: transform, opacity; }
+.pu-unidad { position: absolute; right: 12px; top: 50%; margin-top: -8px; color: var(--pu-humo); font: 700 14px/1 var(--pu-sans); pointer-events: none; }
+.pu-dos { flex: none; width: 22px; text-align: center; color: var(--pu-humo); font: 500 40px/1 var(--pu-num); transform: translateY(-3px); }
+
+.pu-inicia {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 68px; margin-top: 18px; padding: 0; border: 0; border-radius: 34px; overflow: hidden; background: linear-gradient(180deg, var(--pu-ambar-claro), var(--pu-ambar) 55%); color: var(--pu-ambar-t);
+  font: 900 21px/1 var(--pu-sans); letter-spacing: -.005em; cursor: pointer;
+  box-shadow: 0 18px 30px -14px rgba(255, 185, 56, .6), inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -2px 0 rgba(150, 80, 0, .2);
+  transition: transform .45s var(--pu-muelle), filter .25s, opacity .3s, box-shadow .3s;
+}
+.pu-inicia svg { width: 22px; height: 22px; fill: currentColor; }
+.pu-inicia:active { transform: scale(.96); }
+@media (hover: hover) { .pu-inicia:hover { filter: brightness(1.06) saturate(1.05); } }
+.pu-inicia[aria-disabled="true"] { opacity: .35; filter: grayscale(.6); box-shadow: none; cursor: not-allowed; }
+.pu-inicia:focus-visible { outline: 2px solid var(--pu-blanco); outline-offset: 3px; border-radius: 34px; }
+
+/* ── el ✓: la píldora se pliega en un círculo ámbar ───────────────────── */
+.pu-visto { position: absolute; z-index: 4; left: 50%; top: 75px; width: 58px; height: 58px; margin: -29px 0 0 -29px; fill: none; stroke: var(--pu-ambar-t); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.pu-visto path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.pu-tarjeta::after { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; background: linear-gradient(180deg, var(--pu-ambar-claro), var(--pu-ambar) 60%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); opacity: 0; pointer-events: none; transition: opacity .4s .12s; }
+.pu-tarjeta[data-estado="ok"]::after { opacity: 1; transition: opacity .25s; }
+.pu-tarjeta[data-estado="ok"] { width: 150px; border-radius: 75px; box-shadow: 0 40px 60px -30px rgba(var(--pu-sombra), .55), 0 0 70px -6px rgba(255, 185, 56, .7), inset 0 1px 0 rgba(255, 255, 255, .6); }
+.pu-tarjeta[data-estado="ok"] .pu-cabeza { opacity: 0; transition: opacity .18s; pointer-events: none; }
+.pu-tarjeta[data-estado="ok"] .pu-visto path { animation: pu-visto .55s .28s var(--pu-curva) forwards; }
+@keyframes pu-visto { to { stroke-dashoffset: 0; } }
+
+.pu-pista { margin-top: 30px; color: var(--pu-tinta-suave); font: 700 18px/1.3 var(--pu-sans); letter-spacing: -.005em; text-align: center; transition: opacity .3s, color .3s; }
+.pu-pista kbd { display: inline-block; padding: 3px 8px; margin: 0 1px; border-radius: 7px; background: rgba(255, 255, 255, .45); box-shadow: inset 0 0 0 1px rgba(34, 25, 79, .12); color: var(--pu-tinta); font: 500 13px/1 var(--pu-num); }
+:root[data-tema="oscuro"] .pu-pista kbd { background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
+.pu-pista.is-aviso { color: var(--pu-tinta); }
+.pu-cancela { margin-top: 16px; height: 40px; padding: 0 20px; border: 0; border-radius: 20px; background: rgba(255, 255, 255, .4); box-shadow: inset 0 0 0 1px rgba(34, 25, 79, .1); color: var(--pu-tinta); font: 700 15px/1 var(--pu-sans); cursor: pointer; transition: background-color .25s, transform .4s var(--pu-muelle); }
+:root[data-tema="oscuro"] .pu-cancela { background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+.pu-cancela[hidden] { display: none; }
+.pu-cancela:active { transform: scale(.94); }
+@media (hover: hover) { .pu-cancela:hover { background: rgba(255, 255, 255, .62); } :root[data-tema="oscuro"] .pu-cancela:hover { background: rgba(255, 255, 255, .15); } }
+
+/* ── pantallas estrechas ───────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .pu-cabeza { gap: 18px; height: 128px; padding: 0 22px; }
+  .pu-matriz { grid-template-columns: repeat(10, 8px); grid-auto-rows: 8px; gap: 5px; }
+  .pu-led { width: 8px; height: 8px; box-shadow: 0 0 7px 1px rgba(255, 59, 59, .72), inset 0 0 2px rgba(255, 190, 190, .9); }
+  .pu-tiempo { font-size: 50px; }
+  .pu-etiqueta { margin-top: 9px; font-size: 12px; }
+  .pu-tarjeta { border-radius: 64px; }
+  .pu-tarjeta[data-estado="ajuste"] { border-radius: 38px; }
+  .pu-tarjeta[data-estado="ok"] { width: 128px; border-radius: 64px; }
+  .pu-visto { top: 64px; }
+  .pu-ajuste-in { padding: 0 18px 22px; }
+  .pu-ajuste-in::before { margin: 0 -18px 12px; }
+  .pu-tambores { height: 208px; }
+  .pu-tambor { width: 40%; }
+  .pu-n { font-size: 38px; }
+  .pu-pista { margin-top: 22px; font-size: 16px; }
+}
+
+/* ── movimiento reducido: sin giros, sin destellos ni sacudidas ─────── */
+@media (prefers-reduced-motion: reduce) {
+  .pu-tarjeta, .pu-ajuste-in, .pu-tira-d, .pu-led, .pu-inicia, .pu-cancela { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .pu-led.is-apaga, .pu-matriz.is-onda .pu-led, .pu-matriz.is-destello .pu-led, .pu-tarjeta.is-sacude, .pu-tarjeta.is-no, .pu-tarjeta[data-estado="corre"] .pu-dp { animation: none !important; }
+  .pu-tarjeta[data-estado="pausa"] .pu-matriz, .pu-tarjeta[data-estado="pausa"] .pu-tiempo { animation: none; opacity: .5; }
+  .pu-tarjeta[data-estado="ok"] .pu-visto path { animation-duration: .01s; animation-delay: 0s; }
+}

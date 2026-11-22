@@ -1,0 +1,306 @@
+/* Lunario · Moxen — los estilos de un mes de almanaque lunar.
+   Todos los colores están aquí arriba. La paleta es de ALMANAQUE LUNAR: NOCHE de fondo, PANEL para las semanas, PLATA para el texto y
+   la luna, ÁMBAR para lo que sale bien y lo que se mueve (la barra que se arrastra, el ✓, «+N más», hoy), LAVANDA para los talleres
+   y ROJO solo para los plazos. Sin verde (::selection en ámbar). ?tema=claro la pasa a almanaque de día.
+   Para recolorear: --lu-ambar y --lu-lavanda; las categorías de los eventos son --lu-o, --lu-t, --lu-a y --lu-u. */
+:root {
+  --lu-noche: #121827;                          /* el fondo de la página */
+  --lu-panel: #1b2336;                          /* las semanas */
+  --lu-panel-2: #232d45;                        /* el globo, los campos y lo que se levanta un poco */
+  --lu-fuera: rgba(8, 12, 22, .34);             /* los días de los meses vecinos */
+  --lu-plata: #dfe3ec;                          /* el texto y la luna */
+  --lu-texto-2: rgba(223, 227, 236, .8);        /* texto secundario (AA sobre el panel) */
+  --lu-tenue: rgba(223, 227, 236, .6);
+  --lu-linea: rgba(223, 227, 236, .1);
+  --lu-linea-2: rgba(223, 227, 236, .18);
+  --lu-ambar: #f0a93a;
+  --lu-ambar-tx: #f0a93a;                       /* el ámbar cuando hace de texto sobre el panel */
+  --lu-ambar-suave: rgba(240, 169, 58, .14);
+  --lu-ambar-medio: rgba(240, 169, 58, .5);
+  --lu-sobre-ambar: #1b1306;                    /* texto sobre el ámbar */
+  --lu-lavanda: #9d8cf0;
+  --lu-rojo: #e5604f;
+  --lu-o: #f0a93a;                              /* obra */
+  --lu-t: #9d8cf0;                              /* taller */
+  --lu-a: #cfd5e3;                              /* gestión */
+  --lu-u: #e5604f;                              /* plazo */
+  --lu-sobre-barra: #121827;                    /* texto sobre las barras */
+  --lu-oscura: #0e1422;                         /* la parte sin luz de la luna */
+  --lu-luna-luz: #dfe3ec;                       /* la parte con luz */
+  --lu-sombra: 4, 7, 16;                        /* r, g, b de las sombras (azul de noche, nunca negro puro) */
+  --lu-curva: cubic-bezier(.22, 1, .36, 1);
+  --lu-resorte: cubic-bezier(.34, 1.5, .64, 1);
+  --lu-serif: "Zodiak", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --lu-sans: "General Sans", "Avenir Next", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --lu-ancho: 1180px;
+  /* medidas de una semana: el script las lee de aquí para saber cuántos carriles caben */
+  --lu-cab: 22px;                               /* la cabecera de cada semana, con su luna */
+  --lu-num: 26px;                               /* el hueco del número del día, arriba de las celdas */
+  --lu-paso: 20px;                              /* lo que ocupa un carril: la barra y su hueco */
+  --lu-barra: 18px;
+  --lu-pie: 3px;
+}
+:root[data-tema="claro"] {
+  --lu-noche: #e9ecf4;
+  --lu-panel: #fbfbfe;
+  --lu-panel-2: #ffffff;
+  --lu-fuera: rgba(24, 34, 60, .06);
+  --lu-plata: #172036;
+  --lu-texto-2: rgba(23, 32, 54, .8);
+  --lu-tenue: rgba(23, 32, 54, .62);
+  --lu-linea: rgba(23, 32, 54, .1);
+  --lu-linea-2: rgba(23, 32, 54, .2);
+  --lu-ambar: #f0a93a;
+  --lu-ambar-tx: #96600a;
+  --lu-ambar-suave: rgba(240, 169, 58, .2);
+  --lu-ambar-medio: rgba(166, 106, 8, .5);
+  --lu-lavanda: #8a78e6;
+  --lu-o: #f0a93a;
+  --lu-t: #b3a6f7;
+  --lu-a: #c9d0e2;
+  --lu-u: #ee7a6a;
+  --lu-oscura: #3a4566;
+  --lu-luna-luz: #f4bd52;
+  --lu-sombra: 30, 44, 84;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; min-height: 100%; background: var(--lu-noche); color: var(--lu-plata); }
+body { font-family: var(--lu-sans); font-weight: 400; font-size: 15px; line-height: 1.4; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; transition: background-color .4s, color .4s; }
+button { font: inherit; color: inherit; cursor: pointer; }
+svg { display: block; }
+h1, h2, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+i, em, b, small { font-style: normal; }
+b { font-weight: 600; }
+::selection { background: var(--lu-ambar); color: var(--lu-sobre-ambar); }
+.lu-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.lu svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lu-oculto { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--lu-ambar-tx); outline-offset: 2px; }
+
+/* ── la página: noche con una luna lejana ──────────────────────────── */
+.lu { position: relative; min-height: 100vh; min-height: 100svh; padding-bottom: 12px; overflow-x: clip;
+  background:
+    radial-gradient(760px 420px at 94% -8%, rgba(157, 140, 240, .16), transparent 70%),
+    radial-gradient(900px 500px at -8% 108%, rgba(240, 169, 58, .08), transparent 70%),
+    var(--lu-noche); }
+:root[data-tema="claro"] .lu { background:
+    radial-gradient(760px 420px at 94% -8%, rgba(157, 140, 240, .2), transparent 70%),
+    radial-gradient(900px 500px at -8% 108%, rgba(240, 169, 58, .16), transparent 70%),
+    var(--lu-noche); }
+.lu::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: screen;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cg fill='%23dfe3ec'%3E%3Ccircle cx='22' cy='38' r='.7'/%3E%3Ccircle cx='96' cy='12' r='.5'/%3E%3Ccircle cx='158' cy='74' r='.8'/%3E%3Ccircle cx='60' cy='120' r='.5'/%3E%3Ccircle cx='132' cy='160' r='.7'/%3E%3Ccircle cx='18' cy='176' r='.5'/%3E%3Ccircle cx='184' cy='28' r='.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 200px 200px; }
+:root[data-tema="claro"] .lu::before { display: none; }
+.lu > * { position: relative; width: min(var(--lu-ancho), 100% - 48px); margin-inline: auto; }
+
+/* ── la cabecera ───────────────────────────────────────────────────── */
+.lu-cab { display: flex; align-items: center; gap: 22px; padding: 18px 0 12px; }
+.lu-tit { display: flex; align-items: center; gap: 14px; min-width: 0; margin-right: auto; }
+.lu-glifo { display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 14px; background: var(--lu-panel); color: var(--lu-ambar-tx);
+  box-shadow: 0 0 0 1px var(--lu-linea-2), 0 14px 22px -14px rgba(var(--lu-sombra), .8); }
+.lu-glifo svg { width: 28px; height: 28px; stroke-width: 1.7; }
+.lu-tit h1 { font: 700 30px/1.05 var(--lu-serif); letter-spacing: -.01em; }
+.lu-tit h1 span { color: var(--lu-tenue); font-weight: 400; margin-left: 4px; }
+.lu-tit p { margin-top: 4px; font-size: 13.5px; color: var(--lu-tenue); }
+.lu-medidor { display: flex; align-items: stretch; border-radius: 14px; background: var(--lu-panel); box-shadow: 0 0 0 1px var(--lu-linea-2), 0 14px 24px -18px rgba(var(--lu-sombra), .8); }
+.lu-med { position: relative; display: grid; align-content: center; gap: 1px; min-width: 84px; padding: 8px 18px 8px 16px; }
+.lu-med + .lu-med::before { content: ""; position: absolute; left: 0; top: 11px; bottom: 11px; width: 1px; background: var(--lu-linea-2); }
+.lu-med small { font: 500 11px/1 var(--lu-sans); letter-spacing: .07em; text-transform: uppercase; color: var(--lu-tenue); white-space: nowrap; }
+.lu-med b { font: 700 22px/1.15 var(--lu-serif); font-variant-numeric: tabular-nums; }
+.lu-med-sello { padding-right: 58px; }
+.lu-sello { position: absolute; right: 14px; top: 50%; width: 26px; height: 26px; margin-top: -13px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--lu-ambar); color: var(--lu-sobre-ambar); transform: scale(.55); opacity: .28; filter: saturate(.3);
+  transition: transform .5s var(--lu-resorte), opacity .25s, filter .25s; }
+.lu-sello svg { width: 17px; height: 17px; stroke-width: 2.7; }
+.lu-sello path { stroke-dasharray: 22; stroke-dashoffset: 22; transition: stroke-dashoffset .35s .12s var(--lu-curva); }
+.lu-medidor.sellado .lu-sello { transform: none; opacity: 1; filter: none; }
+.lu-medidor.sellado .lu-sello path { stroke-dashoffset: 0; }
+.lu-medidor.sellado .lu-sello::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--lu-ambar); opacity: 0; animation: lu-onda .9s var(--lu-curva); }
+@keyframes lu-onda { 0% { transform: scale(.7); opacity: .75; } 100% { transform: scale(2); opacity: 0; } }
+.lu-medidor.fallo .lu-sello { background: var(--lu-rojo); opacity: 1; filter: none; transform: none; color: #fff; }
+.lu-medidor.fallo [data-m-choques] { color: var(--lu-rojo); }
+.lu-reinicio { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 15px 0 12px; border: 1px solid var(--lu-linea-2); border-radius: 999px; background: var(--lu-panel);
+  color: var(--lu-texto-2); font: 500 14px var(--lu-sans); transition: background-color .2s, color .2s, border-color .2s, transform .2s var(--lu-curva); }
+.lu-reinicio svg { width: 18px; height: 18px; transition: transform .5s var(--lu-curva); }
+@media (hover: hover) { .lu-reinicio:hover { background: var(--lu-ambar-suave); color: var(--lu-ambar-tx); border-color: var(--lu-ambar-medio); } .lu-reinicio:hover svg { transform: rotate(-200deg); } }
+.lu-reinicio:active { transform: scale(.96); }
+
+/* ── la barra: región, leyenda y la comprobación ─────────────────────── */
+.lu-barra { display: flex; align-items: center; gap: 18px; padding-bottom: 12px; flex-wrap: wrap; }
+.lu-region { display: flex; align-items: center; gap: 4px; padding: 3px 3px 3px 12px; border-radius: 13px; background: var(--lu-panel); box-shadow: 0 0 0 1px var(--lu-linea); }
+.lu-region-t { display: inline-flex; align-items: center; gap: 7px; margin-right: 6px; font: 500 13px var(--lu-sans); color: var(--lu-tenue); }
+.lu-region-t svg { width: 17px; height: 17px; }
+.lu-region button { display: inline-flex; align-items: baseline; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: var(--lu-texto-2); font: 500 13.5px var(--lu-sans);
+  align-items: center; transition: background-color .2s, color .2s, box-shadow .2s, transform .2s var(--lu-curva); }
+.lu-region button span { color: var(--lu-tenue); font-weight: 400; }
+@media (hover: hover) { .lu-region button:hover { background: var(--lu-panel-2); color: var(--lu-plata); } }
+.lu-region button:active { transform: scale(.96); }
+.lu-region button[aria-checked="true"] { background: var(--lu-ambar-suave); color: var(--lu-ambar-tx); box-shadow: inset 0 0 0 1px var(--lu-ambar-medio); }
+.lu-region button[aria-checked="true"] span { color: inherit; opacity: .85; }
+.lu-region-fuente { margin-left: 8px; padding-right: 10px; font-size: 12px; color: var(--lu-tenue); white-space: nowrap; }
+.lu-leyenda { display: flex; gap: 14px; margin-right: auto; font-size: 13px; color: var(--lu-texto-2); }
+.lu-leyenda li { display: inline-flex; align-items: center; gap: 7px; }
+.lu-k { width: 12px; height: 12px; border-radius: 4px; }
+.lu-k-o { background: var(--lu-o); } .lu-k-t { background: var(--lu-t); } .lu-k-a { background: var(--lu-a); } .lu-k-u { background: var(--lu-u); }
+.lu-prueba { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 15px 0 11px; border: 1px solid var(--lu-ambar-medio); border-radius: 999px; background: transparent; color: var(--lu-ambar-tx);
+  font: 500 13.5px var(--lu-sans); transition: background-color .2s, color .2s, transform .2s var(--lu-curva); }
+.lu-prueba svg { width: 19px; height: 19px; }
+@media (hover: hover) { .lu-prueba:hover { background: var(--lu-ambar); color: var(--lu-sobre-ambar); } }
+.lu-prueba:active { transform: scale(.96); }
+
+/* ── el calendario ─────────────────────────────────────────────────── */
+.lu-cal { position: relative; display: flex; flex-direction: column; height: var(--lu-alto, clamp(380px, calc(100svh - 204px), 900px)); border-radius: 20px; background: var(--lu-panel);
+  box-shadow: 0 0 0 1px var(--lu-linea-2), 0 36px 60px -36px rgba(var(--lu-sombra), .9), 0 4px 10px -4px rgba(var(--lu-sombra), .3); }
+.lu-sems { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); flex: none; height: 34px; border-radius: 20px 20px 0 0; background: var(--lu-panel-2); border-bottom: 1px solid var(--lu-linea-2); }
+.lu-sems span { display: grid; align-items: center; padding-left: 12px; font: 600 12px/1 var(--lu-sans); letter-spacing: .09em; text-transform: uppercase; color: var(--lu-tenue); }
+.lu-sems span.fin { color: var(--lu-lavanda); }
+:root[data-tema="claro"] .lu-sems span.fin { color: #6a58d4; }
+.lu-semanas { flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 0 0 20px 20px; overflow: hidden; }
+.lu-sem { position: relative; flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.lu-sem + .lu-sem { border-top: 1px solid var(--lu-linea-2); }
+.lu-sem-cab { display: flex; align-items: center; gap: 10px; flex: none; height: var(--lu-cab); padding: 0 12px; background: rgba(var(--lu-sombra), .22); border-bottom: 1px solid var(--lu-linea); font-size: 12px; color: var(--lu-tenue); white-space: nowrap; }
+:root[data-tema="claro"] .lu-sem-cab { background: rgba(24, 34, 60, .05); }
+.lu-sem-cab b { font: 600 11px/1 var(--lu-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--lu-texto-2); }
+.lu-sem-fechas { font-variant-numeric: tabular-nums; }
+.lu-luna { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; color: var(--lu-texto-2); font-variant-numeric: tabular-nums; }
+.lu-luna svg { width: 16px; height: 16px; stroke: none; }
+.lu-luna em { font-style: normal; color: var(--lu-tenue); }
+.lu-cuerpo { position: relative; flex: 1; min-height: 0; }
+.lu-celdas { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.lu-celda { position: relative; border-right: 1px solid var(--lu-linea); transition: background-color .25s, box-shadow .25s; }
+.lu-celda:last-child { border-right: 0; }
+.lu-celda.fin { background: rgba(157, 140, 240, .045); }
+.lu-celda.fuera { background: var(--lu-fuera); }
+.lu-celda.fin.fuera { background: var(--lu-fuera); }
+.lu-celda.diana { background: var(--lu-ambar-suave); box-shadow: inset 0 0 0 1px var(--lu-ambar-medio); z-index: 1; }
+.lu-num { position: absolute; left: 8px; top: 5px; display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px; font: 500 13px/1 var(--lu-sans); font-variant-numeric: tabular-nums; color: var(--lu-plata); }
+.lu-celda.fuera .lu-num { color: var(--lu-tenue); }
+.lu-celda.hoy .lu-num { background: var(--lu-ambar); color: var(--lu-sobre-ambar); font-weight: 600; }
+.lu-fase-d { position: absolute; right: 8px; top: 7px; width: 14px; height: 14px; stroke: none; opacity: .9; }
+.lu-capa { position: absolute; inset: 0; pointer-events: none; }
+.lu-capa > * { pointer-events: auto; }
+
+/* ── los eventos: barras que cruzan celdas, y los de una hora como punto con su hora ── */
+.lu-ev { --c: 0; --n: 1; --l: 0; position: absolute; left: calc(var(--c) * (100% / 7) + 3px); width: calc(var(--n) * (100% / 7) - 6px); top: calc(var(--lu-num) + var(--l) * var(--lu-paso)); height: var(--lu-barra);
+  display: flex; align-items: center; margin: 0; padding: 0; border: 0; background: none; color: var(--lu-sobre-barra); text-align: left; touch-action: none; user-select: none; -webkit-user-select: none; z-index: 2; cursor: grab; }
+.lu-ev .lu-fig { position: absolute; inset: 0; z-index: -1; border-radius: 6px; background: var(--col, var(--lu-o)); transition: filter .2s, transform .2s var(--lu-curva); }
+.lu-ev .lu-tx { position: relative; flex: 1; min-width: 0; padding: 0 8px; font: 500 12px/var(--lu-barra) var(--lu-sans); letter-spacing: .005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lu-ev.cizq .lu-tx { padding-left: 14px; }
+.lu-ev.cder .lu-tx { padding-right: 14px; }
+.lu-ev.cizq .lu-asa-i, .lu-ev.cder .lu-asa-d, .lu-ev.h .lu-asa { display: none; }
+.lu-ev.cizq.cder .lu-fig { clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 0 100%, 7px 50%); }
+.lu-ev.cizq:not(.cder) .lu-fig { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 7px 50%); }
+.lu-ev.cder:not(.cizq) .lu-fig { clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 0 100%); }
+.lu-c-o { --col: var(--lu-o); } .lu-c-t { --col: var(--lu-t); } .lu-c-a { --col: var(--lu-a); } .lu-c-u { --col: var(--lu-u); }
+@media (hover: hover) { .lu-ev:hover .lu-fig { filter: brightness(1.08) saturate(1.08); } }
+.lu-ev:focus-visible { outline: 2px solid var(--lu-plata); outline-offset: 1px; border-radius: 6px; z-index: 6; }
+.lu-ev.sel .lu-fig { box-shadow: 0 0 0 2px var(--lu-plata); }
+:root[data-tema="claro"] .lu-ev:focus-visible { outline-color: var(--lu-plata); }
+
+/* los de una hora: un punto, la hora y el título, sin relleno */
+.lu-ev.h .lu-fig { background: none; }
+.lu-ev.h { color: var(--lu-plata); }
+.lu-ev.h .lu-tx { display: flex; align-items: center; gap: 6px; padding: 0 4px 0 3px; }
+.lu-ev.h .lu-pt { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--col); box-shadow: 0 0 0 2px rgba(var(--lu-sombra), .0); }
+.lu-ev.h time { flex: none; font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--lu-tenue); }
+.lu-ev.h .lu-ti { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 400; color: var(--lu-texto-2); }
+@media (hover: hover) { .lu-ev.h:hover .lu-fig { background: var(--lu-linea); filter: none; } }
+.lu-ev.h.sel .lu-fig { box-shadow: 0 0 0 1.5px var(--lu-plata); background: var(--lu-linea); }
+
+/* el borde que estira: solo en los extremos reales del evento, nunca en un corte */
+.lu-asa { position: absolute; top: 0; bottom: 0; width: 9px; z-index: 3; cursor: ew-resize; opacity: 0; transition: opacity .15s; }
+.lu-asa-i { left: 0; } .lu-asa-d { right: 0; }
+.lu-asa::after { content: ""; position: absolute; top: 5px; bottom: 5px; width: 2px; border-radius: 1px; background: var(--lu-sobre-barra); opacity: .55; }
+.lu-asa-i::after { left: 3px; } .lu-asa-d::after { right: 3px; }
+.lu-ev:hover .lu-asa, .lu-ev:focus-visible .lu-asa, .lu-ev.arr .lu-asa { opacity: 1; }
+.lu-ev.arr { z-index: 8; cursor: grabbing; }
+.lu-ev.arr .lu-fig { filter: brightness(1.1) drop-shadow(0 8px 10px rgba(var(--lu-sombra), .6)); transform: translateY(-1px); }
+.lu-ev.arr.h .lu-fig { background: var(--lu-panel-2); filter: drop-shadow(0 8px 10px rgba(var(--lu-sombra), .6)); }
+.lu-cal.arrastrando, .lu-cal.arrastrando * { cursor: grabbing !important; }
+.lu-cal.estirando, .lu-cal.estirando * { cursor: ew-resize !important; }
+.lu-ev.nuevo { animation: lu-entra .38s var(--lu-curva) both; }
+@keyframes lu-entra { from { opacity: 0; transform: scale(.88); } to { opacity: 1; transform: none; } }
+
+/* lo que no cabe: «+3 más», en el último carril del día */
+.lu-mas { --c: 0; position: absolute; left: calc(var(--c) * (100% / 7) + 3px); width: calc(100% / 7 - 6px); top: calc(var(--lu-num) + var(--l) * var(--lu-paso)); height: var(--lu-barra); z-index: 2;
+  display: flex; align-items: center; padding: 0 7px; margin: 0; border: 0; border-radius: 6px; background: none; color: var(--lu-ambar-tx);
+  font: 600 12px/1 var(--lu-sans); font-variant-numeric: tabular-nums; text-align: left; white-space: nowrap; overflow: hidden; transition: background-color .2s, transform .2s var(--lu-curva); }
+.lu-mas:active { transform: scale(.96); }
+@media (hover: hover) { .lu-mas:hover { background: var(--lu-ambar-suave); } }
+.lu-mas.abierto { background: var(--lu-ambar); color: var(--lu-sobre-ambar); }
+.lu-mas.nuevo { animation: lu-entra .38s var(--lu-curva) both; }
+
+/* el globo con todo un día */
+.lu-globo { position: absolute; z-index: 30; width: 304px; padding: 14px 14px 10px; border-radius: 18px; background: var(--lu-panel-2); color: var(--lu-plata);
+  box-shadow: 0 0 0 1px var(--lu-linea-2), 0 30px 50px -18px rgba(var(--lu-sombra), .95), 0 6px 14px -6px rgba(var(--lu-sombra), .5);
+  opacity: 0; transform: translateY(8px) scale(.94); transform-origin: var(--ox, 50%) var(--oy, 0%); visibility: hidden; outline: none;
+  transition: opacity .2s, transform .38s var(--lu-resorte), visibility 0s .38s; }
+.lu-globo.abierto { opacity: 1; transform: none; visibility: visible; transition: opacity .2s, transform .38s var(--lu-resorte), visibility 0s; }
+.lu-globo-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.lu-globo-cab h2 { font: 700 19px/1.15 var(--lu-serif); letter-spacing: -.005em; }
+.lu-globo-cab p { margin-top: 3px; font-size: 12.5px; color: var(--lu-tenue); display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.lu-globo-cab p svg { width: 14px; height: 14px; stroke: none; }
+.lu-globo-x { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--lu-linea); color: var(--lu-texto-2); transition: background-color .2s, transform .2s var(--lu-curva); }
+.lu-globo-x svg { width: 16px; height: 16px; }
+@media (hover: hover) { .lu-globo-x:hover { background: var(--lu-ambar-suave); color: var(--lu-ambar-tx); } }
+.lu-globo-x:active { transform: scale(.92); }
+.lu-globo-lista { display: grid; gap: 1px; max-height: 280px; overflow: auto; margin: 0 -6px; padding: 0 6px; scrollbar-width: thin; }
+.lu-globo-lista li { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 6px 4px; border-top: 1px solid var(--lu-linea); animation: lu-item .4s calc(var(--i, 0) * 40ms + 80ms) var(--lu-curva) both; }
+.lu-globo-lista li:first-child { border-top: 0; }
+@keyframes lu-item { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+.lu-globo-lista i { flex: none; width: 10px; height: 10px; border-radius: 3px; background: var(--col); }
+.lu-globo-lista li.h i { border-radius: 50%; }
+.lu-globo-lista div { min-width: 0; display: grid; gap: 1px; }
+.lu-globo-lista b { font: 500 13.5px/1.25 var(--lu-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lu-globo-lista small { font-size: 12px; color: var(--lu-tenue); font-variant-numeric: tabular-nums; }
+
+/* el asa del alto: un cordón bajo el calendario */
+.lu-alto { position: relative; height: 22px; margin-top: 6px; display: grid; place-items: center; cursor: ns-resize; touch-action: none; outline: none; }
+.lu-alto-agarre { display: grid; gap: 3px; place-items: center; width: 92px; height: 14px; border-radius: 9px; background: var(--lu-panel); box-shadow: 0 0 0 1px var(--lu-linea-2); transition: background-color .2s, box-shadow .2s, transform .35s var(--lu-resorte); }
+.lu-alto-agarre i { display: block; width: 44px; height: 2px; border-radius: 1px; background: var(--lu-tenue); transition: background-color .2s, width .3s var(--lu-curva); }
+.lu-alto-agarre { align-content: center; }
+.lu-alto:hover .lu-alto-agarre, .lu-alto.arrastrando .lu-alto-agarre { background: var(--lu-ambar); box-shadow: 0 0 0 1px var(--lu-ambar); transform: scale(1.06); }
+.lu-alto:hover .lu-alto-agarre i, .lu-alto.arrastrando .lu-alto-agarre i { background: var(--lu-sobre-ambar); width: 56px; }
+.lu-alto:focus-visible .lu-alto-agarre { box-shadow: 0 0 0 1.5px var(--lu-ambar), 0 0 0 5px var(--lu-ambar-suave); }
+.lu-alto-burbuja { position: absolute; left: 50%; top: -32px; transform: translate(-50%, 6px) scale(.9); padding: 5px 10px; border-radius: 9px; background: var(--lu-ambar); color: var(--lu-sobre-ambar);
+  font: 600 13px/1 var(--lu-sans); font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .2s, transform .35s var(--lu-resorte); }
+.lu-alto.arrastrando .lu-alto-burbuja, .lu-alto:focus-visible .lu-alto-burbuja { opacity: 1; transform: translate(-50%, 0); }
+.lu-estado { min-height: 22px; margin-top: 6px; font-size: 13.5px; color: var(--lu-texto-2); font-variant-numeric: tabular-nums; }
+.lu-estado.ok { color: var(--lu-ambar-tx); }
+.lu-estado.mal { color: var(--lu-rojo); }
+:root[data-tema="claro"] .lu-estado.mal { color: #b8392a; }
+
+@media (max-width: 920px) {
+  .lu-cab { flex-wrap: wrap; row-gap: 12px; }
+  .lu-tit { flex: 1 1 0; }
+  .lu-medidor { order: 3; width: 100%; }
+  .lu-med { flex: 1; min-width: 0; padding-inline: 14px; }
+  .lu-region-fuente { display: none; }
+  .lu-leyenda { margin-right: 0; }
+}
+@media (max-width: 720px) {
+  .lu > * { width: calc(100% - 28px); }
+  .lu-tit h1 { font-size: 26px; }
+  .lu-reinicio span, .lu-prueba span { display: none; }
+  .lu-reinicio { padding: 0 11px; }
+  .lu-prueba { padding: 0 10px; }
+  .lu-region-t { display: none; }
+  .lu-region { padding-left: 3px; }
+  .lu-region button span { display: none; }
+  .lu-sems span { padding-left: 6px; font-size: 10.5px; letter-spacing: .04em; }
+  .lu-sem-cab { padding: 0 8px; gap: 6px; }
+  .lu-sem-fechas, .lu-luna em { display: none; }
+  .lu-num { left: 3px; font-size: 12px; }
+  .lu-fase-d { right: 4px; width: 11px; height: 11px; }
+  .lu-ev .lu-tx { padding: 0 5px; font-size: 11px; }
+  .lu-ev.cizq .lu-tx { padding-left: 11px; } .lu-ev.cder .lu-tx { padding-right: 11px; }
+  .lu-ev.h .lu-ti { display: none; }
+  .lu-mas { padding: 0 4px; font-size: 11px; }
+  .lu-globo { position: fixed; left: 14px !important; right: 14px; bottom: 14px; top: auto !important; width: auto; transform-origin: 50% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation-duration: .01ms !important; animation-delay: 0s !important; }
+  .lu-sello::after { display: none; }
+}

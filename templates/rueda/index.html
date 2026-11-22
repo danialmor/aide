@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rueda · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=satoshi@400,500,700&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=azeret-mono@400,500&display=swap">
+<link rel="stylesheet" href="rueda.css">
+<!-- ?tema=claro para verla sobre papel -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <!-- data-rueda: la escena entera. rueda.js crea las tres ruedas, el calendario y la lectura.
+       data-reinicio="2600": en la demo, 2,6 s después de fijar la fecha todo vuelve al inicio; quítalo en producción. -->
+  <main class="rd-escena" data-rueda data-reinicio="2600">
+    <!-- fondo: carbón con una luz mostaza baja, puntos muy tenues y grano -->
+    <div class="rd-fondo" aria-hidden="true"><i class="rd-resp rd-resp--1"></i><i class="rd-resp rd-resp--2"></i><i class="rd-puntos"></i><i class="rd-grano"></i></div>
+
+    <!-- IZQUIERDA · la lectura grande: el día rueda como un cuentakilómetros -->
+    <section class="rd-lectura" aria-label="Fecha elegida">
+      <p class="rd-sobre"><i class="rd-marca" aria-hidden="true"></i>Fecha de entrega</p>
+      <div class="rd-gran" data-gran aria-hidden="true">14</div>
+      <p class="rd-mes"><span class="rd-t" data-mes>octubre</span><span class="rd-anio rd-t" data-anio>2026</span></p>
+      <p class="rd-semana"><span class="rd-t" data-semana>miércoles</span></p>
+      <p class="rd-chip" data-chip><i aria-hidden="true"></i><span class="rd-t" data-chip-t>Mañana</span></p>
+      <p class="rd-anuncio" role="status" aria-live="polite" data-anuncio></p>
+    </section>
+
+    <!-- DERECHA · la tarjeta: tres rodillos, el calendario compacto y el botón -->
+    <section class="rd-tarjeta" aria-label="Elegir la fecha">
+      <div class="rd-etqs" aria-hidden="true"><span>Día</span><span>Mes</span><span>Año</span></div>
+      <div class="rd-ruedas">
+        <i class="rd-banda" aria-hidden="true"></i>
+        <div class="rd-rueda" data-rueda-dia></div>
+        <div class="rd-rueda" data-rueda-mes></div>
+        <div class="rd-rueda" data-rueda-anio></div>
+      </div>
+
+      <div class="rd-cal">
+        <div class="rd-cal-cab">
+          <button type="button" class="rd-flecha" data-mes-menos aria-label="Mes anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg></button>
+          <p class="rd-cal-tit" data-cal-tit>octubre 2026</p>
+          <button type="button" class="rd-flecha" data-mes-mas aria-label="Mes siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+        </div>
+        <div class="rd-cal-sem" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+        <div class="rd-cal-cuerpo" data-cal-cuerpo><i class="rd-cal-sel" aria-hidden="true"></i></div>
+      </div>
+
+      <button type="button" class="rd-fijar" data-fijar>
+        <span class="rd-fijar-txt" data-fijar-txt>Fijar fecha</span>
+        <svg class="rd-fijar-tic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.6 10 17l8.5-9.4"/></svg>
+      </button>
+    </section>
+  </main>
+
+  <script src="rueda.js"></script>
+</body>
+</html>

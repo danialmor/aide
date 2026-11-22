@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estadía · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600&display=swap">
+<link rel="stylesheet" href="estadia.css">
+<!-- ?tema=claro para verla sobre fondo claro -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <main class="ea-escena">
+    <!-- data-estadia: el campo «Llegada → Salida» y su selector. estadia.js
+         arma los meses dentro de .ea-meses, estira la banda entre los dos
+         días con resortes y entrega el rango en AAAA-MM-DD. Los atajos se
+         declaran con data-atajo: finde, dias:N o mes -->
+    <div class="ea-estadia" data-estadia>
+      <button class="ea-campo" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="ea-selector">
+        <span class="ea-marca" aria-hidden="true"></span>
+        <span class="ea-parte">
+          <svg class="ea-icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 4.5h4a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5h-4"/><path d="M4.5 12h10m-3.5-3.5L14.5 12 11 15.5"/></svg>
+          <span class="ea-etiqueta">Llegada</span>
+          <span class="ea-valor" data-valor="desde"><span class="is-vacio">Agrega fecha</span></span>
+        </span>
+        <svg class="ea-flecha" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+        <span class="ea-parte">
+          <svg class="ea-icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4.5h-4A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5h4"/><path d="M9.5 12h10M16 8.5l3.5 3.5-3.5 3.5"/></svg>
+          <span class="ea-etiqueta">Salida</span>
+          <span class="ea-valor" data-valor="hasta"><span class="is-vacio">Agrega fecha</span></span>
+        </span>
+        <span class="ea-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-8.5" pathLength="1"/></svg></span>
+      </button>
+
+      <div class="ea-selector" id="ea-selector" role="dialog" aria-label="Elegir llegada y salida" hidden>
+        <nav class="ea-atajos" aria-label="Atajos">
+          <p>Atajos</p>
+          <span class="ea-atajo-marca" aria-hidden="true"></span>
+          <button type="button" data-atajo="finde" aria-pressed="false"><b>Este fin de semana</b><small></small></button>
+          <button type="button" data-atajo="dias:7" aria-pressed="false"><b>Próximos 7 días</b><small></small></button>
+          <button type="button" data-atajo="dias:14" aria-pressed="false"><b>Próximos 14 días</b><small></small></button>
+          <button type="button" data-atajo="mes" aria-pressed="false"><b>Este mes</b><small></small></button>
+          <p class="ea-teclas" aria-hidden="true"><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>&nbsp;días</span><span><kbd>Re Pág</kbd><kbd>Av Pág</kbd>&nbsp;meses</span></p>
+        </nav>
+
+        <div class="ea-calendario">
+          <button class="ea-mover" type="button" data-mover="-1" aria-label="Mes anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6"/></svg></button>
+          <button class="ea-mover" type="button" data-mover="1" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+          <div class="ea-meses"></div>
+        </div>
+
+        <footer class="ea-pie">
+          <div class="ea-resumen">
+            <span class="ea-luna" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/></svg></span>
+            <div>
+              <p class="ea-total" aria-hidden="true"><span class="ea-cifra"></span><span class="ea-palabra">noches</span></p>
+              <p class="ea-detalle" aria-hidden="true"><span>Elige el día de llegada</span></p>
+            </div>
+            <p class="ea-oculto" aria-live="polite"></p>
+          </div>
+          <button class="ea-borrar" type="button">Borrar</button>
+          <button class="ea-aplicar" type="button" disabled>Aplicar</button>
+        </footer>
+      </div>
+    </div>
+  </main>
+
+  <script src="estadia.js"></script>
+  <script>
+    Estadia(document.querySelector('[data-estadia]'), {
+      hoy: '2026-11-09',
+      meses: 2,
+      abierto: true,             // en la demo el selector se ve abierto desde el principio
+      cierraAlAplicar: false,
+      alAplicar: rango => {
+        // aquí, la reserva: rango.desde, rango.hasta y rango.noches
+      },
+    });
+  </script>
+</body>
+</html>

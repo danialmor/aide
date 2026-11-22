@@ -1,0 +1,275 @@
+/* Estadía · Moxen — los estilos del efecto y de la demostración. */
+:root {
+  --ea-fondo: #0a0a0a;
+  --ea-texto: #f4f4f4;
+  --ea-suave: rgba(255, 255, 255, .56);
+  --ea-tenue: rgba(255, 255, 255, .3);
+  --ea-panel: #121212;
+  --ea-campo: #151515;
+  --ea-linea: rgba(255, 255, 255, .08);
+  --ea-relieve: rgba(255, 255, 255, .055);
+  --ea-relieve-fuerte: rgba(255, 255, 255, .09);
+  --ea-luz: rgba(255, 255, 255, .05);          /* el filo de arriba de cada capa */
+  --ea-banda: #2c2c2c;                         /* el tramo entre la llegada y la salida (opaco: no se suma al aro) */
+  --ea-disco-color: #f4f4f4;                   /* los dos extremos */
+  --ea-boton: #f4f4f4;
+  --ea-boton-tinta: #0a0a0a;
+  --ea-ok: #3ccf6e;
+  --ea-sombra: 0 60px 90px -40px rgba(0, 0, 0, .95), 0 24px 40px -24px rgba(0, 0, 0, .8);
+  --ea-curva: cubic-bezier(.22, 1, .36, 1);
+  --ea-celda: 54px;          /* cada día */
+  --ea-disco: 44px;          /* el diámetro de los extremos y el alto de la banda */
+  --ea-meses: 2;             /* cuántos meses caben (lo lee estadia.js) */
+}
+:root[data-tema="claro"] {
+  --ea-fondo: #eeeeee;
+  --ea-texto: #0a0a0a;
+  --ea-suave: rgba(0, 0, 0, .56);
+  --ea-tenue: rgba(0, 0, 0, .32);
+  --ea-panel: #ffffff;
+  --ea-campo: #ffffff;
+  --ea-linea: rgba(0, 0, 0, .08);
+  --ea-relieve: rgba(0, 0, 0, .045);
+  --ea-relieve-fuerte: rgba(0, 0, 0, .07);
+  --ea-luz: rgba(255, 255, 255, .9);
+  --ea-banda: #ebebeb;
+  --ea-disco-color: #0a0a0a;
+  --ea-boton: #0a0a0a;
+  --ea-boton-tinta: #f4f4f4;
+  --ea-ok: #18a34a;
+  --ea-sombra: 0 50px 80px -40px rgba(0, 0, 0, .3), 0 18px 34px -22px rgba(0, 0, 0, .22);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--ea-fondo); color: var(--ea-texto); }
+body { font-family: "General Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; }
+button { font: inherit; color: inherit; }
+svg { display: block; }
+
+/* ── el campo ──────────────────────────────────────────────────────── */
+.ea-estadia { position: relative; width: min(1092px, 100%); display: grid; justify-items: center; gap: 14px; }
+.ea-campo {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr; width: min(620px, 100%); height: 74px; padding: 6px;
+  border: 1px solid var(--ea-linea); border-radius: 22px; background: var(--ea-campo); cursor: pointer; text-align: left;
+  box-shadow: inset 0 1px 0 var(--ea-luz), 0 30px 50px -30px rgba(0, 0, 0, .7);
+  transition: border-color .35s, box-shadow .35s;
+}
+.ea-campo:focus-visible { outline: 2px solid var(--ea-texto); outline-offset: 3px; }
+/* la mitad que se está eligiendo: una placa que viaja de «Llegada» a «Salida» */
+.ea-marca {
+  position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc(50% - 6px); border-radius: 16px;
+  background: var(--ea-relieve-fuerte); box-shadow: inset 0 0 0 1px var(--ea-linea);
+  transition: transform .55s var(--ea-muelle, var(--ea-curva)), opacity .3s;
+}
+.ea-estadia[data-fase="fin"] .ea-marca { transform: translateX(100%); }
+.ea-estadia[data-fase="listo"] .ea-marca, .ea-estadia:not(.is-abierto) .ea-marca { opacity: 0; }
+.ea-parte { position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 13px; padding: 0 18px; }
+.ea-parte + .ea-parte { padding-left: 30px; }
+.ea-icono { grid-row: span 2; width: 22px; height: 22px; fill: none; stroke: var(--ea-suave); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ea-etiqueta { font-size: .76rem; color: var(--ea-suave); letter-spacing: .01em; align-self: end; }
+/* el valor gira como un tambor cuando cambia: el viejo se va hacia arriba y el nuevo sube de abajo */
+.ea-valor { display: inline-grid; justify-items: start; align-self: start; perspective: 300px; font-size: 1.1rem; font-weight: 500; letter-spacing: -.015em; white-space: nowrap; }
+.ea-valor > span { grid-area: 1 / 1; backface-visibility: hidden; transform-origin: 50% 50% -.4em; }
+.ea-valor .is-vacio { color: var(--ea-tenue); font-weight: 400; }
+.is-entra { animation: ea-entra .6s .07s var(--ea-curva) both; }
+.is-sale { animation: ea-sale .26s cubic-bezier(.5, 0, .75, 0) forwards; }
+@keyframes ea-entra { from { transform: translateY(45%) rotateX(-75deg); opacity: 0; } }
+@keyframes ea-sale { to { transform: translateY(-45%) rotateX(75deg); opacity: 0; } }
+.ea-flecha {
+  position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; fill: none;
+  stroke: var(--ea-tenue); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+}
+/* el ✓ al aplicar: el campo recibe las fechas y se marca un instante */
+.ea-ok {
+  position: absolute; right: 16px; top: 50%; width: 30px; height: 30px; margin-top: -15px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--ea-ok); opacity: 0; transform: scale(.4);
+  transition: opacity .35s, transform 0s .35s;      /* se va solo fundiéndose */
+}
+.ea-ok svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ea-ok path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.ea-estadia.is-aplicado .ea-ok { opacity: 1; transform: none; transition: opacity .2s, transform .55s var(--ea-muelle, var(--ea-curva)); }
+.ea-estadia.is-aplicado .ea-ok path { animation: ea-traza .45s .12s var(--ea-curva) forwards; }
+.ea-estadia.is-aplicado .ea-campo { border-color: color-mix(in srgb, var(--ea-ok) 60%, transparent); }
+@keyframes ea-traza { to { stroke-dashoffset: 0; } }
+
+/* ── el selector ───────────────────────────────────────────────────── */
+/* va por encima de la sombra del campo (si no, la sombra se vería sobre el panel y no sobre los meses) */
+.ea-selector {
+  position: relative; width: 100%; display: grid; grid-template-columns: 218px 1fr; overflow: hidden;
+  border: 1px solid var(--ea-linea); border-radius: 28px; background: var(--ea-panel);
+  box-shadow: inset 0 1px 0 var(--ea-luz), var(--ea-sombra);
+  opacity: 0; transform: translateY(-10px) scale(.985); transform-origin: 50% 0;
+  transition: opacity .22s, transform .5s var(--ea-curva);
+}
+.ea-estadia.is-abierto .ea-selector { opacity: 1; transform: none; }
+.ea-selector[hidden] { display: none; }
+
+.ea-atajos { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 20px 14px; border-right: 1px solid var(--ea-linea); }
+.ea-atajos > p:first-child { margin: 4px 12px 10px; font-size: .74rem; color: var(--ea-tenue); letter-spacing: .04em; text-transform: uppercase; }
+.ea-atajos button {
+  position: relative; z-index: 1; display: grid; gap: 3px; padding: 11px 12px; border: 0; border-radius: 13px; background: none;
+  text-align: left; cursor: pointer; transition: background-color .2s;
+}
+.ea-atajos button:hover { background: var(--ea-relieve); }
+.ea-atajos b { font-size: .95rem; font-weight: 500; letter-spacing: -.01em; white-space: nowrap; }
+.ea-atajos small { font-size: .76rem; color: var(--ea-suave); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ea-atajos button:focus-visible { outline: 2px solid var(--ea-texto); outline-offset: -2px; }
+/* el atajo vigente: una placa que viaja de uno a otro */
+.ea-atajo-marca {
+  position: absolute; left: 0; top: 0; border-radius: 13px; background: var(--ea-relieve-fuerte); box-shadow: inset 0 0 0 1px var(--ea-linea);
+  opacity: 0; transition: transform .55s var(--ea-muelle, var(--ea-curva)), opacity .25s;
+}
+.ea-atajo-marca.is-visible { opacity: 1; }
+.ea-teclas { display: grid; gap: 7px; margin: auto 12px 2px; font-size: .74rem; color: var(--ea-tenue); }
+.ea-teclas span { display: flex; align-items: center; gap: 3px; }
+kbd {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 2px; border-radius: 6px;
+  border: 1px solid var(--ea-linea); background: var(--ea-relieve); color: var(--ea-suave); font: 500 .68rem "General Sans", system-ui, sans-serif;
+}
+
+.ea-calendario { position: relative; padding: 18px 28px 12px; }
+.ea-mover {
+  position: absolute; top: 19px; z-index: 2; width: 38px; height: 38px; display: grid; place-items: center; padding: 0;
+  border: 1px solid var(--ea-linea); border-radius: 12px; background: var(--ea-panel); color: var(--ea-texto); cursor: pointer;
+  transition: background-color .2s, opacity .2s, transform .2s var(--ea-curva);
+}
+.ea-mover[data-mover="-1"] { left: 24px; }
+.ea-mover[data-mover="1"] { right: 24px; }
+.ea-mover svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ea-mover:hover { background: var(--ea-relieve-fuerte); }
+.ea-mover:active { transform: scale(.94); }
+.ea-mover:disabled { opacity: .3; cursor: default; background: var(--ea-panel); transform: none; }
+.ea-mover:focus-visible { outline: 2px solid var(--ea-texto); outline-offset: 2px; }
+
+/* los meses: una pista por vista; al cambiar de mes la vieja sale y la nueva entra (estadia.js) */
+.ea-meses { position: relative; height: calc(40px + 30px + 6 * var(--ea-celda)); overflow: hidden; }
+.ea-pista {
+  position: absolute; inset: 0; display: grid; justify-content: space-between;
+  grid-template-columns: repeat(var(--ea-n, 2), calc(7 * var(--ea-celda)));
+}
+/* cada mes se aísla con su propio fondo: sus cifras se mezclan con él (ver .ea-dia) */
+.ea-mes { background: var(--ea-panel); isolation: isolate; }
+.ea-titulo { margin: 0; height: 40px; display: flex; align-items: center; justify-content: center; gap: .35em; font-size: 1.04rem; font-weight: 600; letter-spacing: -.02em; }
+.ea-titulo span { color: var(--ea-tenue); font-weight: 500; }
+.ea-semana { display: grid; grid-template-columns: repeat(7, var(--ea-celda)); height: 30px; align-items: center; text-align: center; font-size: .74rem; color: var(--ea-tenue); }
+.ea-rejilla { position: relative; }
+.ea-fila { position: relative; display: grid; grid-template-columns: repeat(7, var(--ea-celda)); height: var(--ea-celda); }
+
+/* ── el efecto ─────────────────────────────────────────────────────── */
+/* Las cifras son blancas con mix-blend-mode: difference. Sobre el fondo
+   se ven claras (u oscuras en el tema claro), sobre la banda un poco más
+   tenues y sobre un disco se invierten: el disco puede viajar por encima
+   de cualquier día y su cifra siempre se lee, sin cambiar colores a mano. */
+.ea-dia {
+  position: relative; display: grid; place-items: center; width: 100%; height: 100%; padding: 0; border: 0; background: none;
+  color: #fff; mix-blend-mode: difference; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent;
+  font: 500 .98rem/1 "General Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums;
+}
+.ea-dia::before {
+  content: ""; position: absolute; inset: calc((var(--ea-celda) - var(--ea-disco)) / 2); border-radius: 50%;
+  background: rgba(255, 255, 255, .1); opacity: 0; transition: opacity .2s;
+}
+.ea-dia:hover::before { opacity: 1; }
+.ea-dia.is-extremo::before { display: none; }
+.ea-dia:focus-visible::before { opacity: 1; background: none; box-shadow: 0 0 0 2px #fff; }
+.ea-dia.is-hoy::after { content: ""; position: absolute; left: 50%; bottom: calc(var(--ea-celda) / 2 - 15px); width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #fff; }
+.ea-dia[aria-disabled="true"] { opacity: .26; cursor: default; }
+.ea-dia[aria-disabled="true"]::before { display: none; }
+.ea-dia.is-corto { opacity: .45; cursor: not-allowed; }
+
+/* La banda: una tira por fila de semana, recortada justo en sus días.
+   Dentro, el tramo (escalado desde la izquierda) y los dos extremos, que
+   estadia.js lleva a su sitio con resortes. Como cada tira recorta lo
+   suyo, en un cambio de fila el disco que viaja sale por el borde de una
+   y entra por el borde de la siguiente, y los cortes quedan rectos. */
+.ea-banda { position: absolute; inset: 0; pointer-events: none; }
+.ea-tira {
+  position: absolute; overflow: hidden; height: var(--ea-celda);
+  left: calc(var(--c) * var(--ea-celda)); top: calc(var(--f) * var(--ea-celda)); width: calc(var(--k) * var(--ea-celda));
+}
+.ea-tramo {
+  position: absolute; left: 0; top: calc((var(--ea-celda) - var(--ea-disco)) / 2); width: 100%; height: var(--ea-disco);
+  background: var(--ea-banda); transform-origin: 0 50%; opacity: 0; will-change: transform;
+}
+.ea-pos { position: absolute; inset: 0; will-change: transform; }
+.ea-pos > i {
+  position: absolute; left: calc(var(--ea-disco) / -2); top: calc((var(--ea-celda) - var(--ea-disco)) / 2);
+  width: var(--ea-disco); height: var(--ea-disco); border-radius: 50%; background: var(--ea-disco-color);
+  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, .6); transition: background-color .22s, box-shadow .22s;
+}
+/* mientras se elige la salida, el extremo que viaja es solo un aro: se llena al elegir */
+.ea-estadia[data-fase="fin"] .ea-fin > i { background: var(--ea-banda); box-shadow: inset 0 0 0 1.5px var(--ea-disco-color); }
+
+/* ── el pie ────────────────────────────────────────────────────────── */
+.ea-pie { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 14px 22px 14px 26px; border-top: 1px solid var(--ea-linea); }
+.ea-resumen { flex: 1; min-width: 0; display: flex; align-items: center; gap: 16px; }
+.ea-luna { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: var(--ea-relieve); border: 1px solid var(--ea-linea); }
+.ea-luna svg { width: 20px; height: 20px; fill: none; stroke: var(--ea-texto); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ea-total { margin: 0; display: flex; align-items: baseline; gap: 7px; font-size: 1.5rem; font-weight: 600; letter-spacing: -.03em; line-height: 1; transition: opacity .3s; }
+.ea-total.is-cero { opacity: .35; }
+.ea-palabra { font-size: 1.05rem; font-weight: 500; letter-spacing: -.01em; }
+/* la cifra rueda como un cuentakilómetros: cada columna es una tira de 0 a 9 */
+.ea-cifra { display: inline-flex; font-variant-numeric: tabular-nums; }
+.ea-rueda { display: inline-block; width: 1ch; height: 1.05em; overflow: hidden; text-align: center; transition: width .45s var(--ea-curva); }
+.ea-rueda.is-vacia { width: 0; }
+.ea-rueda > span { display: flex; flex-direction: column; transition: transform .8s var(--ea-muelle, var(--ea-curva)); }
+.ea-rueda > span > span { height: 1.05em; line-height: 1.05em; }
+.ea-detalle { margin: 4px 0 0; display: grid; perspective: 300px; font-size: .86rem; color: var(--ea-suave); white-space: nowrap; }
+.ea-detalle > span { grid-area: 1 / 1; transform-origin: 50% 50% -.4em; }
+.ea-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.ea-borrar, .ea-aplicar {
+  height: 46px; padding: 0 20px; border-radius: 14px; border: 1px solid transparent; background: none; cursor: pointer;
+  font-size: .95rem; font-weight: 500; letter-spacing: -.01em; transition: background-color .2s, opacity .25s, transform .2s var(--ea-curva);
+}
+.ea-borrar { color: var(--ea-suave); }
+.ea-borrar:hover { color: var(--ea-texto); background: var(--ea-relieve); }
+.ea-aplicar { padding: 0 26px; background: var(--ea-boton); color: var(--ea-boton-tinta); box-shadow: 0 10px 24px -12px rgba(0, 0, 0, .7); }
+.ea-aplicar:hover { transform: translateY(-1px); }
+.ea-aplicar:active { transform: scale(.97); }
+.ea-aplicar:disabled { opacity: .3; cursor: default; transform: none; }
+.ea-borrar:focus-visible, .ea-aplicar:focus-visible { outline: 2px solid var(--ea-texto); outline-offset: 2px; }
+
+/* ── la demostración ───────────────────────────────────────────────── */
+.ea-escena { height: 100%; display: grid; place-items: center; padding: 24px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ea-marca, .ea-atajo-marca, .ea-ok, .ea-selector, .ea-rueda, .ea-rueda > span { transition-duration: .01s; }
+  .is-entra { animation: ea-funde .14s both; }
+  .is-sale { animation: ea-funde .1s reverse forwards; }
+  .ea-estadia.is-aplicado .ea-ok path { animation-duration: .01s; }
+}
+@keyframes ea-funde { from { opacity: 0; } }
+
+/* ── en el teléfono: un mes, y los atajos en una fila que se desliza ── */
+@media (max-width: 760px) {
+  :root { --ea-celda: 44px; --ea-disco: 36px; --ea-meses: 1; }
+  body { overflow-x: hidden; overflow-y: auto; }
+  .ea-escena { place-items: start center; padding: 16px; }
+  .ea-campo { height: 64px; border-radius: 18px; }
+  .ea-marca { border-radius: 13px; }
+  .ea-parte { padding: 0 10px; column-gap: 9px; }
+  .ea-parte + .ea-parte { padding-left: 22px; }
+  .ea-icono { width: 18px; height: 18px; }
+  .ea-valor { font-size: .96rem; }
+  .ea-ok { right: 8px; width: 24px; height: 24px; margin-top: -12px; }
+  .ea-selector { grid-template-columns: 1fr; border-radius: 22px; }
+  .ea-atajos { flex-direction: row; gap: 6px; padding: 12px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--ea-linea); scrollbar-width: none; }
+  .ea-atajos::-webkit-scrollbar { display: none; }
+  .ea-atajos > p, .ea-teclas, .ea-atajos small { display: none; }
+  .ea-atajos button { flex: none; padding: 9px 13px; border: 1px solid var(--ea-linea); border-radius: 99px; }
+  .ea-atajos b { font-size: .84rem; }
+  .ea-atajo-marca { border-radius: 99px; }
+  .ea-calendario { padding: 12px 12px 6px; }
+  .ea-mover { top: 13px; width: 34px; height: 34px; }
+  .ea-mover[data-mover="-1"] { left: 12px; }
+  .ea-mover[data-mover="1"] { right: 12px; }
+  .ea-pista { justify-content: center; }
+  .ea-dia { font-size: .9rem; }
+  .ea-pie { flex-wrap: wrap; padding: 12px 14px; }
+  .ea-resumen { flex-basis: 100%; gap: 12px; }
+  .ea-luna { width: 36px; height: 36px; }
+  .ea-total { font-size: 1.25rem; }
+  .ea-borrar { margin-left: auto; }
+  .ea-borrar, .ea-aplicar { height: 42px; }
+}

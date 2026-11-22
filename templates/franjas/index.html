@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Franjas · Moxen</title>
+<!-- una hoja por familia: títulos y texto en Sofia Sans (Google Fonts), cifras en Tabular (Fontshare) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=tabular@500&display=swap">
+<link rel="stylesheet" href="franjas.css">
+<!-- ?tema=oscuro: la misma rejilla en azul noche (la demo es clara por defecto) -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro'; else if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <!-- data-franjas: franjas.js monta la rejilla sobre [data-rejilla] y rellena la cifra y el resumen -->
+  <main class="fr-escena" data-franjas>
+    <div class="fr-fondo" aria-hidden="true"><i class="fr-mancha fr-m1"></i><i class="fr-mancha fr-m2"></i><i class="fr-grano"></i></div>
+
+    <div class="fr-app">
+      <!-- el panel de la izquierda: cuánto, en palabras, y las herramientas -->
+      <aside class="fr-lado">
+        <p class="fr-ojo">Horario de atención</p>
+        <h1 class="fr-titulo">Disponibilidad semanal</h1>
+
+        <div class="fr-total">
+          <span class="fr-cifra" data-total role="img" aria-label="32 horas"></span>
+          <span class="fr-total-t"><b>h</b>semanales</span>
+        </div>
+
+        <div class="fr-resumen">
+          <span class="fr-resumen-r">En palabras</span>
+          <p class="fr-resumen-t" data-resumen></p>
+        </div>
+
+        <div class="fr-herr">
+          <div class="fr-modo" role="radiogroup" aria-label="Herramienta de la rejilla" data-modo>
+            <i class="fr-pastilla" aria-hidden="true"></i>
+            <button type="button" role="radio" aria-checked="true" data-herr="pintar">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5l4 4-8.6 8.6a2.4 2.4 0 0 1-1.7.7H5.2v-3a2.4 2.4 0 0 1 .7-1.7z"/><path d="M13 7l4 4"/></svg>
+              Pintar
+            </button>
+            <button type="button" role="radio" aria-checked="false" data-herr="borrar" tabindex="-1">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 18.5h10M5.6 14.7l7.4-7.4a2 2 0 0 1 2.8 0l2 2a2 2 0 0 1 0 2.8l-5.7 5.6H8.7l-3.1-3.1a1.1 1.1 0 0 1 0-1.5z"/></svg>
+              Borrar
+            </button>
+          </div>
+          <p class="fr-nota"><kbd>Mayús</kbd> borra mientras arrastras</p>
+        </div>
+
+        <button class="fr-copiar" type="button" data-copiar>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="6" height="14" rx="2"/><rect x="14.5" y="5" width="6" height="14" rx="2"/><path d="M11 12h2.2M12.2 10.6 13.6 12l-1.4 1.4"/></svg>
+          Copiar a los demás días
+        </button>
+        <div class="fr-aux">
+          <button class="fr-texto-b" type="button" data-deshacer disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4.5 11.5 9 16"/><path d="M5 11.5h8.5a5 5 0 0 1 0 10H11"/></svg>
+            Deshacer
+          </button>
+          <button class="fr-texto-b" type="button" data-vaciar>Vaciar semana</button>
+        </div>
+      </aside>
+
+      <!-- la rejilla de siete días por horas (la dibuja franjas.js) -->
+      <section class="fr-panel" aria-label="Rejilla de disponibilidad">
+        <div class="fr-rejilla" data-rejilla></div>
+        <p class="fr-pie" aria-hidden="true"><span>Arrastra para pintar</span><span>Estira el borde de una franja</span><span><kbd>Espacio</kbd> pinta con teclado</span></p>
+      </section>
+    </div>
+
+    <p class="fr-solo-lector" role="status" aria-live="polite" data-aviso></p>
+  </main>
+  <script src="franjas.js"></script>
+</body>
+</html>

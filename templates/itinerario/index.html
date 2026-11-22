@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Itinerario · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=plus-jakarta-sans@500,600,700&display=swap">
+<link rel="stylesheet" href="itinerario.css">
+<!-- ?tema=claro es el perla de siempre; ?tema=oscuro, la misma hoja de ruta de noche -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro'; else if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <!-- data-itinerario: la escena entera. itinerario.js dibuja el eje, los carriles, las barras y los hitos
+       (ver su cabecera para poner los tuyos y enganchar los cambios a tu aplicación) -->
+  <main class="it-escena" data-itinerario>
+    <div class="it-fondo" aria-hidden="true">
+      <i class="it-mancha it-m1"></i><i class="it-mancha it-m2"></i><i class="it-mancha it-m3"></i><i class="it-mancha it-m4"></i><i class="it-grano"></i>
+    </div>
+
+    <section class="it-tarjeta" aria-labelledby="it-titulo">
+      <header class="it-cab">
+        <div class="it-tit">
+          <p class="it-ceja"><i></i>Producto · segundo trimestre</p>
+          <h1 id="it-titulo">Hoja de ruta</h1>
+        </div>
+        <div class="it-ctrl">
+          <div class="it-mes" data-mes-nav>
+            <button type="button" class="it-mes-b" data-mes="-1" aria-label="Mes anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg></button>
+            <span class="it-mes-nom" aria-live="polite"><span class="it-rc" data-mes-nom><i>Mayo</i></span></span>
+            <button type="button" class="it-mes-b" data-mes="1" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+          </div>
+          <button type="button" class="it-hoy-b" data-hoy>Hoy</button>
+          <div class="it-seg" role="radiogroup" aria-label="Escala del tiempo" data-seg>
+            <i class="it-seg-pulgar" aria-hidden="true"></i>
+            <button type="button" role="radio" aria-checked="false" data-zoom="mes">Mes</button>
+            <button type="button" role="radio" aria-checked="true" data-zoom="trimestre">Trimestre</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="it-plano" data-plano>
+        <div class="it-lado" data-lado></div>
+        <div class="it-vista" data-vista>
+          <div class="it-mundo" data-mundo></div>
+          <div class="it-hoy" data-hoy-capa aria-hidden="true"><span class="it-hoy-etq" data-hoy-etq>Hoy · 13 may</span></div>
+        </div>
+      </div>
+
+      <!-- el inspector: la barra elegida, sus fechas y su avance -->
+      <footer class="it-pie">
+        <div class="it-sel">
+          <span class="it-sel-pt" data-sel-pt></span>
+          <div>
+            <p class="it-sel-nom" data-sel-nom>Prototipo</p>
+            <p class="it-sel-fechas"><span class="it-rc" data-sel-a><i>—</i></span> → <span class="it-rc" data-sel-b><i>—</i></span> · <span class="it-rc" data-sel-n><i>—</i></span></p>
+          </div>
+        </div>
+        <div class="it-av">
+          <span class="it-av-t" id="it-av-t">Avance</span>
+          <div class="it-riel" role="slider" tabindex="0" aria-labelledby="it-av-t" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0 %" data-riel>
+            <i class="it-riel-lleno"></i><i class="it-riel-bola"></i>
+          </div>
+          <span class="it-av-n"><span class="it-rc" data-av-n><i>0</i></span>%</span>
+        </div>
+        <button type="button" class="it-completa" data-completa><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span data-completa-t>Completar</span></button>
+      </footer>
+    </section>
+
+    <p class="it-pista"><span class="it-solo-raton">Arrastra una barra o estira sus asas · cambia a «Mes» · flechas mueven, Mayús + flechas estiran, +/− el avance</span><span class="it-solo-dedo">Arrastra una barra o sus asas · cambia entre Mes y Trimestre</span></p>
+    <p class="it-oculto" aria-live="polite" data-vivo></p>
+  </main>
+
+  <script src="itinerario.js"></script>
+  <script>
+    /* Sin opciones usa la hoja de ruta de ejemplo. Ver la cabecera de itinerario.js para poner
+       tus carriles, tus barras y tus hitos, y para enterarte de cada cambio. */
+    Itinerario(document.querySelector('[data-itinerario]'));
+  </script>
+</body>
+</html>

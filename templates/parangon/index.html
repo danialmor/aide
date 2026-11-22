@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parangón · Moxen</title>
+<!-- una hoja por familia: si van juntas, a veces solo llega la primera -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="parangon.css">
+<!-- ?tema=oscuro: el mismo selector sobre pizarra de noche, con el azul y el violeta gris aclarados -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <!-- parangon.js arma los atajos, los dos meses del calendario, la comparación, el minigráfico y el campo de arriba.
+       Aquí están los marcos: la barra del panel con su campo de periodo, y el selector abierto: atajos, calendario,
+       el resumen con «Comparar con», el minigráfico y los botones. El «hoy» de la demo está en data-hoy. -->
+  <main class="pg-escena" data-parangon data-hoy="2026-11-18" data-auto-reinicia>
+    <div class="pg-fondo" aria-hidden="true"><i class="pg-halo pg-h1"></i><i class="pg-halo pg-h2"></i><i class="pg-grano"></i></div>
+
+    <div class="pg-marco">
+      <!-- la barra del panel: el título y el campo de periodo, que muestra los dos rangos -->
+      <header class="pg-barra">
+        <div class="pg-tit">
+          <svg class="pg-glifo" viewBox="0 0 34 34" aria-hidden="true">
+            <rect width="34" height="34" rx="10" class="pg-glifo-fondo"/>
+            <path d="M7.500 22.500c3.200-1 4.600-8 8-8s4.200 5.500 6.400 5.500c1.400 0 2.400-1.200 3.600-3.800" class="pg-glifo-a"/>
+            <path d="M7.500 25.500c3.200-.4 4.600-3.600 8-3.600" class="pg-glifo-b"/>
+          </svg>
+          <div>
+            <h1>Visitas</h1>
+            <p>Panel de tráfico · Estudio creativo</p>
+          </div>
+        </div>
+        <button class="pg-campo" type="button" data-campo aria-haspopup="dialog" aria-expanded="true" aria-controls="pg-selector">
+          <svg class="pg-campo-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4.500" width="14" height="12.500" rx="3"/><path d="M3 8.500h14M7 3v3M13 3v3"/></svg>
+          <span class="pg-campo-a" data-campo-a>12 – 18 nov 2026</span>
+          <span class="pg-campo-vs" data-campo-vs><span class="pg-campo-vs-in"><i>vs</i><span class="pg-campo-b" data-campo-b>5 – 11 nov 2026</span></span></span>
+          <svg class="pg-campo-flecha" viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg>
+          <span class="pg-campo-ok" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m5 10.500 3.500 3.500L15 6.500" pathLength="1"/></svg></span>
+        </button>
+      </header>
+
+      <!-- el selector -->
+      <section class="pg-selector" id="pg-selector" role="dialog" aria-label="Periodo del panel">
+        <div class="pg-atajos" role="radiogroup" aria-label="Atajos de periodo" data-atajos></div>
+
+        <div class="pg-medio">
+          <div class="pg-cal">
+            <div class="pg-cal-cab">
+              <button class="pg-mover" type="button" data-mover="-1" aria-label="Meses anteriores"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5"/></svg></button>
+              <button class="pg-mover" type="button" data-mover="1" aria-label="Meses siguientes"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg></button>
+            </div>
+            <div class="pg-meses" data-meses role="group" aria-label="Calendario de dos meses"></div>
+          </div>
+
+          <div class="pg-comp" data-comp>
+            <div class="pg-comp-cab">
+              <p class="pg-rotulo">Comparar con</p>
+              <button class="pg-sw" type="button" role="switch" aria-checked="false" data-sw aria-label="Comparar con otro periodo"><i></i></button>
+            </div>
+            <div class="pg-seg" role="radiogroup" aria-label="Periodo de comparación" data-seg>
+              <span class="pg-seg-marca" aria-hidden="true"></span>
+              <button type="button" role="radio" aria-checked="true" data-modo="anterior"><b>Periodo anterior</b><small data-seg-a>5 – 11 nov</small></button>
+              <button type="button" role="radio" aria-checked="false" data-modo="anio"><b>Año pasado</b><small data-seg-b>12 – 18 nov 2025</small></button>
+            </div>
+            <div class="pg-cifras">
+              <div class="pg-cifra pg-cifra-a">
+                <p class="pg-rotulo"><i aria-hidden="true"></i>Actual</p>
+                <p class="pg-num pg-rueda" data-tot-a aria-hidden="true"></p>
+                <p class="pg-sub" data-sub-a>12 – 18 nov · 7 días</p>
+              </div>
+              <div class="pg-cifra pg-cifra-b">
+                <p class="pg-rotulo"><i aria-hidden="true"></i>Anterior</p>
+                <p class="pg-num pg-rueda" data-tot-b aria-hidden="true"></p>
+                <p class="pg-sub" data-sub-b>Sin comparar</p>
+                <button class="pg-pista" type="button" data-pista hidden></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- el minigráfico: la serie actual y, detrás y punteada, la anterior -->
+        <div class="pg-graf" data-graf>
+          <div class="pg-graf-cab">
+            <p class="pg-graf-t">Visitas por día</p>
+            <ul class="pg-leyenda" aria-hidden="true">
+              <li class="pg-ley-a"><i></i><span data-ley-a>12 – 18 nov</span></li>
+              <li class="pg-ley-b"><i></i><span data-ley-b>5 – 11 nov</span></li>
+            </ul>
+            <p class="pg-delta" data-delta aria-hidden="true"><svg viewBox="0 0 16 16"><path class="pg-delta-fl" d="M8 12.500V4M4.500 7.500 8 4l3.500 3.500"/></svg><span class="pg-rueda" data-delta-n></span></p>
+          </div>
+          <div class="pg-plot" data-plot>
+            <div class="pg-ejey" data-ejey aria-hidden="true"></div>
+            <svg class="pg-svg pg-svg-b" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path class="pg-prev" data-prev d="M0 100H1000"/></svg>
+            <svg class="pg-svg pg-svg-a" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="pg-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--pg-azul)" stop-opacity=".26"/><stop offset="1" stop-color="var(--pg-azul)" stop-opacity="0"/></linearGradient></defs>
+              <path class="pg-area" data-area d="M0 100H1000V100Z"/>
+              <path class="pg-linea" data-linea d="M0 100H1000"/>
+            </svg>
+            <div class="pg-cruz" data-cruz hidden aria-hidden="true"><i class="pg-cruz-v"></i><i class="pg-cruz-a"></i><i class="pg-cruz-b"></i></div>
+            <div class="pg-globo" data-globo hidden role="tooltip"></div>
+          </div>
+          <div class="pg-ejex" data-ejex aria-hidden="true"></div>
+        </div>
+
+        <footer class="pg-pie">
+          <p class="pg-teclas" aria-hidden="true"><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> día</span><span><kbd>Mayús</kbd>+<kbd>←</kbd><kbd>→</kbd> extender</span><span><kbd>Intro</kbd> elegir</span></p>
+          <button class="pg-btn pg-btn-fan" type="button" data-cancelar>Cancelar</button>
+          <button class="pg-btn pg-btn-pri" type="button" data-aplicar>
+            <span class="pg-ap-txt" data-ap-txt>Aplicar</span>
+            <span class="pg-ap-giro" aria-hidden="true"></span>
+            <svg class="pg-ap-ok" viewBox="0 0 20 20" aria-hidden="true"><path d="m4.500 10.500 3.800 3.800L15.500 6" pathLength="1"/></svg>
+          </button>
+        </footer>
+      </section>
+    </div>
+    <p class="pg-oculto" data-anuncio role="status" aria-live="polite"></p>
+  </main>
+
+  <script src="parangon.js"></script>
+</body>
+</html>

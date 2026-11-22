@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semana · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=cabinet-grotesk@500,700,800&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600&display=swap">
+<link rel="stylesheet" href="semana.css">
+<!-- ?tema=claro: la pieza ya es clara, así que solo afina el papel; ?tema=oscuro ofrece la variante «anochecer» -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro'; else if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <main class="sm-escena" data-semana>
+    <!-- el fondo: crema con tres manchas cálidas que respiran y grano de papel -->
+    <div class="sm-fondo" aria-hidden="true">
+      <i class="sm-mancha sm-mancha-a"></i><i class="sm-mancha sm-mancha-b"></i><i class="sm-mancha sm-mancha-c"></i><i class="sm-grano"></i>
+    </div>
+
+    <section class="sm-ventana" aria-label="Calendario semanal">
+      <header class="sm-cab">
+        <div class="sm-titulo">
+          <h1 class="sm-mes" aria-live="polite">
+            <span class="sm-mes-caja"><span class="sm-mes-txt" data-mes>Octubre</span></span>
+            <span class="sm-anio" data-anio>2026</span>
+          </h1>
+          <p class="sm-rango" data-rango>Semana 42 · 12 – 18 oct</p>
+        </div>
+
+        <!-- las categorías: cada color se puede apagar -->
+        <div class="sm-cats" role="group" aria-label="Mostrar u ocultar categorías">
+          <button class="sm-cat" type="button" data-cat="terracota" aria-pressed="true"><i></i>Taller</button>
+          <button class="sm-cat" type="button" data-cat="cielo" aria-pressed="true"><i></i>Foco</button>
+          <button class="sm-cat" type="button" data-cat="salvia" aria-pressed="true"><i></i>Cuerpo</button>
+          <button class="sm-cat" type="button" data-cat="rosa" aria-pressed="true"><i></i>Social</button>
+          <button class="sm-cat" type="button" data-cat="lila" aria-pressed="true"><i></i>Ideas</button>
+          <button class="sm-cat" type="button" data-cat="amarillo" aria-pressed="true"><i></i>Pausa</button>
+        </div>
+
+        <div class="sm-acciones">
+          <button class="sm-nuevo" type="button" data-nuevo aria-label="Nuevo evento">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Nuevo</span>
+          </button>
+          <div class="sm-nav" role="group" aria-label="Cambiar de semana">
+            <button class="sm-flecha" type="button" data-ant aria-label="Semana anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+            <button class="sm-hoy" type="button" data-hoy>Hoy</button>
+            <button class="sm-flecha" type="button" data-sig aria-label="Semana siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg></button>
+          </div>
+        </div>
+      </header>
+
+      <div class="sm-cal">
+        <div class="sm-horas" data-horas aria-hidden="true"></div>
+        <!-- aquí entran las páginas: cada semana es una, y al cambiar se deslizan -->
+        <div class="sm-viewport" data-viewport></div>
+      </div>
+
+      <!-- aviso de «eliminado» con deshacer -->
+      <div class="sm-aviso" data-aviso hidden>
+        <span data-aviso-txt>Evento eliminado</span>
+        <button type="button" data-deshacer>Deshacer</button>
+      </div>
+    </section>
+
+    <p class="sm-pista">
+      <span>Arrastra un evento, estira su borde o dibuja sobre un hueco.</span>
+      <button class="sm-reinicia" type="button" data-reinicia>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.2-5.1M5 4.5v4.2h4.2"/></svg>Restablecer
+      </button>
+    </p>
+
+    <p class="sm-oculto" aria-live="polite" data-vivo></p>
+    <p class="sm-oculto" id="sm-ayuda">Cada evento es un botón. Flecha arriba o abajo lo mueve quince minutos; izquierda o derecha, un día. Con Mayús, flecha arriba o abajo cambia su duración. Intro lo renombra y Suprimir lo borra. Re Pág y Av Pág cambian de semana.</p>
+  </main>
+
+  <script src="semana.js"></script>
+  <script>
+    const semana = Semana(document.querySelector('[data-semana]'), {
+      /* La fecha de «hoy» y la hora de la línea de «ahora» son de ejemplo, para que
+         la demostración se vea siempre igual. Con velocidad: 0 la línea queda quieta;
+         para el calendario real, pásale tus eventos con `eventos` y la hora con `ahora`. */
+      hoy: [2026, 10, 14],
+      ahora: 10 * 60 + 42,
+      velocidad: 1.2,
+      // alCambiar: eventos => fetch('/agenda', { method: 'POST', body: JSON.stringify(eventos) }),
+    });
+  </script>
+</body>
+</html>

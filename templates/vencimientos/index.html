@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vencimientos · Moxen</title>
+<!-- Gabarito para títulos y texto (Google Fonts) y Tabular, de cifras de ancho fijo, para los importes (Fontshare): un <link> por familia -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=tabular@500&display=swap">
+<link rel="stylesheet" href="vencimientos.css">
+<!-- ?tema=oscuro: el mismo calendario sobre un azul noche (la demo es clara por defecto) -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro'; else if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <!-- data-vencimientos: vencimientos.js dibuja el mes, los círculos, la lista y las semanas sobre estos contenedores -->
+  <main class="vc-escena" data-vencimientos>
+    <div class="vc-fondo" aria-hidden="true"><i class="vc-mancha vc-m1"></i><i class="vc-mancha vc-m2"></i><i class="vc-mancha vc-m3"></i><i class="vc-grano"></i></div>
+
+    <section class="vc-tarjeta" aria-label="Calendario de cobros de las suscripciones">
+      <!-- el mes: cuadrícula con un círculo por servicio en su día de cobro -->
+      <div class="vc-zona">
+        <header class="vc-cab">
+          <h1><span class="vc-mes">Octubre</span> <span class="vc-anio">2026</span></h1>
+          <p class="vc-sub"><b data-n-cobros>7</b> cobros este mes</p>
+        </header>
+        <div class="vc-semana" aria-hidden="true"><span>lun</span><span>mar</span><span>mié</span><span>jue</span><span>vie</span><span>sáb</span><span>dom</span></div>
+        <div class="vc-grid" data-grid role="group" aria-label="Días de octubre con sus cobros"></div>
+
+        <!-- las semanas: cuánto se cobra en cada una, y la más cargada se enciende -->
+        <div class="vc-barra" data-barra>
+          <div class="vc-barra-cab"><span>Cobros por semana</span><span class="vc-barra-pie" data-barra-pie></span></div>
+          <div class="vc-segs" data-segs role="img" aria-label="Reparto del mes en semanas"></div>
+        </div>
+      </div>
+
+      <!-- el total, el conmutador y la lista de servicios -->
+      <aside class="vc-lado">
+        <div class="vc-conm" data-conm role="radiogroup" aria-label="Periodo del total">
+          <i class="vc-pastilla" aria-hidden="true"></i>
+          <button type="button" role="radio" aria-checked="true" data-modo="mes">Mensual</button>
+          <button type="button" role="radio" aria-checked="false" data-modo="anio">Anual</button>
+        </div>
+
+        <div class="vc-total">
+          <p class="vc-etq" data-etq>Total al mes</p>
+          <p class="vc-cifras" data-total aria-hidden="true"></p>
+          <div class="vc-ahorros" data-ahorros>
+            <p class="vc-pista" data-pista>Toca un círculo para cancelarlo</p>
+            <p class="vc-ahorro" data-ahorro><span class="vc-ahorro-t">Ahorras al año</span><b data-ahorro-n></b></p>
+            <button class="vc-deshacer" type="button" data-deshacer hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4.5 11.5 9 16"/><path d="M5 11.5h9.5a5 5 0 0 1 0 10H11"/></svg>
+          <span>Deshacer</span><em data-deshacer-n class="vc-solo-lector"></em>
+        </button>
+          </div>
+        </div>
+
+        <div class="vc-prox" data-prox aria-live="polite">
+          <span class="vc-chip" data-prox-chip aria-hidden="true"></span>
+          <div><p class="vc-etq">Próximo cobro</p><p class="vc-prox-n" data-prox-n></p></div>
+          <span class="vc-prox-d" data-prox-d></span>
+        </div>
+
+        <ul class="vc-lista" data-lista aria-label="Servicios con cobro este mes"></ul>
+
+
+      </aside>
+
+      <div class="vc-tip" data-tip role="tooltip" aria-hidden="true"><b data-tip-nom></b><span data-tip-imp></span><em data-tip-dia></em></div>
+    </section>
+
+    <p class="vc-solo-lector" role="status" aria-live="polite" data-aviso></p>
+  </main>
+  <script src="vencimientos.js"></script>
+</body>
+</html>

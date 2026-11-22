@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recurrencia · Moxen</title>
+<!-- una hoja por familia: si van juntas, a veces solo llega la primera -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&display=swap">
+<link rel="stylesheet" href="recurrencia.css">
+<!-- ?tema=oscuro es el mismo editor sobre verde noche; el de siempre es marfil -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro'; else if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <!-- recurrencia.js cablea todo lo que lleva data-…; la fecha de «hoy» y la hora de «ahora» se cambian
+       en la llamada del final (son fijas para que el ejemplo siempre dé lo mismo). -->
+  <main class="rc-escena" data-recurrencia>
+    <div class="rc-fondo" aria-hidden="true"><i class="rc-halo rc-h1"></i><i class="rc-halo rc-h2"></i><i class="rc-grano"></i></div>
+
+    <section class="rc-tarjeta" aria-labelledby="rc-titulo">
+      <!-- cabecera: el nombre del recordatorio y las acciones -->
+      <header class="rc-cab">
+        <div class="rc-tit">
+          <p class="rc-ojo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5a6 6 0 0 1 12 0c0 5 2 6.5 2 6.5H4s2-1.5 2-6.5z"/><path d="M10 19.5a2 2 0 0 0 4 0"/></svg>
+            Recordatorio que se repite
+          </p>
+          <input class="rc-nombre" id="rc-titulo" type="text" value="Revisión de métricas" maxlength="40" autocomplete="off" spellcheck="false" aria-label="Nombre del recordatorio">
+        </div>
+        <div class="rc-acciones">
+          <button class="rc-b rc-b-sec" type="button" data-restablecer>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4 4.5v4.2h4.2"/></svg>
+            <span>Restablecer</span>
+          </button>
+          <button class="rc-b rc-b-pri" type="button" data-guardar data-estado="reposo">
+            <span class="rc-g-txt rc-g-reposo">Guardar</span>
+            <span class="rc-g-txt rc-g-guardando" aria-hidden="true">Guardando…</span>
+            <span class="rc-g-txt rc-g-guardado" aria-hidden="true">Guardado</span>
+            <svg class="rc-g-giro" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/></svg>
+            <svg class="rc-g-ok" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M5.5 12.8l4.3 4.3 8.7-9.4"/></svg>
+            <i class="rc-onda" aria-hidden="true"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="rc-cuerpo">
+        <!-- izquierda: la frecuencia, sus controles y la hora -->
+        <div class="rc-izq">
+          <div class="rc-seg" role="radiogroup" aria-label="Frecuencia" data-seg>
+            <i class="rc-bub" aria-hidden="true"></i>
+            <button class="rc-seg-b" type="button" role="radio" aria-checked="false" data-freq="diaria">Diaria</button>
+            <button class="rc-seg-b" type="button" role="radio" aria-checked="true" data-freq="semanal">Semanal</button>
+            <button class="rc-seg-b" type="button" role="radio" aria-checked="false" data-freq="mensual">Mensual</button>
+            <button class="rc-seg-b" type="button" role="radio" aria-checked="false" data-freq="anual">Anual</button>
+          </div>
+
+          <!-- los controles propios de cada frecuencia comparten el mismo hueco -->
+          <div class="rc-panel" data-panel>
+            <!-- diaria -->
+            <div class="rc-ctl" data-ctl="diaria" role="group" aria-label="Opciones de la repetición diaria">
+              <p class="rc-cap">Se avisa estos días</p>
+              <div class="rc-pildoras rc-fija" data-fija aria-hidden="true">
+                <span class="rc-pil" data-w="0">L</span><span class="rc-pil" data-w="1">M</span><span class="rc-pil" data-w="2">X</span><span class="rc-pil" data-w="3">J</span><span class="rc-pil" data-w="4">V</span><span class="rc-pil" data-w="5">S</span><span class="rc-pil" data-w="6">D</span>
+              </div>
+              <button class="rc-sw" type="button" role="switch" aria-checked="false" data-sin-fin>
+                <span class="rc-sw-pista"><i></i></span>
+                <span>Omitir fines de semana</span>
+              </button>
+            </div>
+            <!-- semanal -->
+            <div class="rc-ctl" data-ctl="semanal" role="group" aria-label="Opciones de la repetición semanal">
+              <p class="rc-cap" data-cap-dias>Días de la semana</p>
+              <div class="rc-pildoras" data-dias role="group" aria-label="Días de la semana">
+                <button class="rc-pil" type="button" aria-pressed="true" aria-label="lunes" data-w="0">L</button>
+                <button class="rc-pil" type="button" aria-pressed="false" aria-label="martes" data-w="1">M</button>
+                <button class="rc-pil" type="button" aria-pressed="false" aria-label="miércoles" data-w="2">X</button>
+                <button class="rc-pil" type="button" aria-pressed="false" aria-label="jueves" data-w="3">J</button>
+                <button class="rc-pil" type="button" aria-pressed="false" aria-label="viernes" data-w="4">V</button>
+                <button class="rc-pil" type="button" aria-pressed="false" aria-label="sábado" data-w="5">S</button>
+                <button class="rc-pil" type="button" aria-pressed="false" aria-label="domingo" data-w="6">D</button>
+              </div>
+              <div class="rc-atajos">
+                <button class="rc-atajo" type="button" aria-pressed="false" data-atajo="habiles">Entre semana</button>
+                <button class="rc-atajo" type="button" aria-pressed="false" data-atajo="finde">Fines de semana</button>
+                <button class="rc-atajo" type="button" aria-pressed="false" data-atajo="todos">Todos los días</button>
+              </div>
+            </div>
+            <!-- mensual -->
+            <div class="rc-ctl" data-ctl="mensual" role="group" aria-label="Opciones de la repetición mensual">
+              <div class="rc-fila">
+                <span class="rc-et">Cada</span>
+                <div class="rc-rueda" data-rueda="cadaMes" role="spinbutton" tabindex="0" aria-label="Cada cuántos meses"><span class="rc-rueda-t"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10l4-3.5 4 3.5M8 14l4 3.5 4-3.5"/></svg></div>
+              </div>
+              <div class="rc-modos" role="radiogroup" aria-label="Qué día del mes">
+                <div class="rc-opcion" data-modo="dia">
+                  <input class="rc-radio" type="radio" name="rc-modo" id="rc-modo-dia" value="dia">
+                  <label for="rc-modo-dia">El día</label>
+                  <div class="rc-paso" role="group" aria-label="Día del mes">
+                    <button type="button" data-paso="diaMes" data-d="-1" aria-label="Un día antes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button>
+                    <span class="rc-n" data-n="diaMes"></span>
+                    <button type="button" data-paso="diaMes" data-d="1" aria-label="Un día después"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg></button>
+                  </div>
+                </div>
+                <div class="rc-opcion" data-modo="nth">
+                  <input class="rc-radio" type="radio" name="rc-modo" id="rc-modo-nth" value="nth" checked>
+                  <label for="rc-modo-nth">El</label>
+                  <div class="rc-rueda" data-rueda="ord" role="spinbutton" tabindex="0" aria-label="Qué semana del mes"><span class="rc-rueda-t"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10l4-3.5 4 3.5M8 14l4 3.5 4-3.5"/></svg></div>
+                  <div class="rc-rueda" data-rueda="diaSem" role="spinbutton" tabindex="0" aria-label="Qué día de la semana"><span class="rc-rueda-t"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10l4-3.5 4 3.5M8 14l4 3.5 4-3.5"/></svg></div>
+                </div>
+              </div>
+            </div>
+            <!-- anual -->
+            <div class="rc-ctl" data-ctl="anual" role="group" aria-label="Opciones de la repetición anual">
+              <p class="rc-cap">Mes del año</p>
+              <div class="rc-meses" data-meses role="radiogroup" aria-label="Mes del año">
+                <i class="rc-bub" aria-hidden="true"></i>
+              </div>
+              <div class="rc-fila rc-fila-dia">
+                <span class="rc-et">El día</span>
+                <div class="rc-paso" role="group" aria-label="Día del mes">
+                  <button type="button" data-paso="diaAnual" data-d="-1" aria-label="Un día antes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button>
+                  <span class="rc-n" data-n="diaAnual"></span>
+                  <button type="button" data-paso="diaAnual" data-d="1" aria-label="Un día después"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- la hora: un reloj con dos manecillas que se arrastran -->
+          <div class="rc-hora">
+            <svg class="rc-dial" data-dial viewBox="-90 -90 180 180" aria-label="Reloj de la hora del aviso">
+              <defs><radialGradient id="rc-brillo" cx="38%" cy="30%" r="80%"><stop class="rc-g0" offset="0"/><stop class="rc-g1" offset="1"/></radialGradient></defs>
+              <circle class="rc-cara" r="86"/>
+              <circle class="rc-aro" r="86"/>
+              <g class="rc-marcas" data-marcas></g>
+              <path class="rc-cuna" data-cuna d=""/>
+              <g class="rc-man rc-man-h" data-man="h" tabindex="0" role="slider" aria-label="Hora" aria-valuemin="1" aria-valuemax="12">
+                <line class="rc-man-l" y1="6" y2="-42"/>
+                <circle class="rc-asa" cy="-42" r="10"/>
+              </g>
+              <g class="rc-man rc-man-m" data-man="m" tabindex="0" role="slider" aria-label="Minutos" aria-valuemin="0" aria-valuemax="55">
+                <line class="rc-man-l" y1="8" y2="-64"/>
+                <circle class="rc-asa" cy="-64" r="8"/>
+              </g>
+              <circle class="rc-eje" r="5.5"/>
+            </svg>
+            <div class="rc-lectura">
+              <p class="rc-cap">Hora del aviso</p>
+              <p class="rc-digital" data-digital aria-live="off"></p>
+              <div class="rc-ampm" role="radiogroup" aria-label="Mañana o tarde" data-ampm>
+                <i class="rc-bub" aria-hidden="true"></i>
+                <button type="button" role="radio" aria-checked="true" data-pm="0">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.6"/><path d="M12 4.2v1.6M12 18.2v1.6M4.2 12h1.6M18.2 12h1.6M6.5 6.5l1.1 1.1M16.4 16.4l1.1 1.1M6.5 17.5l1.1-1.1M16.4 7.6l1.1-1.1"/></svg>a. m.</button>
+                <button type="button" role="radio" aria-checked="false" data-pm="1">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14.6A7.4 7.4 0 0 1 9.4 5a7.4 7.4 0 1 0 9.6 9.6z"/></svg>p. m.</button>
+              </div>
+              <p class="rc-pista">Arrastra las manecillas</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- derecha: la frase, el calendario y las próximas fechas -->
+        <div class="rc-der">
+          <p class="rc-frase" data-frase></p>
+          <div class="rc-dos">
+            <section class="rc-cal" aria-label="Calendario de las próximas repeticiones">
+              <header class="rc-cal-cab">
+                <button class="rc-flecha" type="button" data-mes="-1" aria-label="Mes anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5L9 12l5.5 5.5"/></svg></button>
+                <h2 class="rc-mes" data-mes-t></h2>
+                <button class="rc-flecha" type="button" data-mes="1" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5L15 12l-5.5 5.5"/></svg></button>
+              </header>
+              <div class="rc-semana" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+              <div class="rc-rejilla" data-rejilla aria-hidden="true"></div>
+            </section>
+            <section class="rc-prox" aria-labelledby="rc-prox-t">
+              <h2 class="rc-cap" id="rc-prox-t">Próximas cinco</h2>
+              <ol class="rc-lista" data-lista></ol>
+              <p class="rc-vacio" data-vacio hidden>No hay fechas: marca al menos un día.</p>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- pie: la expresión técnica y el estado -->
+      <footer class="rc-pie">
+        <div class="rc-expr">
+          <span class="rc-cap">Expresión</span>
+          <div class="rc-cron" data-cron role="text" aria-label="Expresión de repetición"></div>
+          <button class="rc-copiar" type="button" data-copiar aria-label="Copiar la expresión">
+            <svg class="rc-c-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="10" height="10" rx="2.4"/><path d="M15.5 8.5V7a2.4 2.4 0 0 0-2.4-2.4H7A2.4 2.4 0 0 0 4.6 7v6.1A2.4 2.4 0 0 0 7 15.5h1.5"/></svg>
+            <svg class="rc-c-ok" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M5.5 12.8l4.3 4.3 8.7-9.4"/></svg>
+          </button>
+        </div>
+        <p class="rc-estado" data-estado-t></p>
+      </footer>
+    </section>
+
+    <p class="rc-oculto" role="status" aria-live="polite" data-vivo></p>
+  </main>
+
+  <script src="recurrencia.js"></script>
+  <script>Recurrencia(document.querySelector('[data-recurrencia]'), {
+    hoy: [2026, 9, 14],      // año, mes (0 = enero) y día de «hoy»
+    ahora: [8, 15]           // hora y minutos de «ahora»: hoy cuenta solo si el aviso es más tarde
+  });</script>
+</body>
+</html>

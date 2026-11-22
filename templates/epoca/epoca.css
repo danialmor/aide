@@ -1,0 +1,164 @@
+/* Época · Moxen — estilos de la ventana del calendario y de la demostración.
+   Todos los colores están aquí arriba y el canvas los lee de estas variables
+   (epoca.js los toma al iniciar). La paleta es clara y pastel: blanco, un gris
+   casi blanco para las celdas y cuatro pasteles para las categorías (azul,
+   durazno, menta y violeta). Cada pastel tiene tres tonos: --ep-X (el relleno
+   del bloque y de la barra), --ep-X-t (la tinta del texto sobre él, con
+   contraste AA) y --ep-X-p (el punto: el mismo color más cargado, para que se
+   vea sobre el gris cuando el evento se condensa). --ep-acento marca «hoy».
+   ?tema=oscuro redefine todo en grafito con pasteles apagados. */
+:root {
+  --ep-fondo: #f1f2f8;
+  --ep-ventana: #ffffff;
+  --ep-celda: #f3f4f7;
+  --ep-celda-fin: #eceef3;
+  --ep-celda-hover: #e5e8f0;
+  --ep-celda-fuera: #f8f9fb;
+  --ep-linea: rgba(22, 24, 40, .08);
+  --ep-linea-fuerte: rgba(22, 24, 40, .14);
+  --ep-tinta: #16181f;
+  --ep-suave: #5f6577;
+  --ep-tenue: #8b90a1;
+  --ep-acento: #3b69f0;
+  --ep-acento-t: #ffffff;
+  --ep-acento-suave: rgba(59, 105, 240, .12);
+
+  --ep-c0: #bcd4ff;  --ep-c0-t: #1f4294;  --ep-c0-p: #6a97f0;     /* azul: trabajo */
+  --ep-c1: #ffd2b8;  --ep-c1-t: #8f3f12;  --ep-c1-p: #f2975f;     /* durazno: personal */
+  --ep-c2: #c4efd9;  --ep-c2-t: #14603f;  --ep-c2-p: #47bd83;     /* menta: bienestar */
+  --ep-c3: #d9ccff;  --ep-c3-t: #4b30a5;  --ep-c3-p: #9a80ee;     /* violeta: estudio */
+
+  --ep-sombra: 58, 62, 128;                /* r, g, b de las sombras: un azul violáceo, no negro */
+  --ep-glow-1: rgba(188, 212, 255, .75);
+  --ep-glow-2: rgba(255, 210, 184, .7);
+  --ep-glow-3: rgba(196, 239, 217, .7);
+  --ep-glow-4: rgba(217, 204, 255, .7);
+  --ep-foco: #3b69f0;
+
+  --ep-curva: cubic-bezier(.22, 1, .36, 1);
+  --ep-sans: "General Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ep-num: "Tabular", ui-monospace, "SF Mono", Menlo, monospace;
+}
+:root[data-tema="oscuro"] {
+  --ep-fondo: #0f1015;
+  --ep-ventana: #17181f;
+  --ep-celda: #1e2029;
+  --ep-celda-fin: #1a1c24;
+  --ep-celda-hover: #272a35;
+  --ep-celda-fuera: #1a1b22;
+  --ep-linea: rgba(255, 255, 255, .08);
+  --ep-linea-fuerte: rgba(255, 255, 255, .15);
+  --ep-tinta: #eef0f6;
+  --ep-suave: #a1a6b8;
+  --ep-tenue: #7d8296;
+  --ep-acento: #7a9bff;
+  --ep-acento-t: #0e1020;
+  --ep-acento-suave: rgba(122, 155, 255, .16);
+  --ep-c0: #2f4a86;  --ep-c0-t: #d3e1ff;  --ep-c0-p: #7aa2ff;
+  --ep-c1: #6b3c24;  --ep-c1-t: #ffdcc7;  --ep-c1-p: #ff9d68;
+  --ep-c2: #1f5640;  --ep-c2-t: #cdf5e0;  --ep-c2-p: #4fd08f;
+  --ep-c3: #46378a;  --ep-c3-t: #e3dbff;  --ep-c3-p: #a58cff;
+  --ep-sombra: 0, 0, 8;
+  --ep-glow-1: rgba(70, 100, 190, .32);
+  --ep-glow-2: rgba(190, 110, 70, .22);
+  --ep-glow-3: rgba(60, 160, 120, .22);
+  --ep-glow-4: rgba(120, 90, 220, .28);
+  --ep-foco: #9bb4ff;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--ep-fondo); color: var(--ep-tinta); }
+body { font-family: var(--ep-sans); font-weight: 500; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+button { font: inherit; color: inherit; }
+svg { display: block; }
+h1, h2, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+.ep-oculto { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--ep-foco); outline-offset: 3px; border-radius: 10px; }
+
+/* ── la escena: pastel con cuatro manchas de color y grano ──────────── */
+.ep-escena { position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; min-height: 100vh; min-height: 100svh; padding: 28px 24px; overflow: hidden; background: var(--ep-fondo); transition: background-color .5s; }
+.ep-fondo { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.ep-b1, .ep-b2, .ep-b3, .ep-b4 { position: absolute; width: 62%; aspect-ratio: 1; border-radius: 50%; }
+.ep-b1 { left: -14%; top: -34%; background: radial-gradient(closest-side, var(--ep-glow-1), transparent); }
+.ep-b2 { right: -12%; top: -28%; background: radial-gradient(closest-side, var(--ep-glow-4), transparent); }
+.ep-b3 { left: -10%; bottom: -46%; background: radial-gradient(closest-side, var(--ep-glow-3), transparent); }
+.ep-b4 { right: -14%; bottom: -44%; background: radial-gradient(closest-side, var(--ep-glow-2), transparent); }
+.ep-grano { position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3  0 0 0 0 .3  0 0 0 0 .5  0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root[data-tema="oscuro"] .ep-grano { mix-blend-mode: overlay; opacity: .35; }
+
+/* ── la ventana ─────────────────────────────────────────────────────── */
+.ep-ventana {
+  position: relative; width: min(1180px, 100%); border-radius: 30px; background: var(--ep-ventana);
+  box-shadow: 0 60px 90px -44px rgba(var(--ep-sombra), .5), 0 24px 44px -26px rgba(var(--ep-sombra), .35), inset 0 0 0 1px var(--ep-linea), inset 0 1px 0 rgba(255, 255, 255, .9);
+  transition: background-color .5s;
+}
+:root[data-tema="oscuro"] .ep-ventana { box-shadow: 0 60px 90px -44px rgba(var(--ep-sombra), .9), 0 24px 44px -26px rgba(var(--ep-sombra), .7), inset 0 0 0 1px var(--ep-linea), inset 0 1px 0 rgba(255, 255, 255, .06); }
+.ep-cab { display: flex; align-items: center; gap: 22px; padding: 20px 26px 12px; }
+.ep-titulo { flex: none; min-width: 176px; }
+.ep-eti { display: block; }
+.ep-eti-a { display: block; font: 600 29px/1.08 var(--ep-sans); letter-spacing: -.025em; white-space: nowrap; }
+.ep-eti-b { display: block; margin-top: 5px; color: var(--ep-suave); font: 500 14px/1.2 var(--ep-sans); white-space: nowrap; }
+
+/* categorías: son también filtros */
+.ep-leyenda { flex: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-width: 0; }
+.ep-chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px 0 11px; border: 0; border-radius: 16px; background: var(--ep-celda); color: var(--ep-suave); font: 500 13.5px/1 var(--ep-sans); cursor: pointer; transition: background-color .25s, color .25s, opacity .25s, transform .4s var(--ep-curva); }
+.ep-chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--ep-c0-p); transition: background-color .25s, transform .4s var(--ep-curva); }
+.ep-c1 i { background: var(--ep-c1-p); } .ep-c2 i { background: var(--ep-c2-p); } .ep-c3 i { background: var(--ep-c3-p); }
+.ep-chip[aria-pressed="true"] { background: var(--ep-c0); color: var(--ep-c0-t); }
+.ep-chip.ep-c1[aria-pressed="true"] { background: var(--ep-c1); color: var(--ep-c1-t); }
+.ep-chip.ep-c2[aria-pressed="true"] { background: var(--ep-c2); color: var(--ep-c2-t); }
+.ep-chip.ep-c3[aria-pressed="true"] { background: var(--ep-c3); color: var(--ep-c3-t); }
+.ep-chip[aria-pressed="false"] i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ep-tenue); }
+.ep-chip:active { transform: scale(.95); }
+@media (hover: hover) { .ep-chip[aria-pressed="false"]:hover { background: var(--ep-celda-hover); } }
+
+.ep-controles { flex: none; display: flex; align-items: center; gap: 12px; }
+/* el selector de escala: la pastilla blanca recorre los cuatro segmentos al ritmo del zoom (--ep-z va de 0 a 3) */
+.ep-vista { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); padding: 4px; border-radius: 15px; background: var(--ep-celda); box-shadow: inset 0 0 0 1px var(--ep-linea); }
+.ep-pastilla { position: absolute; left: 4px; top: 4px; bottom: 4px; width: calc((100% - 8px) / 4); border-radius: 11px; background: var(--ep-ventana); box-shadow: 0 6px 14px -6px rgba(var(--ep-sombra), .45), 0 0 0 1px var(--ep-linea); transform: translateX(calc(var(--ep-z, 0) * 100%)); pointer-events: none; }
+:root[data-tema="oscuro"] .ep-pastilla { background: #2a2d3a; }
+.ep-vista button { position: relative; z-index: 1; min-width: 64px; height: 34px; padding: 0 12px; border: 0; border-radius: 11px; background: transparent; color: var(--ep-suave); font: 500 14px/1 var(--ep-sans); cursor: pointer; transition: color .25s; }
+.ep-vista button[aria-checked="true"] { color: var(--ep-tinta); font-weight: 600; }
+.ep-nav { display: flex; align-items: center; gap: 4px; }
+.ep-nav-b, .ep-nav-hoy { height: 36px; border: 0; border-radius: 12px; background: var(--ep-celda); color: var(--ep-tinta); cursor: pointer; transition: background-color .25s, transform .4s var(--ep-curva); }
+.ep-nav-b { display: grid; place-items: center; width: 36px; }
+.ep-nav-b svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.ep-nav-hoy { padding: 0 14px; font: 600 14px/1 var(--ep-sans); }
+.ep-nav-b:active, .ep-nav-hoy:active { transform: scale(.94); }
+@media (hover: hover) { .ep-nav-b:hover, .ep-nav-hoy:hover { background: var(--ep-celda-hover); } }
+
+/* el lienzo: aquí vive todo el calendario */
+.ep-lienzo { position: relative; height: 590px; margin: 0 14px; border-radius: 22px; overflow: hidden; }
+.ep-canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: default; -webkit-user-select: none; user-select: none; }
+.ep-canvas:focus-visible { outline: 2px solid var(--ep-foco); outline-offset: -2px; border-radius: 22px; }
+.ep-lienzo.is-mano .ep-canvas { cursor: pointer; }
+
+.ep-pie { display: flex; justify-content: center; padding: 12px 26px 18px; }
+.ep-pista { color: var(--ep-suave); font: 500 14px/1.4 var(--ep-sans); text-align: center; }
+.ep-pista-l { color: var(--ep-tinta); font-weight: 600; }
+
+/* ── pantallas estrechas ───────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .ep-leyenda { display: none; }
+  .ep-cab { justify-content: space-between; }
+}
+@media (max-width: 700px) {
+  .ep-escena { align-items: flex-start; padding: 12px 10px 18px; }
+  .ep-ventana { border-radius: 24px; }
+  .ep-cab { flex-wrap: wrap; gap: 12px; padding: 16px 16px 10px; }
+  .ep-titulo { min-width: 0; flex: 1; }
+  .ep-eti-a { font-size: 25px; }
+  .ep-controles { width: 100%; justify-content: space-between; gap: 8px; }
+  .ep-vista { flex: 1; }
+  .ep-vista button { min-width: 0; padding: 0 4px; font-size: 13px; }
+  .ep-nav-hoy { display: none; }
+  .ep-lienzo { height: min(560px, calc(100svh - 230px)); min-height: 360px; margin: 0 6px; }
+  .ep-pie { padding: 10px 16px 16px; }
+  .ep-pista { font-size: 13px; }
+}
+
+/* ── movimiento reducido: los cambios de vista son cortes limpios ─────── */
+@media (prefers-reduced-motion: reduce) {
+  .ep-chip, .ep-chip i, .ep-nav-b, .ep-nav-hoy { transition: none; }
+}

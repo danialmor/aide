@@ -1,0 +1,260 @@
+/* Turno · Moxen — los estilos del efecto y de la demostración. */
+:root {
+  --to-fondo: #0a0a0a;
+  --to-texto: #f4f4f4;
+  --to-suave: rgba(255, 255, 255, .56);
+  --to-tenue: rgba(255, 255, 255, .3);
+  --to-tarjeta: #121212;
+  --to-linea: rgba(255, 255, 255, .08);
+  --to-borde: rgba(255, 255, 255, .16);
+  --to-relieve: rgba(255, 255, 255, .055);
+  --to-luz: rgba(255, 255, 255, .05);          /* el filo de arriba de cada capa */
+  --to-disco-color: #f4f4f4;                   /* el día elegido */
+  --to-oscura: #333333;                        /* la hora elegida */
+  --to-oscura-tinta: #f4f4f4;
+  --to-boton: #f4f4f4;
+  --to-boton-tinta: #0a0a0a;
+  --to-ok: #3ccf6e;
+  --to-sombra: 0 60px 90px -40px rgba(0, 0, 0, .95), 0 24px 40px -24px rgba(0, 0, 0, .8);
+  --to-curva: cubic-bezier(.22, 1, .36, 1);
+  --to-alto: 50px;           /* el alto de cada semana del calendario */
+  --to-disco: 44px;          /* el diámetro del disco del día */
+}
+:root[data-tema="claro"] {
+  --to-fondo: #eeeeee;
+  --to-texto: #0a0a0a;
+  --to-suave: rgba(0, 0, 0, .56);
+  --to-tenue: rgba(0, 0, 0, .32);
+  --to-tarjeta: #ffffff;
+  --to-linea: rgba(0, 0, 0, .08);
+  --to-borde: rgba(0, 0, 0, .15);
+  --to-relieve: rgba(0, 0, 0, .04);
+  --to-luz: rgba(255, 255, 255, .9);
+  --to-disco-color: #0a0a0a;
+  --to-oscura: #5c5c5c;
+  --to-oscura-tinta: #ffffff;
+  --to-boton: #0a0a0a;
+  --to-boton-tinta: #f4f4f4;
+  --to-ok: #18a34a;
+  --to-sombra: 0 50px 80px -40px rgba(0, 0, 0, .3), 0 18px 34px -22px rgba(0, 0, 0, .22);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--to-fondo); color: var(--to-texto); }
+body { font-family: "General Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; }
+button { font: inherit; color: inherit; }
+svg { display: block; }
+
+/* ── la tarjeta ────────────────────────────────────────────────────── */
+.to-turno {
+  position: relative; width: min(1100px, 100%); height: 552px; display: grid; grid-template-columns: 300px 1fr 296px; overflow: hidden;
+  border: 1px solid var(--to-linea); border-radius: 28px; background: var(--to-tarjeta);
+  box-shadow: inset 0 1px 0 var(--to-luz), var(--to-sombra);
+}
+.to-turno svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.to-col { min-width: 0; transition: opacity .3s, transform .55s var(--to-curva), filter .3s; }
+
+/* el servicio */
+.to-servicio { display: flex; flex-direction: column; padding: 32px 30px 26px; border-right: 1px solid var(--to-linea); }
+.to-icono {
+  display: grid; place-items: center; width: 50px; height: 50px; border-radius: 15px;
+  background: var(--to-relieve); border: 1px solid var(--to-linea); box-shadow: inset 0 1px 0 var(--to-luz);
+}
+.to-icono svg { width: 24px; height: 24px; }
+.to-servicio h2 { margin: 22px 0 10px; font-size: 1.75rem; font-weight: 600; letter-spacing: -.035em; line-height: 1.1; }
+.to-nota { margin: 0; font-size: .9rem; line-height: 1.5; color: var(--to-suave); }
+.to-datos { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 14px; font-size: .92rem; }
+.to-datos li { display: flex; align-items: center; gap: 12px; }
+.to-datos svg { width: 19px; height: 19px; flex: none; color: var(--to-suave); }
+.to-quien { margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--to-linea); }
+.to-avatar {
+  display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 50%;
+  background: var(--to-texto); color: var(--to-tarjeta);
+}
+.to-avatar svg { width: 56%; height: 56%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.to-quien b { display: block; font-size: .94rem; font-weight: 500; }
+.to-quien small { display: block; margin-top: 1px; font-size: .78rem; color: var(--to-suave); }
+
+/* el calendario */
+.to-calendario { padding: 28px 30px 22px; border-right: 1px solid var(--to-linea); }
+.to-cabeza { margin: 0 0 18px; font-size: 1.12rem; font-weight: 600; letter-spacing: -.02em; }
+.to-nav { display: flex; align-items: center; gap: 6px; height: 40px; margin-bottom: 8px; }
+.to-mes-titulo { flex: 1; display: grid; margin: 0; perspective: 300px; font-size: 1rem; font-weight: 500; letter-spacing: -.01em; }
+.to-mes-titulo > span, .to-dia-titulo > span { grid-area: 1 / 1; transform-origin: 50% 50% -.4em; }
+.to-mover {
+  width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border: 1px solid var(--to-linea); border-radius: 12px;
+  background: none; color: var(--to-texto); cursor: pointer; transition: background-color .2s, opacity .2s, transform .2s var(--to-curva);
+}
+.to-mover svg { width: 18px; height: 18px; stroke-width: 1.8; }
+.to-mover:hover { background: var(--to-relieve); }
+.to-mover:active { transform: scale(.94); }
+.to-mover:disabled { opacity: .3; cursor: default; background: none; transform: none; }
+.to-semana { display: grid; grid-template-columns: repeat(7, 1fr); height: 30px; align-items: center; text-align: center; font-size: .74rem; color: var(--to-tenue); }
+/* los meses se apilan: al cambiar de mes el viejo sale por un lado y el nuevo entra por el otro */
+.to-meses { position: relative; height: calc(6 * var(--to-alto)); overflow: hidden; }
+/* cada mes se aísla con su propio fondo: sus cifras se mezclan con él (ver .to-dia) */
+.to-mes { position: absolute; inset: 0; background: var(--to-tarjeta); isolation: isolate; }
+.to-rejilla, .to-semanas { position: relative; }
+.to-fila-sem { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); height: var(--to-alto); }
+
+/* las horas */
+.to-horas { display: flex; flex-direction: column; min-height: 0; padding: 28px 26px 22px; }
+.to-dia-titulo { display: grid; margin: 0; perspective: 300px; font-size: 1.12rem; font-weight: 600; letter-spacing: -.02em; white-space: nowrap; }
+.to-dia-sub { margin: 6px 0 0; font-size: .84rem; color: var(--to-suave); font-variant-numeric: tabular-nums; }
+.to-horas-caja { position: relative; flex: 1; min-height: 0; margin-top: 18px; }
+.to-confirma-movil { display: none; }
+
+/* ── el efecto ─────────────────────────────────────────────────────── */
+/* Las cifras son blancas con mix-blend-mode: difference: sobre el fondo
+   se ven claras (u oscuras en el tema claro) y, cuando el disco del día
+   elegido pasa por debajo, se invierten solas. Así el disco puede viajar
+   de un día a otro sin cambiar colores a mano. */
+.to-dia {
+  position: relative; width: 100%; height: 100%; display: grid; place-items: center; padding: 0; border: 0; background: none;
+  color: #fff; mix-blend-mode: difference; cursor: default; outline: none; opacity: .32; -webkit-tap-highlight-color: transparent;
+  font: 400 .98rem/1 "General Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums;
+}
+.to-dia::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: var(--to-disco); height: var(--to-disco); margin: calc(var(--to-disco) / -2);
+  border-radius: 50%; background: rgba(255, 255, 255, .1); opacity: 0; transition: opacity .2s;
+}
+/* los días con horas: en negrita y con un punto */
+.to-dia.is-libre { opacity: 1; font-weight: 600; cursor: pointer; }
+.to-dia.is-libre::after { content: ""; position: absolute; left: 50%; bottom: calc(var(--to-alto) / 2 - 15px); width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #fff; }
+.to-dia.is-libre:hover::before { opacity: 1; }
+.to-dia.is-elegido::before { display: none; }
+.to-dia.is-hoy::before { opacity: 1; background: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7); }
+.to-dia:focus-visible::before { display: block; opacity: 1; background: none; box-shadow: 0 0 0 2px #fff; }
+
+/* el disco del día elegido: uno solo, que viaja de un día al otro con un resorte (turno.js) */
+.to-disco { position: absolute; left: 0; top: 0; width: calc(100% / 7); height: var(--to-alto); pointer-events: none; will-change: transform; }
+.to-disco i {
+  position: absolute; left: 50%; top: 50%; width: var(--to-disco); height: var(--to-disco); margin: calc(var(--to-disco) / -2);
+  border-radius: 50%; background: var(--to-disco-color); box-shadow: 0 8px 18px -8px rgba(0, 0, 0, .7); transform: scale(0);
+}
+
+/* Las horas entran en cascada, desde abajo y con una leve escala. Cada
+   fila lleva dos botones encimados: la hora y «Confirmar». Al elegir una
+   hora, su botón se recorta a la mitad izquierda (clip-path) y se oscurece,
+   y «Confirmar» entra deslizándose desde la derecha: la píldora se parte. */
+.to-lista {
+  list-style: none; margin: 0; padding: 2px; display: flex; flex-direction: column; gap: 8px;
+  max-height: 100%; overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
+}
+.to-lista::-webkit-scrollbar { display: none; }
+.to-lista.is-sale { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; animation: to-sale .16s ease-in forwards; }
+@keyframes to-sale { to { opacity: 0; transform: scale(.98); } }
+.to-fila { position: relative; flex: none; height: 46px; animation: to-cae .6s calc(.12s + var(--i) * .05s) var(--to-curva) both; }
+@keyframes to-cae { from { opacity: 0; transform: translateY(16px) scale(.94); } }
+.to-hora {
+  position: absolute; inset: 0; width: 100%; padding: 0; border: 1px solid var(--to-borde); border-radius: 12px; background: transparent;
+  color: var(--to-texto); cursor: pointer; font-size: 1rem; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: .01em;
+  clip-path: inset(0 0 0 0 round 12px);
+  transition: clip-path .55s var(--to-curva), background-color .25s, border-color .25s, color .25s;
+}
+.to-hora span { display: block; transition: transform .55s var(--to-curva); }
+.to-hora:hover { border-color: var(--to-texto); background: var(--to-relieve); }
+.to-hora:focus-visible { outline: 2px solid var(--to-texto); outline-offset: 2px; }
+.to-fila.is-elegida .to-hora { clip-path: inset(0 calc(50% + 4px) 0 0 round 12px); background: var(--to-oscura); border-color: transparent; color: var(--to-oscura-tinta); }
+.to-fila.is-elegida .to-hora span { transform: translateX(-25%); }
+.to-fila.is-elegida .to-hora:focus-visible { outline: none; clip-path: inset(0 calc(50% + 4px) 0 0 round 12px); box-shadow: inset 0 0 0 2px var(--to-oscura-tinta); }
+.to-confirmar {
+  position: absolute; top: 0; right: 0; bottom: 0; width: calc(50% - 4px); padding: 0; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--to-boton); color: var(--to-boton-tinta); font-size: .96rem; font-weight: 600; letter-spacing: -.01em;
+  opacity: 0; transform: translateX(110%); pointer-events: none; visibility: hidden;
+  transition: transform .6s var(--to-muelle, var(--to-curva)), opacity .2s, visibility 0s .6s;
+}
+.to-fila.is-elegida .to-confirmar { opacity: 1; transform: none; pointer-events: auto; visibility: visible; transition: transform .6s .05s var(--to-muelle, var(--to-curva)), opacity .25s .05s; }
+.to-confirmar:hover { filter: brightness(.94); }
+.to-confirmar:focus-visible { outline: 2px solid var(--to-texto); outline-offset: 2px; }
+.to-vacio { margin: 8px 2px; font-size: .9rem; color: var(--to-suave); }
+
+/* ── la confirmación ───────────────────────────────────────────────── */
+/* Las columnas se apagan y se encogen un poco; encima, el ✓ se dibuja
+   (primero el círculo, después el gancho) y el resto sube escalonado. */
+.to-turno.is-reservado .to-col { opacity: 0; transform: scale(.97); filter: blur(4px); pointer-events: none; }
+.to-listo {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; text-align: center; padding: 24px;
+  opacity: 0; visibility: hidden; transition: opacity .25s, visibility 0s .25s;
+}
+.to-turno.is-reservado .to-listo { opacity: 1; visibility: visible; transition: opacity .3s .12s, visibility 0s; }
+.to-check { width: 96px; height: 96px; }
+.to-check circle { fill: color-mix(in srgb, var(--to-ok) 10%, transparent); stroke: var(--to-ok); stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.to-check path { stroke: var(--to-ok); stroke-width: 3.5; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.to-turno.is-reservado .to-check { animation: to-asoma .7s .1s var(--to-muelle, var(--to-curva)) both; }
+.to-turno.is-reservado .to-check circle { animation: to-traza .6s .15s var(--to-curva) forwards; }
+.to-turno.is-reservado .to-check path { animation: to-traza .42s .52s var(--to-curva) forwards; }
+@keyframes to-traza { to { stroke-dashoffset: 0; } }
+@keyframes to-asoma { from { transform: scale(.6); opacity: 0; } }
+.to-listo h2 { margin: 20px 0 8px; font-size: 2.2rem; font-weight: 600; letter-spacing: -.04em; outline: none; }
+.to-detalle { margin: 0; font-size: 1.12rem; font-weight: 500; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.to-con { margin: 14px 0 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: .9rem; color: var(--to-suave); }
+.to-con .to-avatar { width: 28px; height: 28px; }
+.to-acciones { display: flex; gap: 10px; margin-top: 30px; }
+.to-acciones button {
+  display: inline-flex; align-items: center; gap: 9px; height: 48px; padding: 0 22px; border-radius: 14px; cursor: pointer;
+  font-size: .95rem; font-weight: 500; letter-spacing: -.01em; transition: background-color .2s, transform .2s var(--to-curva);
+}
+.to-acciones svg { width: 18px; height: 18px; }
+.to-agregar { border: 1px solid var(--to-borde); background: none; }
+.to-agregar:hover { background: var(--to-relieve); }
+.to-otra { border: 1px solid transparent; background: var(--to-boton); color: var(--to-boton-tinta); }
+.to-otra:hover { transform: translateY(-1px); }
+.to-acciones button:active { transform: scale(.97); }
+.to-acciones button:focus-visible, .to-mover:focus-visible { outline: 2px solid var(--to-texto); outline-offset: 2px; }
+.to-turno.is-reservado .to-listo > :not(.to-check) { animation: to-sube .6s calc(.45s + var(--k, 0) * .07s) var(--to-curva) both; }
+@keyframes to-sube { from { opacity: 0; transform: translateY(12px); } }
+
+/* los textos que cambian giran como un tambor */
+.is-entra { animation: to-entra .6s .07s var(--to-curva) both; }
+.is-sale { animation: to-gira-sale .26s cubic-bezier(.5, 0, .75, 0) forwards; }
+@keyframes to-entra { from { transform: translateY(45%) rotateX(-75deg); opacity: 0; } }
+@keyframes to-gira-sale { to { transform: translateY(-45%) rotateX(75deg); opacity: 0; } }
+
+/* ── la demostración ───────────────────────────────────────────────── */
+.to-escena { height: 100%; display: grid; place-items: center; padding: 24px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .to-col, .to-listo, .to-hora, .to-hora span, .to-confirmar { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .to-fila, .to-turno.is-reservado .to-listo > :not(.to-check), .to-turno.is-reservado .to-check { animation: to-funde .15s both; }
+  .to-turno.is-reservado .to-check circle, .to-turno.is-reservado .to-check path { animation-duration: .01s; animation-delay: 0s; }
+  .to-turno.is-reservado .to-col { transform: none; filter: none; }
+  .is-entra { animation: to-funde .14s both; }
+  .is-sale { animation: to-funde .1s reverse forwards; }
+}
+@keyframes to-funde { from { opacity: 0; } }
+
+/* ── en el teléfono: las columnas apiladas y las horas en una rejilla de 3 ── */
+@media (max-width: 760px) {
+  :root { --to-alto: 44px; --to-disco: 38px; }
+  body { overflow-x: hidden; overflow-y: auto; }
+  .to-escena { place-items: start center; padding: 16px; }
+  .to-turno { height: auto; grid-template-columns: 1fr; border-radius: 22px; }
+  .to-servicio { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; padding: 16px 18px; border-right: 0; border-bottom: 1px solid var(--to-linea); }
+  .to-icono { grid-row: span 2; width: 44px; height: 44px; border-radius: 13px; }
+  .to-servicio h2 { margin: 0; font-size: 1.2rem; }
+  .to-nota, .to-quien, .to-datos li:last-child { display: none; }
+  .to-datos { display: flex; gap: 14px; margin: 4px 0 0; font-size: .82rem; color: var(--to-suave); }
+  .to-datos li { gap: 6px; }
+  .to-datos svg { width: 15px; height: 15px; }
+  .to-calendario { padding: 16px 16px 10px; border-right: 0; border-bottom: 1px solid var(--to-linea); }
+  .to-cabeza { display: none; }
+  .to-dia { font-size: .9rem; }
+  .to-horas { padding: 18px 16px 16px; }
+  .to-horas-caja { margin-top: 14px; }
+  .to-lista { display: grid; grid-template-columns: repeat(3, 1fr); max-height: none; }
+  .to-fila { height: 44px; }
+  .to-confirmar { display: none; }
+  .to-fila.is-elegida .to-hora { clip-path: inset(0 0 0 0 round 12px); }
+  .to-fila.is-elegida .to-hora span { transform: none; }
+  /* en el teléfono, «Confirmar» es un solo botón ancho debajo de las horas */
+  .to-confirma-movil {
+    display: flex; align-items: center; justify-content: center; gap: 6px; height: 50px; margin-top: 14px; border: 0; border-radius: 14px;
+    background: var(--to-boton); color: var(--to-boton-tinta); font-weight: 600; cursor: pointer; transition: opacity .25s, transform .4s var(--to-curva);
+  }
+  .to-confirma-movil:disabled { opacity: .3; cursor: default; }
+  .to-acciones { flex-direction: column; width: 100%; }
+  .to-acciones button { justify-content: center; }
+  .to-listo h2 { font-size: 1.8rem; }
+  .to-con .to-avatar { display: none; }
+}

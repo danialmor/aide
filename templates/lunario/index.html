@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lunario · Moxen</title>
+<!-- un <link> por familia: Zodiak para el mes y los números grandes (la familia trae 400 y 700), General Sans para el texto -->
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=zodiak@700&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600&display=swap">
+<link rel="stylesheet" href="lunario.css">
+<!-- ?tema=claro: el mismo almanaque, de día (papel azulado, tinta de noche y el ámbar más hondo) -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <!-- lunario.js se monta sobre [data-lunario]. Aquí solo está el marco: las semanas, las celdas, las barras de los eventos, los «+N más»
+       y las lunas las dibuja el script con los eventos de ejemplo (DATOS, arriba del script). El mes es fijo: octubre de 2026. -->
+  <main class="lu" data-lunario>
+    <svg class="lu-defs" width="0" height="0" aria-hidden="true" focusable="false">
+      <symbol id="lu-i-tilde" viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7"/></symbol>
+      <symbol id="lu-i-reinicio" viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.200-5.100M5 4.500v4h4"/></symbol>
+      <symbol id="lu-i-cierra" viewBox="0 0 24 24"><path d="m6.500 6.500 11 11m0-11-11 11"/></symbol>
+      <symbol id="lu-i-prueba" viewBox="0 0 24 24"><path d="M4 12h16M4 12l3-3M4 12l3 3M20 12l-3-3M20 12l-3 3"/></symbol>
+      <symbol id="lu-i-mundo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.500"/><path d="M3.500 12h17M12 3.500c2.500 2.300 3.500 5.200 3.500 8.500s-1 6.200-3.500 8.500c-2.500-2.300-3.500-5.200-3.500-8.500s1-6.200 3.500-8.500Z"/></symbol>
+    </svg>
+
+    <header class="lu-cab">
+      <div class="lu-tit">
+        <span class="lu-glifo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M21.500 6.500a10 10 0 1 0 4 15.500A8.500 8.500 0 0 1 21.500 6.500Z"/><path d="M9.500 9.500l.01 0M13 24.500l.01 0" stroke-width="2.600"/></svg></span>
+        <div>
+          <h1>Octubre <span>2026</span></h1>
+          <p data-resumen>40 eventos · 5 semanas, desde el lunes</p>
+        </div>
+      </div>
+      <div class="lu-medidor" data-medidor aria-label="Medidas del calendario">
+        <div class="lu-med"><small>Eventos</small><b data-m-eventos>40</b></div>
+        <div class="lu-med"><small>Carriles</small><b data-m-carriles>3</b></div>
+        <div class="lu-med lu-med-sello"><small>Solapes</small><b data-m-choques>0</b>
+          <span class="lu-sello" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5.500 12.500 4.200 4.200L18.500 7.500"/></svg></span></div>
+      </div>
+      <button type="button" class="lu-reinicio" data-reinicio title="Volver a los eventos de partida, la región y el alto (R)"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lu-i-reinicio"/></svg><span>Reiniciar</span></button>
+    </header>
+
+    <div class="lu-barra">
+      <div class="lu-region" role="radiogroup" aria-label="Región: decide el primer día de la semana">
+        <span class="lu-region-t"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lu-i-mundo"/></svg>Región</span>
+        <button type="button" role="radio" aria-checked="true" data-region="es-ES"><b>es-ES</b><span>lunes</span></button>
+        <button type="button" role="radio" aria-checked="false" data-region="en-US"><b>en-US</b><span>domingo</span></button>
+        <button type="button" role="radio" aria-checked="false" data-region="ar-EG"><b>ar-EG</b><span>sábado</span></button>
+        <small class="lu-region-fuente" data-fuente></small>
+      </div>
+      <ul class="lu-leyenda" aria-label="Qué significa cada color">
+        <li><i class="lu-k lu-k-o"></i>Obra</li>
+        <li><i class="lu-k lu-k-t"></i>Taller</li>
+        <li><i class="lu-k lu-k-a"></i>Gestión</li>
+        <li><i class="lu-k lu-k-u"></i>Plazo</li>
+      </ul>
+      <button type="button" class="lu-prueba" data-prueba title="Recorre las tres regiones y todos los altos y mide las barras de verdad"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lu-i-prueba"/></svg><span>Comprobar altos y regiones</span></button>
+    </div>
+
+    <section class="lu-cal" data-cal aria-label="Calendario de octubre de 2026">
+      <div class="lu-sems" role="row" data-nombres aria-hidden="true"></div>
+      <div class="lu-semanas" data-semanas></div>
+      <div class="lu-globo" data-globo hidden role="dialog" aria-modal="false" aria-labelledby="lu-globo-t" tabindex="-1">
+        <header class="lu-globo-cab">
+          <div><h2 id="lu-globo-t" data-globo-t>Jueves 8 de octubre</h2><p data-globo-s>5 eventos</p></div>
+          <button type="button" class="lu-globo-x" data-globo-x aria-label="Cerrar"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#lu-i-cierra"/></svg></button>
+        </header>
+        <ul class="lu-globo-lista" data-globo-lista></ul>
+      </div>
+    </section>
+    <div class="lu-alto" data-alto role="separator" aria-orientation="horizontal" aria-label="Alto del calendario" tabindex="0" title="Arrastra para cambiar el alto, o usa ↑ y ↓ (Mayús para ir más rápido)">
+      <span class="lu-alto-agarre" aria-hidden="true"><i></i><i></i></span>
+      <b class="lu-alto-burbuja" data-alto-b aria-hidden="true"></b>
+    </div>
+    <p class="lu-estado" data-estado>Arrastra una barra a otros días, estira su borde para cambiar la duración o pulsa un «+N más».</p>
+    <p class="lu-oculto" role="status" aria-live="polite" aria-atomic="true" data-anuncio></p>
+  </main>
+  <script src="lunario.js"></script>
+</body>
+</html>

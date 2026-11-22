@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Época · Moxen</title>
+<!-- un enlace por familia -->
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@500,600&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=tabular@400&display=swap">
+<link rel="stylesheet" href="epoca.css">
+<!-- ?tema=oscuro: el mismo calendario en grafito, con los pasteles apagados; ?tema=claro es el de siempre -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <main class="ep-escena" data-epoca>
+    <div class="ep-fondo" aria-hidden="true"><i class="ep-b1"></i><i class="ep-b2"></i><i class="ep-b3"></i><i class="ep-b4"></i><i class="ep-grano"></i></div>
+
+    <!-- la ventana de la aplicación: cabecera con la vista, el lienzo (canvas) y una pista -->
+    <section class="ep-ventana" aria-label="Calendario">
+      <header class="ep-cab">
+        <div class="ep-titulo" aria-hidden="true">
+          <span class="ep-eti" data-eti><b class="ep-eti-a" data-eti-a>2026</b><span class="ep-eti-b" data-eti-b>Año completo</span></span>
+        </div>
+
+        <ul class="ep-leyenda" data-leyenda aria-label="Categorías (pulsa para ocultar o mostrar)">
+          <li><button type="button" class="ep-chip ep-c0" aria-pressed="true" data-cat="0"><i></i>Trabajo</button></li>
+          <li><button type="button" class="ep-chip ep-c1" aria-pressed="true" data-cat="1"><i></i>Personal</button></li>
+          <li><button type="button" class="ep-chip ep-c2" aria-pressed="true" data-cat="2"><i></i>Bienestar</button></li>
+          <li><button type="button" class="ep-chip ep-c3" aria-pressed="true" data-cat="3"><i></i>Estudio</button></li>
+        </ul>
+
+        <div class="ep-controles">
+          <div class="ep-vista" role="radiogroup" aria-label="Escala de tiempo" data-vista>
+            <i class="ep-pastilla" aria-hidden="true" data-pastilla></i>
+            <button type="button" role="radio" aria-checked="true" data-nivel="0">Año</button>
+            <button type="button" role="radio" aria-checked="false" data-nivel="1" tabindex="-1">Mes</button>
+            <button type="button" role="radio" aria-checked="false" data-nivel="2" tabindex="-1">Semana</button>
+            <button type="button" role="radio" aria-checked="false" data-nivel="3" tabindex="-1">Día</button>
+          </div>
+          <div class="ep-nav">
+            <button type="button" class="ep-nav-b" data-ant aria-label="Anterior"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.2 5.2 8l4.8 4.8"/></svg></button>
+            <button type="button" class="ep-nav-hoy" data-hoy>Hoy</button>
+            <button type="button" class="ep-nav-b" data-sig aria-label="Siguiente"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.2 10.8 8 6 12.8"/></svg></button>
+          </div>
+        </div>
+      </header>
+
+      <div class="ep-lienzo" data-lienzo>
+        <canvas class="ep-canvas" data-canvas tabindex="0" role="application" aria-roledescription="calendario" aria-label="Calendario de 2026. Flechas para moverte por los días, Intro o más para acercar, Escape o menos para alejar." aria-describedby="ep-pista"></canvas>
+      </div>
+
+      <footer class="ep-pie">
+        <p class="ep-pista" id="ep-pista" data-pista><span class="ep-pista-l">Rueda o pellizco</span> para acercar o alejar <span aria-hidden="true">·</span> pulsa un punto para bajar a ese día</p>
+      </footer>
+    </section>
+
+    <p class="ep-oculto" role="status" aria-live="polite" data-vivo></p>
+  </main>
+
+  <script src="epoca.js"></script>
+  <script>Epoca(document.querySelector('[data-epoca]'), { nivel: +(location.search.match(/[?&]nivel=([0-3])/) || [])[1] || 0 });</script>
+</body>
+</html>

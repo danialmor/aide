@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turno · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600&display=swap">
+<link rel="stylesheet" href="turno.css">
+<!-- ?tema=claro para verla sobre fondo claro -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <main class="to-escena">
+    <!-- data-turno: la agenda. A la izquierda el servicio (HTML tuyo), al
+         centro el mes y a la derecha las horas del día: turno.js arma el
+         calendario en .to-meses y las horas en .to-horas-caja, y al
+         confirmar muestra .to-listo con el ✓ -->
+    <div class="to-turno" data-turno>
+      <section class="to-col to-servicio" aria-label="Servicio">
+        <span class="to-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="12" height="11" rx="2.5"/><path d="m15.5 10.5 5-3v9l-5-3"/></svg></span>
+        <h2>Asesoría inicial</h2>
+        <p class="to-nota">Una primera conversación para conocer tu proyecto y ver por dónde partir.</p>
+        <ul class="to-datos">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>30 min</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6.5" width="12" height="11" rx="2.5"/><path d="m15.5 10.5 5-3v9l-5-3"/></svg>Videollamada</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.3 3.5 5.2 3.5 8.5s-1.1 6.2-3.5 8.5c-2.4-2.3-3.5-5.2-3.5-8.5s1.1-6.2 3.5-8.5z"/></svg>Hora local (GMT−3)</li>
+        </ul>
+        <div class="to-quien">
+          <span class="to-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.4"/><path d="M5 19.5c.9-3.5 3.6-5.2 7-5.2s6.1 1.7 7 5.2"/></svg></span>
+          <span><b>Equipo de diseño</b><small>Te atiende</small></span>
+        </div>
+      </section>
+
+      <section class="to-col to-calendario" aria-label="Elegir día">
+        <h3 class="to-cabeza">Elige día y hora</h3>
+        <div class="to-nav">
+          <p class="to-mes-titulo" aria-live="polite"></p>
+          <button class="to-mover" type="button" data-mover="-1" aria-label="Mes anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6"/></svg></button>
+          <button class="to-mover" type="button" data-mover="1" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+        </div>
+        <div class="to-semana" aria-hidden="true"><span>lu</span><span>ma</span><span>mi</span><span>ju</span><span>vi</span><span>sá</span><span>do</span></div>
+        <div class="to-meses"></div>
+      </section>
+
+      <section class="to-col to-horas" aria-label="Elegir hora">
+        <h3 class="to-dia-titulo" aria-live="polite"></h3>
+        <p class="to-dia-sub"></p>
+        <div class="to-horas-caja"></div>
+        <button class="to-confirma-movil" type="button" disabled>Elige una hora</button>
+      </section>
+
+      <section class="to-listo" aria-live="polite">
+        <svg class="to-check" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="44" pathLength="1"/><path d="M30 49.5 42 61.5 66 35.5" pathLength="1"/></svg>
+        <h2 tabindex="-1" style="--k:0">Reservado</h2>
+        <p class="to-detalle" style="--k:1"></p>
+        <p class="to-con" style="--k:2"><span class="to-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.4"/><path d="M5 19.5c.9-3.5 3.6-5.2 7-5.2s6.1 1.7 7 5.2"/></svg></span>Asesoría inicial con el equipo de diseño · Videollamada</p>
+        <div class="to-acciones" style="--k:3">
+          <button class="to-agregar" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="3"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4M12 12.5v5M9.5 15h5"/></svg>Agregar al calendario</button>
+          <button class="to-otra" type="button">Agendar otra</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="turno.js"></script>
+  <script>
+    // horas libres de ejemplo: algunas a mano y, para el resto, un patrón que cambia de un día a otro
+    const ejemplo = {
+      '2026-11-09': [],
+      '2026-11-10': ['09:00', '09:30', '10:00', '11:30', '12:00', '15:00', '16:30'],
+      '2026-11-11': ['09:30', '10:00', '12:00', '15:30', '17:00'],
+      '2026-11-12': ['09:00', '09:30', '10:30', '11:00', '12:00', '15:00', '16:30', '17:00'],
+      '2026-11-13': ['09:00', '10:00', '10:30', '12:00'],
+      '2026-11-17': ['09:30', '10:00', '10:30', '11:00', '15:30', '16:00', '17:00'],
+      '2026-11-18': [],
+      '2026-11-25': [],
+      '2026-12-08': [],                                 // feriados: sin horas
+      '2026-12-25': [],
+    };
+    const jornada = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '15:00', '15:30', '16:00', '16:30', '17:00'];
+
+    Turno(document.querySelector('[data-turno]'), {
+      hoy: '2026-11-09',
+      duracion: 30,
+      horas: (fecha, { semana }) => {
+        if (fecha in ejemplo) return ejemplo[fecha];
+        if (semana > 4) return [];                      // sábado y domingo, cerrado
+        const d = +fecha.slice(8);
+        return jornada.filter((h, i) => (i * 5 + d * 3) % 7 < 4).slice(0, 8);
+      },
+      alReservar: turno => {
+        // aquí, la reserva: turno.fecha, turno.hora y turno.fin
+      },
+    });
+  </script>
+</body>
+</html>

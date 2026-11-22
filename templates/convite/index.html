@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convite · Moxen</title>
+<!-- una hoja por familia: si van juntas, a veces solo llega la primera -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="convite.css">
+<!-- ?tema=claro: la misma tarjeta sobre marfil, con el dorado oscurecido cuando hace de texto -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <!-- convite.js monta la tarjeta sobre estos atributos (el evento está en EVENTO, al principio del script):
+       [data-hoja] es la hoja de fecha que viaja al calendario, [data-reloj-a] y [data-reloj-b] las dos horas, [data-sw] el
+       conmutador de «mi hora», [data-plazas] la barra de plazas, [data-aviso] el recordatorio, [data-asistir] y
+       [data-cal] los dos botones y [data-menu] las tres formas de añadirlo; [data-vivo] lee en voz alta lo que cambia. -->
+  <main class="cv-escena" data-convite>
+    <div class="cv-grano" aria-hidden="true"></div>
+
+    <article class="cv-tarjeta" aria-labelledby="cv-titulo">
+      <figure class="cv-foto">
+        <img src="img/galeria-cuadros.jpg" alt="Sala de exposiciones con cuadros de varios tamaños en una pared blanca">
+        <div class="cv-tinte" aria-hidden="true"></div>
+        <span class="cv-sello">Entrada libre</span>
+        <div class="cv-hoja-hueco" aria-hidden="true"></div>
+        <div class="cv-hoja" data-hoja aria-hidden="true">
+          <span class="cv-h-mes" data-h-mes>nov</span>
+          <b class="cv-h-dia" data-h-dia>19</b>
+          <span class="cv-h-sem" data-h-sem>jueves</span>
+        </div>
+      </figure>
+
+      <div class="cv-cuerpo">
+        <header class="cv-cab">
+          <p class="cv-etq">Inauguración <span>·</span> exposición de pintura y grabado</p>
+          <h1 id="cv-titulo">Paisajes en tinta</h1>
+          <p class="cv-lede">Una noche con brindis de apertura y visita guiada a la colección, en la sala principal.</p>
+        </header>
+
+        <div class="cv-datos">
+          <section class="cv-dato" aria-label="Hora">
+            <div class="cv-dato-cab"><h2>Hora</h2>
+              <button class="cv-sw" type="button" role="switch" aria-checked="true" data-sw><span>Mi hora</span><i class="cv-sw-t" aria-hidden="true"></i></button>
+            </div>
+            <p class="cv-horas" data-horas>
+              <span class="cv-hora"><span class="cv-reloj" data-reloj-a aria-label="19:00"></span><small>allí</small></span>
+              <span class="cv-hora2" data-hora2><span class="cv-hora2-i"><i class="cv-punto" aria-hidden="true">·</i><span class="cv-hora"><span class="cv-reloj" data-reloj-b aria-label="14:00"></span><small>aquí</small></span></span></span>
+            </p>
+          </section>
+          <section class="cv-dato" aria-label="Lugar">
+            <div class="cv-dato-cab"><h2>Lugar</h2></div>
+            <p class="cv-lugar">Sala de exposiciones<small>planta baja, entrada por el patio</small></p>
+          </section>
+        </div>
+
+        <section class="cv-plazas" aria-label="Plazas">
+          <div class="cv-plazas-cab"><h2>Plazas</h2><p class="cv-quedan" data-quedan aria-live="polite">Quedan <b data-quedan-n>12</b> <span data-quedan-t></span></p></div>
+          <div class="cv-barra" data-plazas role="img" aria-label="18 de 30 plazas ocupadas"></div>
+        </section>
+
+        <section class="cv-aviso" data-aviso data-activo="0" aria-label="Recordatorio">
+          <span class="cv-campana" data-campana aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.4 16.6V11a5.6 5.6 0 0 1 11.2 0v5.6l1.6 1.6H4.8zM10.2 20.2a1.9 1.9 0 0 0 3.6 0M12 3.4V5"/></svg></span>
+          <span class="cv-av-t" data-av-t>Avisarme</span>
+          <div class="cv-seg" role="radiogroup" aria-label="Cuándo avisarte" data-seg>
+            <i class="cv-seg-i" aria-hidden="true"></i>
+            <button type="button" role="radio" aria-checked="true" data-r="1d" tabindex="-1" disabled>1 día</button>
+            <button type="button" role="radio" aria-checked="false" data-r="1h" tabindex="-1" disabled>1 hora</button>
+            <button type="button" role="radio" aria-checked="false" data-r="10m" tabindex="-1" disabled>10 min</button>
+          </div>
+        </section>
+
+        <div class="cv-acciones">
+          <button class="cv-btn cv-asistir" type="button" data-asistir aria-pressed="false">
+            <span class="cv-btn-a">Asistiré</span>
+            <span class="cv-btn-b"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 12.6l3.8 3.8 7.2-8.2" pathLength="1"/></svg>Asistirás</span>
+          </button>
+          <div class="cv-cal-env">
+            <button class="cv-btn cv-cal" type="button" data-cal aria-haspopup="menu" aria-expanded="false">
+              <span class="cv-ico" data-ico aria-hidden="true"><i class="cv-ico-tapa"></i><b class="cv-ico-mas">+</b><b class="cv-ico-dia" data-ico-dia>19</b></span>
+              <span class="cv-btn-a">Añadir al calendario</span>
+              <span class="cv-btn-b">En tu calendario</span>
+              <svg class="cv-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14.5l5-5 5 5"/></svg>
+            </button>
+            <ul class="cv-menu" data-menu role="menu" aria-label="Cómo añadirlo" hidden>
+              <li role="none"><button type="button" role="menuitem" data-op="ics"><span class="cv-op-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5v10M7.8 10.6 12 14.8l4.2-4.2M5.5 18.5h13"/></svg></span><span class="cv-op-t"><b>Descargar archivo .ics</b><small>Vale para cualquier calendario</small></span></button></li>
+              <li role="none"><button type="button" role="menuitem" data-op="enlace"><span class="cv-op-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.2 13.8a3.4 3.4 0 0 0 4.8 0l3-3a3.4 3.4 0 0 0-4.8-4.8l-.9.9M13.8 10.2a3.4 3.4 0 0 0-4.8 0l-3 3a3.4 3.4 0 0 0 4.8 4.8l.9-.9"/></svg></span><span class="cv-op-t"><b>Copiar enlace</b><small>Para pegarlo donde quieras</small></span></button></li>
+              <li role="none"><button type="button" role="menuitem" data-op="texto"><span class="cv-op-i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6.5h12M6 11h12M6 15.5h7.5"/></svg></span><span class="cv-op-t"><b>Copiar como texto</b><small>Título, día, hora y lugar</small></span></button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <p class="cv-vivo" role="status" aria-live="polite" data-vivo></p>
+  </main>
+
+  <script src="convite.js"></script>
+  <script>window.convite = Convite(document.querySelector('[data-convite]'));</script>
+</body>
+</html>

@@ -3855,7 +3855,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 (function () {
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
-  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
+  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['tpl-lunario', 'تقویم ماهانه', 'calendar'], ['tpl-semana', 'برنامه هفتگی', 'calendar'], ['tpl-epoca', 'نمای سال تا روز', 'calendar'], ['tpl-parangon', 'مقایسه بازه‌ها', 'calendar'], ['tpl-turno', 'رزرو وقت', 'calendar'], ['tpl-vencimientos', 'سررسیدها', 'calendar'], ['tpl-solape', 'تداخل تقویم‌ها', 'calendar'], ['tpl-estadia', 'انتخاب بازه', 'calendar'], ['tpl-franjas', 'ساعات حضور', 'calendar'], ['tpl-itinerario', 'برنامه فصلی', 'calendar'], ['tpl-recurrencia', 'تکرار رویداد', 'calendar'], ['tpl-rueda', 'انتخاب تاریخ', 'calendar'], ['tpl-esfera', 'تنظیم زمان', 'calendar'], ['tpl-puntual', 'شمارش معکوس', 'calendar'], ['tpl-convite', 'دعوت‌نامه جلسه', 'calendar'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
   const hiddenSections = () => Array.isArray(A.settings().hiddenSections) ? A.settings().hiddenSections : [];
   const roleAllowsSection = id => A.role === 'manager'
     ? ['manager', 'themes', 'layouts', 'settings', 'moxen-anaquel', 'moxen-convite', 'moxen-epoca', 'moxen-lunario', 'moxen-parangon', 'moxen-semana', 'moxen-solape', 'moxen-tregua', 'moxen-turno', 'moxen-vencimientos'].includes(id)
@@ -7708,7 +7708,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
 
   </script>
   <script src="./template-calendar-tabs.js?v=4"></script>
-  <script src="./js/customizable-tabs.js?v=2"></script>
+  <script src="./js/template-frames.js?v=1"></script>
+  <script src="./js/customizable-tabs.js?v=3"></script>
   <script>
     Aide.boot();
   </script>

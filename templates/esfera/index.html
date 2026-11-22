@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esfera · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=switzer@400,500,600&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=azeret-mono@400,500&display=swap">
+<link rel="stylesheet" href="esfera.css">
+<!-- ?tema=claro: la pieza ya es clara (perla); la variante no cambia nada -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <main class="es-escena" data-esfera>
+    <!-- la mesa: perla con una luz cálida arriba y el reflejo rojo del sector -->
+    <div class="es-fondo" aria-hidden="true"><i class="es-resplandor"></i></div>
+
+    <section class="es-aparato" aria-label="Temporizador de dial">
+      <!-- EL DIAL: un solo elemento con rol de deslizador (arrastrar, flechas, rueda) -->
+      <div class="es-caja">
+        <div class="es-reloj" data-reloj role="slider" tabindex="0" aria-label="Tiempo del temporizador, en minutos"
+             aria-valuemin="0" aria-valuemax="60" aria-valuenow="25" aria-valuetext="25 minutos">
+          <i class="es-sombra" aria-hidden="true"></i>
+          <i class="es-aro" aria-hidden="true"></i>
+          <svg class="es-cara" viewBox="-300 -300 600 600" aria-hidden="true" focusable="false">
+            <defs>
+              <radialGradient id="es-g-cara" cx="-.28" cy="-.34" r="1.25" gradientUnits="objectBoundingBox" fx="-.28" fy="-.34">
+                <stop offset="0" style="stop-color:var(--es-cara-a)"/><stop offset=".62" style="stop-color:var(--es-cara-b)"/><stop offset="1" style="stop-color:var(--es-cara-c)"/>
+              </radialGradient>
+              <radialGradient id="es-g-pozo" cx="0" cy="0" r="212" gradientUnits="userSpaceOnUse">
+                <stop offset=".82" style="stop-color:var(--es-pozo)" stop-opacity="0"/><stop offset="1" style="stop-color:var(--es-pozo)" stop-opacity=".95"/>
+              </radialGradient>
+              <radialGradient id="es-g-sector" cx="0" cy="0" r="212" gradientUnits="userSpaceOnUse">
+                <stop offset="0" style="stop-color:var(--es-rojo-hondo)"/><stop offset=".5" style="stop-color:var(--es-rojo)"/><stop offset="1" style="stop-color:var(--es-rojo-claro)"/>
+              </radialGradient>
+              <linearGradient id="es-g-brillo" x1="-170" y1="-210" x2="120" y2="150" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/>
+              </linearGradient>
+              <radialGradient id="es-g-sombra-hub" cx="0" cy="0" r="96" gradientUnits="userSpaceOnUse">
+                <stop offset=".45" stop-color="#2a0705" stop-opacity=".42"/><stop offset="1" stop-color="#2a0705" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="es-g-cubo" cx="-.3" cy="-.35" r="1.1">
+                <stop offset="0" style="stop-color:var(--es-cubo-a)"/><stop offset=".55" style="stop-color:var(--es-cubo-b)"/><stop offset="1" style="stop-color:var(--es-cubo-c)"/>
+              </radialGradient>
+              <radialGradient id="es-g-domo" cx="-.28" cy="-.36" r="1">
+                <stop offset="0" stop-color="#fff"/><stop offset=".4" style="stop-color:var(--es-domo-a)"/><stop offset="1" style="stop-color:var(--es-domo-b)"/>
+              </radialGradient>
+              <radialGradient id="es-g-bead" cx="-.3" cy="-.35" r="1.1">
+                <stop offset="0" stop-color="#fff"/><stop offset="1" style="stop-color:var(--es-cara-c)"/>
+              </radialGradient>
+              <linearGradient id="es-g-cristal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+              </linearGradient>
+              <filter id="es-f-halo" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>
+              <filter id="es-f-bead" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="3" stdDeviation="3.2" flood-color="#3a0c08" flood-opacity=".42"/></filter>
+              <clipPath id="es-recorte"><path data-recorte d=""/></clipPath>
+            </defs>
+
+            <circle r="300" fill="url(#es-g-cara)"/>
+            <circle r="299" fill="none" style="stroke:var(--es-borde-cara)" stroke-width="2"/>
+            <!-- guilloché apenas insinuado: da profundidad a la cara -->
+            <circle r="262" fill="none" style="stroke:var(--es-linea)" stroke-width="1"/>
+            <circle r="249" fill="none" style="stroke:var(--es-linea)" stroke-width="1"/>
+            <!-- el pozo donde vive el sector -->
+            <circle r="212" style="fill:var(--es-pozo-fondo)"/>
+            <circle r="212" fill="url(#es-g-pozo)"/>
+            <circle r="212" fill="none" style="stroke:var(--es-borde-pozo)" stroke-width="1.5"/>
+
+            <g data-marcas class="es-marcas"></g>
+            <text class="es-rotulo" x="0" y="150">minutos</text>
+            <g data-numeros></g>
+
+            <!-- el sector: una sombra, el cuerpo, el brillo y el filo de la luz -->
+            <path class="es-sector-sombra" data-sector-sombra d="" fill="#4a0b07" opacity=".35" transform="translate(0 7)" filter="url(#es-f-halo)"/>
+            <path class="es-sector" data-sector d="" fill="url(#es-g-sector)"/>
+            <path class="es-sector-brillo" data-sector-brillo d="" fill="url(#es-g-brillo)"/>
+            <g data-filo class="es-filo"><line x1="0" y1="-20" x2="0" y2="-210"/></g>
+            <circle r="96" fill="url(#es-g-sombra-hub)"/>
+
+            <!-- las marcas encendidas: las mismas, en rojo, recortadas por el sector -->
+            <g clip-path="url(#es-recorte)"><g data-marcas-vivas class="es-marcas es-vivas"></g></g>
+
+            <!-- el cubo central, como una perilla de cocina -->
+            <circle r="62" fill="url(#es-g-cubo)"/>
+            <circle r="62" fill="none" style="stroke:var(--es-borde-cubo)" stroke-width="1.5"/>
+            <circle r="47" fill="url(#es-g-domo)"/>
+            <circle r="47" fill="none" style="stroke:var(--es-borde-domo)" stroke-width="1"/>
+            <circle class="es-led-halo" data-led-halo r="22" fill="var(--es-rojo)" filter="url(#es-f-halo)"/>
+            <circle class="es-led" data-led r="9.5"/>
+            <ellipse cx="-14" cy="-24" rx="19" ry="8.5" fill="url(#es-g-cristal)" transform="rotate(-24 -14 -24)"/>
+
+            <!-- el asa que se agarra -->
+            <g data-asa class="es-asa" filter="url(#es-f-bead)">
+              <g data-asa-escala>
+                <circle class="es-asa-cuerpo" r="21" fill="url(#es-g-bead)"/>
+                <circle class="es-asa-punto" r="7.6"/>
+              </g>
+            </g>
+
+            <!-- el cristal: un reflejo suave arriba a la izquierda -->
+            <path d="M-262 -80C-248 -170 -170 -248 -80 -262C-150 -214 -224 -150 -262 -80Z" fill="url(#es-g-cristal)" opacity=".55"/>
+          </svg>
+          <i class="es-barrido" aria-hidden="true"></i>
+          <i class="es-onda" aria-hidden="true"></i><i class="es-onda" aria-hidden="true"></i><i class="es-onda" aria-hidden="true"></i>
+          <span class="es-chispas" data-chispas aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <!-- EL PANEL -->
+      <div class="es-panel">
+        <header class="es-cab">
+          <span class="es-sello"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5zM10 20.2a2.2 2.2 0 0 0 4 0"/></svg>Recordatorio</span>
+          <span class="es-estado" data-estado>Listo para empezar</span>
+        </header>
+
+        <label class="es-nota">
+          <span class="es-oculto">Qué quieres recordar</span>
+          <input class="es-nota-campo" data-nota type="text" value="Sacar el pan del horno" maxlength="38" autocomplete="off" spellcheck="false">
+        </label>
+
+        <div class="es-lectura" role="timer" aria-label="Tiempo restante">
+          <span class="es-cifras" data-cifras aria-hidden="true"></span>
+          <span class="es-sub" data-sub>Suena en 25 min</span>
+        </div>
+
+        <div class="es-chips" role="group" aria-label="Tiempos habituales">
+          <button class="es-chip" type="button" data-min="5">5<small>min</small></button>
+          <button class="es-chip" type="button" data-min="15">15<small>min</small></button>
+          <button class="es-chip" type="button" data-min="25">25<small>min</small></button>
+          <button class="es-chip" type="button" data-min="45">45<small>min</small></button>
+          <button class="es-chip" type="button" data-min="60">60<small>min</small></button>
+        </div>
+
+        <div class="es-mando">
+          <div class="es-ajuste" role="group" aria-label="Minutos">
+            <button class="es-paso" type="button" data-paso="-1" aria-label="Un minuto menos"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9"/></svg></button>
+            <label class="es-campo">
+              <span class="es-oculto">Minutos</span>
+              <input data-campo type="text" inputmode="numeric" autocomplete="off" value="25" maxlength="2">
+              <em>min</em>
+            </label>
+            <button class="es-paso" type="button" data-paso="1" aria-label="Un minuto más"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
+          </div>
+          <button class="es-reinicia" type="button" data-reinicia aria-label="Reiniciar (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.2-5.1M5 4.5v4h4"/></svg></button>
+          <button class="es-juega" type="button" data-juega aria-label="Iniciar">
+            <svg class="es-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 5.8v12.4a.8.8 0 0 0 1.2.7l9.4-6.2a.8.8 0 0 0 0-1.4L9.8 5.1a.8.8 0 0 0-1.2.7z"/></svg>
+            <svg class="es-i-pausa" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.6" y="5" width="3.8" height="14" rx="1.2"/><rect x="13.6" y="5" width="3.8" height="14" rx="1.2"/></svg>
+          </button>
+        </div>
+
+        <div class="es-pie">
+          <p class="es-pista">Arrastra el dial · rueda para afinar · Esc reinicia</p>
+          <button class="es-ritmo" type="button" role="switch" aria-checked="true" data-ritmo>
+            <span class="es-ritmo-pista" aria-hidden="true"><i></i></span>
+            <span class="es-ritmo-txt">Demostración: 1 s = 1 min</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- el aviso al llegar a cero -->
+    <div class="es-aviso" data-aviso role="status" aria-live="polite">
+      <span class="es-aviso-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5zM10 20.2a2.2 2.2 0 0 0 4 0"/></svg></span>
+      <span class="es-aviso-txt"><b data-aviso-txt>Sacar el pan del horno</b><small>¡Se acabó el tiempo!</small></span>
+    </div>
+    <p class="es-oculto" aria-live="polite" data-vivo></p>
+  </main>
+
+  <script src="esfera.js"></script>
+  <script>
+    /* Aquí enchufas tu lógica: alTerminar recibe { minutos, texto } al llegar a cero. */
+    const esfera = Esfera(document.querySelector('[data-esfera]'), {
+      inicial: 25,        // minutos al abrir y tras el aviso
+      velocidad: 60,      // 1 = tiempo real; 60 = en la demo, 1 s equivale a 1 min
+      despedida: 2000,    // ms que dura el aviso antes de volver al inicio
+      alTerminar: datos => {},
+    });
+  </script>
+</body>
+</html>

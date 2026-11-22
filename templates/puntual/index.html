@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Puntual · Moxen</title>
+<!-- un enlace por familia -->
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=red-hat-display@700,900&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=tabular@500&display=swap">
+<link rel="stylesheet" href="puntual.css">
+<!-- ?tema=oscuro: la misma escena en una noche violeta; la píldora sigue negra -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <main class="pu-escena" data-puntual>
+    <div class="pu-fondo" aria-hidden="true"><i class="pu-b1"></i><i class="pu-b2"></i><i class="pu-b3"></i><i class="pu-aro"></i><i class="pu-grano"></i></div>
+
+    <!-- el desenfoque de movimiento de los tambores: un filtro por columna; puntual.js le cambia la desviación según la velocidad -->
+    <svg class="pu-defs" width="0" height="0" aria-hidden="true" focusable="false">
+      <filter id="pu-mov-0" x="-10%" y="-40%" width="120%" height="180%"><feGaussianBlur stdDeviation="0 0" data-mov="0"/></filter>
+      <filter id="pu-mov-1" x="-10%" y="-40%" width="120%" height="180%"><feGaussianBlur stdDeviation="0 0" data-mov="1"/></filter>
+    </svg>
+
+    <div class="pu-caja" data-caja data-estado="reposo">
+      <!-- la tarjeta negra: es una píldora en reposo y se abre hacia abajo para fijar el tiempo -->
+      <div class="pu-tarjeta" data-tarjeta data-estado="reposo" role="group" aria-label="Temporizador">
+        <div class="pu-cabeza" data-cabeza role="button" tabindex="0" aria-label="Temporizador fijado en 05:00. Pulsa para cambiar el tiempo">
+          <div class="pu-matriz" data-matriz aria-hidden="true"></div>
+          <div class="pu-lectura" aria-hidden="true">
+            <div class="pu-tiempo" data-tiempo></div>
+            <p class="pu-etiqueta"><span data-etiqueta>Fijado</span><em class="pu-vel" data-vel hidden></em></p>
+          </div>
+        </div>
+
+        <div class="pu-ajuste" data-ajuste inert>
+          <div class="pu-ajuste-in">
+            <div class="pu-tambores">
+              <i class="pu-banda" aria-hidden="true"></i>
+              <div class="pu-tambor" data-tambor="0" role="spinbutton" tabindex="0" aria-label="Minutos" aria-valuemin="0" aria-valuemax="59" aria-valuenow="5"><div class="pu-tira" data-tira></div><span class="pu-unidad" aria-hidden="true">min</span></div>
+              <b class="pu-dos" aria-hidden="true">:</b>
+              <div class="pu-tambor" data-tambor="1" role="spinbutton" tabindex="0" aria-label="Segundos" aria-valuemin="0" aria-valuemax="59" aria-valuenow="0"><div class="pu-tira" data-tira></div><span class="pu-unidad" aria-hidden="true">s</span></div>
+            </div>
+            <button class="pu-inicia" type="button" data-inicia><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>Iniciar</button>
+          </div>
+        </div>
+
+        <svg class="pu-visto" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.8l4.2 4.2 8.8-9.6" pathLength="1"/></svg>
+      </div>
+
+      <p class="pu-pista" data-pista>Toca la píldora para fijar el tiempo</p>
+      <button class="pu-cancela" type="button" data-cancela hidden>Cancelar</button>
+    </div>
+
+    <p class="pu-oculto" role="status" aria-live="polite" data-vivo></p>
+  </main>
+
+  <script src="puntual.js"></script>
+  <script>Puntual(document.querySelector('[data-puntual]'), { minutos: 5, segundos: 0, velocidad: 15, fin: 600 });</script>
+</body>
+</html>
