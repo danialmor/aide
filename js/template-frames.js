@@ -30,19 +30,11 @@
     f.setAttribute('allow', 'fullscreen; clipboard-write'); f.setAttribute('allowtransparency', 'true');
     f.className = 'aide-tpl';
     f.style.cssText = 'width:100%;border:0;display:block;background:transparent;color-scheme:' + (dark() ? 'dark' : 'light');
-    const size = () => { if (f.classList.contains('aide-tpl-sm')) return; if (!f.isConnected) return removeEventListener('resize', size); const top = f.getBoundingClientRect().top; f.style.height = Math.max(520, innerHeight - Math.max(0, top) - 12) + 'px' };
+    const size = () => { if (!f.isConnected) return removeEventListener('resize', size); const top = f.getBoundingClientRect().top; f.style.height = Math.max(520, innerHeight - Math.max(0, top) - 12) + 'px' };
     addEventListener('resize', size); requestAnimationFrame(size); setTimeout(size, 300);
     f.addEventListener('load', () => { size(); try { f.contentWindow.postMessage({ aideTheme: dark() ? 'dark' : 'light' }, '*') } catch (e) { } });
     return f;
   }
-  /* Small templates share one tab, side by side, each frame sized to its content. */
-  const SMALL = ['rueda', 'esfera', 'puntual', 'estadia', 'convite'];
-  A.templateSmall = SMALL;
-  addEventListener('message', e => { const d = e.data || {}; if (d.aideTpl !== 'h' || !d.slug) return; document.querySelectorAll('iframe.aide-tpl-sm[data-slug="' + d.slug + '"]').forEach(f => { f.style.height = Math.max(220, Math.min(d.h + 4, 900)) + 'px' }) });
-  A.views['tpl-tools'] = { title: 'Time tools', sub: 'Date picker, time dial, countdown, date range and invite', flush: true, render(root) {
-    const g = document.createElement('div'); g.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:10px;align-items:start;padding:2px';
-    SMALL.forEach(slug => { const it = LIST.find(x => x[0] === slug); const f = frame(slug, it ? it[1] : slug); f.className = 'aide-tpl aide-tpl-sm'; f.dataset.slug = slug; f.style.height = '420px'; f.onload = () => { try { f.contentWindow.postMessage({ aideTheme: dark() ? 'dark' : 'light' }, '*') } catch (e) { } }; g.append(f) });
-    root.append(g) } };
   LIST.forEach(([slug, name, sub]) => {
     A.views['tpl-' + slug] = { title: name, sub: sub, flush: true, render(root) { root.append(frame(slug, name)) } };
   });
