@@ -1747,8 +1747,10 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 .topbar h1, .topbar .sub, .topbar > div:has(> h1) { display: none !important; }
 .topbar:not(:has(button, .seg, input, select, a)) { display: none !important; }
 .topbar { padding: 6px 10px 4px !important; min-height: 0 !important; }
-.page, .page.flush { padding: 6px 8px 8px !important; }
-iframe.aide-tpl { border-radius: 14px; }
+.page, .page.flush { padding: 0 !important; }
+.main { background: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.app { gap: 10px !important; }
+iframe.aide-tpl { border-radius: 0; }
 </style>
 <script>
   // apply the saved theme before first paint (no flash)

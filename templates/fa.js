@@ -14,7 +14,7 @@
     'body{margin:0!important}' +
     'code,kbd,pre,.mono,[class*=mono]{font-family:ui-monospace,Menlo,monospace!important}' +
     '.aide-wide{max-width:none!important;width:100%!important;margin-left:0!important;margin-right:0!important}' +
-    '.aide-stage{background:transparent!important;padding:8px!important;min-height:0!important;height:auto!important}';
+    '.aide-stage{background:transparent!important;padding:0!important;min-height:0!important;height:auto!important}';
   document.head.appendChild(st);
   function fit() {
     var vw = innerWidth;
