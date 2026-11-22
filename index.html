@@ -1792,6 +1792,9 @@ iframe.aide-tpl { border-radius: 0; }
   .main { background: transparent !important; }
   .main { grid-column: 1 !important; grid-row: 2 !important; min-height: 0; min-width: 0; }
 }
+
+/* tabs without a page title (owner's choice) */
+html[data-route="repeats"] .topbar h1, html[data-route="repeats"] .topbar .sub, html[data-route="roadmap"] .topbar h1, html[data-route="roadmap"] .topbar .sub, html[data-route="tpl-lunario"] .topbar h1, html[data-route="tpl-lunario"] .topbar .sub, html[data-route="tpl-epoca"] .topbar h1, html[data-route="tpl-epoca"] .topbar .sub, html[data-route="tpl-turno"] .topbar h1, html[data-route="tpl-turno"] .topbar .sub, html[data-route="tpl-estadia"] .topbar h1, html[data-route="tpl-estadia"] .topbar .sub, html[data-route="tpl-itinerario"] .topbar h1, html[data-route="tpl-itinerario"] .topbar .sub, html[data-route="tpl-recurrencia"] .topbar h1, html[data-route="tpl-recurrencia"] .topbar .sub, html[data-route="tpl-convite"] .topbar h1, html[data-route="tpl-convite"] .topbar .sub { display: none !important; }
 </style>
 <script>
   // apply the saved theme before first paint (no flash)
@@ -7827,5 +7830,6 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   new MutationObserver(function () { if (!document.querySelector('.tb-extra')) build() }).observe(document.documentElement, { childList: true, subtree: true });
 })();
 </script>
+<script>(function(){function s(){document.documentElement.dataset.route=(location.hash.replace(/^#\//,'').split(/[?/]/)[0]||'today')}s();addEventListener('hashchange',s)})()</script>
 </body>
 </html>
