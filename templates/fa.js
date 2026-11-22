@@ -63,18 +63,33 @@
     });
     /* Roadmap-tab standard: 26px from the menu, about 32px from the right edge, 24px top and bottom;
        the main card grows to fill the page height; with no card the template is centred. */
+    var SMALL = ['rueda','puntual','esfera','convite','estadia','turno'];
+    if (SMALL.indexOf(location.pathname.split('/').slice(-2)[0]) >= 0) best = null;
     var css = 'html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important}' +
       'body{min-height:100vh!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:stretch!important;padding-block:24px!important;padding-inline-start:26px!important;padding-inline-end:14px!important;margin:0!important;box-sizing:border-box!important}';
     if (best) {
       for (var p = best.parentElement; p && p !== document.body; p = p.parentElement) p.classList.add('aide-chain');
+      var inner = [].filter.call(best.querySelectorAll('*'), function (c) { var cs = getComputedStyle(c), r = c.getBoundingClientRect(), R = best.getBoundingClientRect(); return (parseFloat(cs.borderTopLeftRadius) || 0) >= 8 && !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor) && r.width > R.width * .85 && r.height > R.height * .7 })[0];
+      if (inner) { best.style.setProperty('background', 'transparent', 'important'); best.style.setProperty('box-shadow', 'none', 'important'); best.style.setProperty('border-color', 'transparent', 'important'); best.style.setProperty('padding', '0', 'important') }
       best.classList.add('aide-main');
-      css += '.aide-chain{width:100%!important;max-width:none!important;min-height:0!important;height:auto!important;margin:0!important;padding-left:0!important;padding-right:0!important;padding-top:0!important;padding-bottom:0!important;box-sizing:border-box!important;flex:0 0 auto!important;overflow:visible!important}' +
-        '.aide-main{width:100%!important;max-width:none!important;min-width:0!important;overflow-x:auto!important;margin-left:0!important;margin-right:0!important;box-sizing:border-box!important;flex:0 0 auto!important}';
+      css += '.aide-chain{width:100%!important;max-width:none!important;min-height:0!important;height:auto!important;margin:0!important;padding-left:0!important;padding-right:0!important;padding-top:0!important;padding-bottom:0!important;box-sizing:border-box!important;flex:0 0 auto!important;overflow:visible!important;background:transparent!important;box-shadow:none!important;border:0!important;border-radius:0!important;filter:none!important}' +
+        '.aide-main{width:100%!important;max-width:none!important;min-width:0!important;overflow:visible!important;margin-left:0!important;margin-right:0!important;box-sizing:border-box!important;flex:0 0 auto!important}';
+      /* one card look for every template: the site's card radius, border, shadow and surface colour */
+      var cardR = '24px', cardS = '0 1px 0 rgba(255,255,255,.9) inset, 0 18px 40px -24px rgba(0,0,0,.25)', cardB = '1px solid rgba(0,0,0,.08)', cardBg = '';
+      try { var pc = parent.document.querySelector('.card, .main .panel, .page .card'); var pd = parent.getComputedStyle(parent.document.documentElement);
+        if (pc) { var q = parent.getComputedStyle(pc); cardR = q.borderTopLeftRadius || cardR; if (q.boxShadow && q.boxShadow !== 'none') cardS = q.boxShadow; if (q.borderTopStyle !== 'none') cardB = q.borderTopWidth + ' ' + q.borderTopStyle + ' ' + q.borderTopColor }
+        cardBg = pd.getPropertyValue('--t-surface').trim() } catch (e) { }
+      css += '.aide-main{border-radius:' + cardR + '!important;box-shadow:' + cardS + '!important;border:' + cardB + '!important;' + (cardBg ? 'background:' + cardBg + '!important;' : '') + 'overflow:hidden!important}' +
+        '.aide-main::before,.aide-main::after{box-shadow:none!important}';
       setTimeout(function () { // fill the remaining height with the main card
         var extra = document.body.scrollHeight - best.getBoundingClientRect().height, h = innerHeight - extra;
         if (h > best.getBoundingClientRect().height) best.style.setProperty('min-height', Math.floor(h) + 'px', 'important');
       }, 60);
-    } else css += 'body{justify-content:center!important;align-items:center!important}';
+    } else {
+      css += 'body{justify-content:center!important;align-items:center!important}';
+      [].forEach.call(document.querySelectorAll('body *'), function (el) { var cs = getComputedStyle(el), r = el.getBoundingClientRect();
+        if (!el.closest('svg') && (parseFloat(cs.borderTopLeftRadius) || 0) < 8 && r.width >= innerWidth * .3 && r.height >= 60 && !el.querySelector('canvas,img,button')) { el.style.setProperty('background', 'transparent', 'important'); el.style.setProperty('box-shadow', 'none', 'important') } });
+    }
     var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   }
 
@@ -241,7 +256,10 @@
           if (bgish) out = c[3] < .6 ? withA(ink, (tdark ? 1 - l : l) * 0 + .06) : (l > .97 || l < .08 ? tk('--t-surface2') : tk('--t-surface'));
           else if (inkish) out = withA(ink, c[3]);
           else out = withA(ink, Math.max(.35, Math.min(.7, c[3] * .6)));
-        } else if (v.n === accent || (acc && Math.abs(L(c) - L(colored[0].c)) < .02 && S(c) > .3)) out = withA(acc, c[3]);
+        } else if (/sombra|shadow|brillo|glow|halo/.test(v.n)) out = 'rgba(0,0,0,' + Math.min(.18, c[3]) + ')';
+        else if (/(^|-)(c\d|o|t|a|u|tono-\d|cat\d?)(-|$)/.test(v.n.replace(/^--[a-z]{2}-/, ''))) out = null;   // category colours keep their meaning
+        else if (L(c) > .8) out = tk('--t-accent-soft') || withA(acc, .12);
+        else out = withA(acc, c[3]);
         if (out) css += v.n + ':' + out + '!important;';
       });
     }
