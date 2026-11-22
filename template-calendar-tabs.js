@@ -4,18 +4,10 @@
   const A = window.Aide;
   if (!A || !A.views || !A.date || !A.ev) return;
   const D = A.date, E = A.ev, h = A.h;
-  const specs = [
-    ['template-anaquel','Anaquel','تقویم بِن‌تو و داشبورد تعاملی'],
-    ['template-convite','Convite','دعوت‌نامه و تأیید حضور'],
-    ['template-epoca','Época','مرور پیوسته سال تا روز'],
-    ['template-lunario','Lunario','تقویم ماهانه با جزئیات روز'],
-    ['template-parangon','Parangón','مقایسه دو بازه زمانی'],
-    ['template-semana','Semana','برنامه‌ریز هفتگی زمان‌محور'],
-    ['template-solape','Solape','تشخیص تداخل و واردکردن ICS'],
-    ['template-tregua','Tregua','وقفه موقت و تاریخ بازگشت'],
-    ['template-turno','Turno','انتخاب زمان آزاد و رزرو'],
-    ['template-vencimientos','Vencimientos','تقویم سررسید و هزینه‌ها']
-  ];
+  /* Template tabs. Removed 2026-11-22 at the owner's request (all were switched off).
+     To add a new template tab: add a line here  ['template-<slug>','<Name>','<Persian subtitle>'],
+     add a view A.views['template-<slug>'] below, and add the same id to SECTIONS in js/customizable-tabs.js. */
+  const specs = [];
   const state = A.ui.moxenDistinct || (A.ui.moxenDistinct = {});
   const esc = s => String(s == null ? '' : s);
   const st = (key, fallback) => {
