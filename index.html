@@ -2522,7 +2522,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 
   /* ONLINE-ONLY MODE: authentication and workspace data live on Cloudflare. */
   const ONLINE_API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
-  let onlineUser = null, onlineRole = null, onlineToken = null, onlineSaving = Promise.resolve(), onlinePreferencesSaving = Promise.resolve(), onlineUsersCache = [];
+  let onlineUser = null, onlineRole = null, onlineToken = (function () { try { return localStorage.getItem('aide.tok') || sessionStorage.getItem('aide.tok') || null } catch (e) { return null } })(), onlineSaving = Promise.resolve(), onlinePreferencesSaving = Promise.resolve(), onlineUsersCache = [];
   let onlineWorkspaceRevision = null, onlineBaseWorkspace = null, onlinePendingConflict = null;
   let onlinePreferencesRevision = null, onlineBasePreferences = null, onlinePendingPreferencesConflict = null;
   let syncRecoveryDialog = null, syncRecoveryDialogKind = null, legacyRecoveryDialog = null;
@@ -2578,7 +2578,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
       error.status = response.status; error.payload = result;
       throw error;
     }
-    if (result.token) onlineToken = result.token;
+    if (result.token) { onlineToken = result.token; try { const keep = !(body && body.rememberMe === false); localStorage.removeItem('aide.tok'); sessionStorage.removeItem('aide.tok'); (keep ? localStorage : sessionStorage).setItem('aide.tok', onlineToken) } catch (e) { } }
     return result;
   }
 
@@ -3000,7 +3000,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     onlinePreferencesSaving = task;
     return task;
   };
-  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; onlineWorkspaceRevision = null; onlineBaseWorkspace = null; onlinePendingConflict = null; onlinePreferencesRevision = null; onlineBasePreferences = null; onlinePendingPreferencesConflict = null; syncRecoveryDialog = null; syncRecoveryDialogKind = null; onlineSaving = Promise.resolve(); onlinePreferencesSaving = Promise.resolve(); cur = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
+  V.lock = () => { const pendingLogout = onlineToken ? onlineRequest('/api/logout', 'POST').catch(() => {}) : Promise.resolve(); onlineUser = null; onlineRole = null; onlineToken = null; try { localStorage.removeItem('aide.tok'); sessionStorage.removeItem('aide.tok') } catch (e) { } onlineWorkspaceRevision = null; onlineBaseWorkspace = null; onlinePendingConflict = null; onlinePreferencesRevision = null; onlineBasePreferences = null; onlinePendingPreferencesConflict = null; syncRecoveryDialog = null; syncRecoveryDialogKind = null; onlineSaving = Promise.resolve(); onlinePreferencesSaving = Promise.resolve(); cur = null; A.db.data = null; A.role = null; A.readOnly = false; return pendingLogout; };
   V.wipe = async () => { V.lock(); };
   V.users = () => onlineUsersCache.map(u => ({ name: u.username, role: u.role === 'admin' ? 'admin' : (u.role === 'ceo' ? 'manager' : 'user'), created: u.createdAt, id: u.id }));
   V.refreshUsers = async () => {
@@ -3059,7 +3059,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     const root = $('#login'); root.hidden = false; $('#app').hidden = true; root.replaceChildren();
     let mode = 'login';
     const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', autocorrect: 'off', spellcheck: 'false', inputmode: 'text', required: true, placeholder: 'Username' });
-    try { const vu = new URLSearchParams(location.search).get('u'); if (vu) user.value = vu.slice(0, 60) } catch (e) { }
+    try { const last = localStorage.getItem('aide.lastOnlineUser'); const vu = new URLSearchParams(location.search).get('u'); user.value = (last || vu || '').slice(0, 60) } catch (e) { }
     const password = h('input', { type: 'password', autocomplete: 'current-password', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', required: true, placeholder: 'Password' });
     const repeat = h('input', { type: 'password', autocomplete: 'new-password', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'Repeat password' });
     const rememberMe = h('input', { type: 'checkbox', checked: true });
@@ -3083,7 +3083,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
           if (pw !== repeat.value) throw new Error('The passwords do not match.');
           await onlineRequest('/api/register', 'POST', { username, password: pw, displayName: username });
         } else {
-          await onlineRequest('/api/login', 'POST', { username, password: pw, rememberMe: rememberMe.checked });
+          await onlineRequest('/api/login', 'POST', { username, password: pw, rememberMe: rememberMe.checked }); try { localStorage.setItem('aide.lastOnlineUser', username) } catch (e) { }
         }
         const me = await onlineRequest('/api/me');
         if (!me.user) throw new Error('The server did not create a valid session. Check the API configuration.');
