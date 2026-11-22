@@ -1,25 +1,25 @@
 /* AIDE · Template tabs (Moxen). Each template runs unchanged in its own frame, so its design and motion stay exact.
-   Tab names are Persian. To add one: copy the template folder to templates/<slug>/ and add a line to LIST.
+   Tab names are English (base language); Persian comes from the interface dictionary when the desk is set to فارسی. To add one: copy the template folder to templates/<slug>/ and add a line to LIST.
    Connections to the AIDE calendar data are added in a later step (see postMessage hook in frame()). */
 (function () {
   'use strict';
   const A = window.Aide; if (!A || !A.views) return;
   const LIST = [
-    ['lunario', 'تقویم ماهانه', 'رویدادهای چندروزه به‌صورت نوار روی ماه'],
-    ['semana', 'برنامه هفتگی', 'هفت ستون ساعتی با خط «اکنون» و جابه‌جایی رویدادها'],
-    ['epoca', 'نمای سال تا روز', 'بزرگ‌نمایی پیوسته از سال تا روز'],
-    ['parangon', 'مقایسه بازه‌ها', 'مقایسه‌ی دو بازه‌ی زمانی روی تقویم دوماهه'],
-    ['turno', 'رزرو وقت', 'انتخاب روز و ساعت آزاد برای ملاقات'],
-    ['vencimientos', 'سررسیدها', 'پرداخت‌ها و سررسیدهای ماه'],
-    ['solape', 'تداخل تقویم‌ها', 'خواندن فایل ICS و نمایش تداخل‌ها'],
-    ['estadia', 'انتخاب بازه', 'انتخاب تاریخ رفت و برگشت یا مرخصی'],
-    ['franjas', 'ساعات حضور', 'رنگ‌کردن ساعات حضور هفتگی'],
-    ['itinerario', 'برنامه فصلی', 'نقشه‌ی راه سه‌ماهه با نوارهای کشیدنی'],
-    ['recurrencia', 'تکرار رویداد', 'تنظیم تکرار با جمله‌ی خوانا و پیش‌نمایش تقویم'],
-    ['rueda', 'انتخاب تاریخ', 'چرخ روز، ماه و سال'],
-    ['esfera', 'تنظیم زمان', 'صفحه‌ی گرد انتخاب دقیقه'],
-    ['puntual', 'شمارش معکوس', 'زمان‌سنج نقطه‌ای تا شروع جلسه'],
-    ['convite', 'دعوت‌نامه جلسه', 'کارت دعوت با تأیید حضور']
+    ['lunario', 'Monthly calendar', 'Multi-day events as bars across the month'],
+    ['semana', 'Weekly planner', 'Seven hour columns with a “now” line and draggable events'],
+    ['epoca', 'Year to day', 'Smooth zoom from year to day'],
+    ['parangon', 'Compare periods', 'Compare two date ranges on a two-month calendar'],
+    ['turno', 'Book a time', 'Pick a day and a free time slot'],
+    ['vencimientos', 'Due dates', 'Payments and due dates of the month'],
+    ['solape', 'Calendar clashes', 'Read .ics files and show clashes'],
+    ['estadia', 'Date range', 'Pick a start and end date'],
+    ['franjas', 'Office hours', 'Paint weekly attendance hours'],
+    ['itinerario', 'Quarter plan', 'Three-month roadmap with draggable bars'],
+    ['recurrencia', 'Repeat rule', 'Set a repeat with a readable sentence and calendar preview'],
+    ['rueda', 'Date picker', 'Day, month and year wheel'],
+    ['esfera', 'Time dial', 'Round dial for picking minutes'],
+    ['puntual', 'Countdown', 'Dot timer until the meeting starts'],
+    ['convite', 'Meeting invite', 'Invitation card with RSVP']
   ];
   A.templateTabs = LIST;
   const base = (document.currentScript && document.currentScript.src) ? new URL('../templates/', document.currentScript.src).href : './templates/';
