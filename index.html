@@ -1795,6 +1795,30 @@ iframe.aide-tpl { border-radius: 0; }
 
 /* tabs without a page title (owner's choice) */
 html[data-route="repeats"] .topbar h1, html[data-route="repeats"] .topbar .sub, html[data-route="roadmap"] .topbar h1, html[data-route="roadmap"] .topbar .sub, html[data-route="tpl-lunario"] .topbar h1, html[data-route="tpl-lunario"] .topbar .sub, html[data-route="tpl-epoca"] .topbar h1, html[data-route="tpl-epoca"] .topbar .sub, html[data-route="tpl-turno"] .topbar h1, html[data-route="tpl-turno"] .topbar .sub, html[data-route="tpl-estadia"] .topbar h1, html[data-route="tpl-estadia"] .topbar .sub, html[data-route="tpl-itinerario"] .topbar h1, html[data-route="tpl-itinerario"] .topbar .sub, html[data-route="tpl-recurrencia"] .topbar h1, html[data-route="tpl-recurrencia"] .topbar .sub, html[data-route="tpl-convite"] .topbar h1, html[data-route="tpl-convite"] .topbar .sub { display: none !important; }
+
+/* ── Design polish (audit against Web Interface Guidelines, 2026-11-22) ──
+   one radius scale, one shadow scale, consistent spacing, visible focus, touch behaviour, number alignment. */
+:root { --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-pill: 999px;
+  --sh-1: 0 1px 0 var(--rim) inset, 0 4px 12px -8px var(--shadow-soft); --sh-2: 0 1px 0 var(--rim) inset, 0 14px 34px -20px var(--shadow-soft); }
+html { -webkit-tap-highlight-color: transparent; text-size-adjust: 100%; }
+button, a, [role=button], .btn, .seg button, input, select, textarea { touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--ink) !important; outline-offset: 2px !important; border-radius: inherit; }
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offset: 0 !important; }
+.sheet:focus-visible, .sn-panel:focus-visible { outline: 2px solid var(--ink) !important; }
+h1, h2, h3, .topbar h1 { text-wrap: balance; }
+p, .sub, small { text-wrap: pretty; }
+.num, time, .big, .tnum, td, .stat b, .stat strong { font-variant-numeric: tabular-nums; }
+.card { border-radius: var(--r-lg) !important; box-shadow: var(--sh-1) !important; }
+.btn { border-radius: var(--r-pill) !important; min-height: 44px; transition: background-color .15s, color .15s, box-shadow .15s, transform .12s; }
+.btn:active { transform: scale(.98); }
+.btn.sm { min-height: 36px; }
+.seg { border-radius: var(--r-pill) !important; } .seg button { border-radius: var(--r-pill) !important; min-height: 40px; }
+input[type=text], input[type=search], input[type=password], input[type=date], input[type=time], input[type=number], input[type=tel], input[type=email], select, textarea { border-radius: var(--r-md) !important; min-height: 44px; }
+select { background-color: var(--paper); color: var(--ink); }
+.page { overscroll-behavior: contain; }
+.flex > *, .row > *, .grow { min-width: 0; }
+.tb-circle:hover, .side .nav a:hover { transform: translateY(-1px); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 </style>
 <script>
   // apply the saved theme before first paint (no flash)
