@@ -1752,6 +1752,35 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 .app { gap: 10px !important; }
 iframe.aide-tpl { border-radius: 0; }
 .page.flush:has(> iframe.aide-tpl), .main:has(iframe.aide-tpl) { overflow: visible !important; }
+/* ── Top navigation (owner's request 2026-11-22, modelled on the Talmo video): menu moves from the side to the top ──
+   brand on the left · one rounded pill with all sections (scrolls sideways when they don't fit), active section is a filled pill ·
+   search pill, theme/notification/account circles on the right. Touch-sized (44px). Phones keep the bottom tab bar. */
+@media (min-width: 821px) {
+  .app { grid-template-columns: 1fr !important; grid-template-rows: auto 1fr !important; gap: 12px !important; }
+  .side { grid-column: 1 !important; grid-row: 1 !important; width: auto !important; max-width: 100% !important; min-width: 0 !important; position: relative !important; inset: auto !important; transform: none !important;
+    flex-direction: row !important; align-items: center !important; gap: 14px !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; height: auto !important; min-height: 0 !important; overflow: visible !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .side .brand { flex: none; padding: 0 !important; margin: 0 !important; }
+  .side .brand-mark { width: 44px; height: 44px; border-radius: 50%; background: var(--ink) !important; color: var(--canvas, #fff) !important; }
+  .side > .btn { order: 3; flex: 0 1 220px; min-width: 120px; margin: 0 !important; min-height: 46px; border-radius: 999px !important; background: var(--paper) !important; box-shadow: 0 1px 0 var(--rim) inset, 0 6px 18px -12px var(--shadow-soft); }
+  .side .nav { order: 2; flex: 1 1 auto; min-width: 0; display: flex !important; flex-direction: row !important; flex-wrap: nowrap; gap: 2px; padding: 6px !important; margin: 0 !important; border-radius: 999px; background: var(--paper); box-shadow: 0 1px 0 var(--rim) inset, 0 10px 26px -16px var(--shadow-soft); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+  .side .nav::-webkit-scrollbar { display: none; }
+  .side .nav a { flex: none; white-space: nowrap; min-height: 44px; padding: 0 16px !important; gap: 8px !important; border-radius: 999px !important; scroll-snap-align: start; }
+  .side .nav a[hidden] { display: none !important; }
+  .side .nav a[aria-current=page] { background: var(--ink) !important; color: var(--canvas, #fff) !important; box-shadow: 0 8px 18px -10px var(--shadow) !important; }
+  .side .nav a[aria-current=page] .icon { color: inherit !important; }
+  .side .nav a .badge { position: static !important; margin-inline-start: 2px; }
+  .side .side-foot { order: 4; flex: none; margin: 0 !important; padding: 0 !important; border: 0 !important; display: flex !important; align-items: center; gap: 8px; }
+  .side .side-foot .who .grow { display: none; }
+  .side .side-foot .avatar { width: 44px; height: 44px; border-radius: 50%; }
+  .side .side-foot .btn, .side .side-foot button { min-height: 44px; border-radius: 999px !important; }
+  .side > .btn small, .side > .btn .muted { display: none !important; }
+  .side > .btn { flex-basis: 150px !important; }
+  .side .side-foot .btn span:not(.icon), .side .side-foot button > span { display: none !important; }
+  .side .side-foot .btn, .side .side-foot button { width: 44px; padding: 0 !important; justify-content: center; font-size: 0 !important; gap: 0 !important; }
+  .side .side-foot .btn .icon, .side .side-foot button .icon { width: 18px; height: 18px; }
+  .side .side-foot button:not(:has(.icon)) { font-size: 12px !important; }
+  .main { grid-column: 1 !important; grid-row: 2 !important; min-height: 0; min-width: 0; }
+}
 </style>
 <script>
   // apply the saved theme before first paint (no flash)
