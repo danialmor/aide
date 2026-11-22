@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aide · Flip clock</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /> -->
+</head>
+
+
+
+<body>
+
+    <audio id="flipSound" preload="auto">
+        <source src="assets/flip-sound1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div class="loader-wrapper">
+        <span class="loader"></span>
+    </div>
+
+    <script>
+        window.addEventListener("load", function () {
+            setTimeout(function () {
+                var loaderWrapper = document.querySelector(".loader-wrapper");
+                loaderWrapper.style.transition = "opacity 0.1s"; // Optional: Add a CSS transition for a fade-out effect
+                loaderWrapper.style.opacity = "0";
+                loaderWrapper.remove()
+                // Set opacity to 0 to fade out
+            }, 1000); // 500 milliseconds (0.5 seconds) delay
+        });
+    </script>
+
+    <div class="wrapper">
+        <div class="btn" id="nav-btn" title="Back to desk" aria-label="Back to desk">&#x2715;</div>
+        <div class="btn" id="lightMode-icon" title="Light / dark">&#x25D0;</div>
+        <div class="seconds-btn btn" title="Seconds">s</div>
+        <div class="ampm-btn btn">24</div>
+    </div>
+
+    <section class="container" id="dynamic-content">
+        <div class="clock" id="clock-content">
+            <div class="container-segment">
+                <div class="headings">
+                    <p></p>
+                    <div class="flip-card left" hours-tens>
+                        <div class="top">0</div>
+                        <div class="bottom">0</div>
+                    </div>
+                    <div class="flip-card right" hours-units>
+                        <div class="top">0</div>
+                        <div class="bottom">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="colon">
+                :
+            </div>
+
+            <div class="container-segment">
+                <div class="headings">
+                    <p></p>
+                    <div class="flip-card left" minutes-tens>
+                        <div class="top">0</div>
+                        <div class="bottom">0</div>
+                    </div>
+                    <div class="flip-card right" minutes-units>
+                        <div class="top">0</div>
+                        <div class="bottom">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-segment last ">
+                <div class="ampm">
+                    <div class="flip-card card-ampm" am-pm>
+                        <div class="top ">AM</div>
+                        <div class="bottom ">AM</div>
+                    </div>
+                </div>
+                <div class="headings seconds-segment" id="seconds-segment">
+                    <p></p>
+                    <div class="flip-card left" seconds-tens>
+                        <div class="top">0</div>
+                        <div class="bottom">0</div>
+                    </div>
+                    <div class="flip-card right" seconds-units>
+                        <div class="top">0</div>
+                        <div class="bottom">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="date">
+            <p>Wednesday, 23 Aug</p>
+        </div>
+    </section>
+
+</body>
+
+</html>

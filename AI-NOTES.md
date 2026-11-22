@@ -69,3 +69,6 @@ the design decisions and anything that speeds up the next session.**
 ## 2026-11-22 — Brand "A" menu (top bar)
 - In top-bar mode, Settings, Themes, language (EN/فا) and Sign out are hidden from the bar and shown in a vertical drop-down under the brand "A" (`.tb-drop`, script near end of index.html). Side-menu mode is unchanged.
 - Pending (owner request): secretary keeps this full calendar; other users get an independent calendar per platform in their own desk; secretary can pick any user to view their work calendar.
+
+## 2026-11-22 — Original FlipClock
+- Lock now shows the owner's original FlipClock (flipclock/, from FlipClock-main.zip by imvbh) in a full-screen iframe. Sidebar, external icon fonts and social links removed; ✕ button posts `aide-flip-close` to return. Double-tap = full screen (original behaviour).
