@@ -202,7 +202,48 @@
     for (var i = 0; i < keys.length; i++) if (keys[i].length > 6 && out.indexOf(keys[i]) >= 0) out = out.split(keys[i]).join(P[keys[i]]);
     out = out.replace(reW, function (m, pre, w) { return pre + W[w] });
     out = out.replace(/ {2,}/g, ' ').replace(/ ([,.:·])/g, '$1');
+    out = shamsi(out);
     return FA ? digits(out) : out;
+  }
+
+  /* ---------- 4. One calendar: when the desk is set to Shamsi, Gregorian dates in the template are shown in Shamsi ---------- */
+  var JAL = false; try { JAL = parent.Aide && parent.Aide.settings().calSystem === 'jalali' } catch (e) { }
+  var GM = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  var GES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var GMS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var JM_EN = ['Farvardin','Ordibehesht','Khordad','Tir','Mordad','Shahrivar','Mehr','Aban','Azar','Dey','Bahman','Esfand'];
+  var JM_FA = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+  function g2j(gy, gm, gd) { var g = [0,31,59,90,120,151,181,212,243,273,304,334], gy2 = gm > 2 ? gy + 1 : gy;
+    var days = 355666 + 365 * gy + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) + gd + g[gm - 1];
+    var jy = -1595 + 33 * Math.floor(days / 12053); days %= 12053; jy += 4 * Math.floor(days / 1461); days %= 1461;
+    if (days > 365) { jy += Math.floor((days - 1) / 365); days = (days - 1) % 365 }
+    var jm = days < 186 ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30), jd = 1 + (days < 186 ? days % 31 : (days - 186) % 30); return [jy, jm, jd] }
+  function mIdx(w) { w = (w || '').toLowerCase().replace(/\.$/, ''); var i = GM.indexOf(w); if (i < 0) i = GES.indexOf(w); if (i < 0) i = GMS.indexOf(w.slice(0, 3)); if (i < 0) i = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(w.slice(0, 3)); return i }
+  var YEAR = new Date().getFullYear();
+  function jName(m) { return (FA ? JM_FA : JM_EN)[m - 1] }
+  function num(n) { return FA ? String(n).replace(/\d/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[d] }) : String(n) }
+  var MW = '(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|ene|abr|ago|dic)';
+  function shamsi(str) {
+    if (!JAL || !str) return str;
+    // 14 October 2026 / 14 Oct
+    str = str.replace(new RegExp('\\b(\\d{1,2})\\s+' + MW + '\\.?(?:\\s+(\\d{4}))?\\b', 'g'), function (m, d, mo, y) { var i = mIdx(mo); if (i < 0) return m; var j = g2j(+(y || YEAR), i + 1, +d); return num(j[2]) + ' ' + jName(j[1]) + (y ? ' ' + num(j[0]) : '') });
+    // October 14, 2026
+    str = str.replace(new RegExp('\\b' + MW + '\\.?\\s+(\\d{1,2})(?:,\\s*(\\d{4}))?\\b', 'g'), function (m, mo, d, y) { var i = mIdx(mo); if (i < 0) return m; var j = g2j(+(y || YEAR), i + 1, +d); return num(j[2]) + ' ' + jName(j[1]) + (y ? ' ' + num(j[0]) : '') });
+    // October 2026 (month header) → the two Shamsi months it spans
+    str = str.replace(new RegExp('\\b' + MW + '\\s+(\\d{4})\\b', 'g'), function (m, mo, y) { var i = mIdx(mo); if (i < 0) return m; var a = g2j(+y, i + 1, 1), b = g2j(+y, i + 1, 28); return jName(a[1]) + ' – ' + jName(b[1]) + ' ' + num(b[0]) });
+    return str;
+  }
+  // day cells: their label holds the full date, so the visible day number can be converted exactly
+  function shamsiCells(rootEl) {
+    if (!JAL) return;
+    [].forEach.call((rootEl || document).querySelectorAll('[aria-label],[title],[data-fecha],[datetime]'), function (el) {
+      if (el.dataset.jd) return;
+      var lab = el.getAttribute('data-glabel') || el.getAttribute('aria-label') || el.getAttribute('title') || el.getAttribute('data-fecha') || el.getAttribute('datetime') || '';
+      var m = new RegExp('(\\d{1,2})\\s+(?:de\\s+)?' + MW + '\\.?\\s+(?:de\\s+)?(\\d{4})', 'i').exec(lab), iso = /(\d{4})-(\d{2})-(\d{2})/.exec(lab), gy, gm, gd;
+      if (m) { gd = +m[1]; gm = mIdx(m[2]) + 1; gy = +m[3] } else if (iso) { gy = +iso[1]; gm = +iso[2]; gd = +iso[3] } else return;
+      var j = g2j(gy, gm, gd), w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n;
+      while ((n = w.nextNode())) { if (n.nodeValue.trim() === String(gd) || n.nodeValue.trim() === num(gd)) { n.nodeValue = n.nodeValue.replace(/\S+/, num(j[2])); el.dataset.jd = '1'; break } }
+    });
   }
   var busy = false;
   function walk(node) {
@@ -211,11 +252,11 @@
     ['placeholder', 'aria-label', 'title', 'alt'].forEach(function (a) { var v = node.getAttribute(a); if (v) { var n = tr(v); if (n !== v) node.setAttribute(a, n) } });
     for (var c = node.firstChild; c; c = c.nextSibling) walk(c);
   }
-  function run() { busy = true; try { walk(document.body) } finally { busy = false } }
+  function run() { busy = true; try { shamsiCells(document); walk(document.body) } finally { busy = false } }
   root.lang = LANG; if (FA) { var fst = document.createElement('style'); fst.textContent = 'body{font-family:Vazirmatn,system-ui,sans-serif!important}body *{font-family:inherit}code,kbd,pre,[class*=mono]{font-family:ui-monospace,Menlo,monospace!important}'; document.head.appendChild(fst) }
   var mo = new MutationObserver(function (ms) {
     if (busy) return; busy = true;
-    try { ms.forEach(function (m) { if (m.type === 'characterData') walk(m.target); else if (m.type === 'attributes') walk(m.target); else m.addedNodes.forEach(walk) }) } finally { busy = false }
+    try { if (JAL) shamsiCells(document); ms.forEach(function (m) { if (m.type === 'characterData') walk(m.target); else if (m.type === 'attributes') walk(m.target); else m.addedNodes.forEach(walk) }) } finally { busy = false }
   });
   function start() { run(); fit(); mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'title', 'alt'] }); setTimeout(fit, 600); addEventListener('resize', fit) }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
