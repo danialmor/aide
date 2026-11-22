@@ -79,3 +79,7 @@ the design decisions and anything that speeds up the next session.**
   - brief: one-line day summary (meetings, next, overlaps, requests, overdue/due tasks, free slot, projects behind).
 - Today board: new cards `brief` and `projects` (in the Widgets picker and manager board). A single tap on any card now opens its page (was double-click only); Projects opens VERTEX Project Control.
 - CEO page: Smart brief at the top and Project control at the bottom; the secretary turns each on/off in the CEO view tab (`settings.ceoTiles`). Worker returns `ceoTiles` (needs worker redeploy).
+
+## 2026-11-22 — CEO page layout (phone / desktop)
+- CEO view tab: Phone | Desktop switch. Per mode the secretary ticks which tiles show (stats, brief, today, next, reminders, projects), reorders with arrows; desktop also full width vs 1 column. Stored in `settings.ceoLayout`; worker returns it (redeploy needed).
+- ceo.html picks phone layout under 700px, desktop above; the preview passes the layout in the hash (`&pv=`) so it updates at once. Phone preview is a 410px phone frame beside the settings.

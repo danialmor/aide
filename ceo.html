@@ -50,6 +50,7 @@ h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-he
 .empty{color:var(--soft);padding:18px 0 22px}
 .err{max-width:480px;margin:18vh auto;text-align:center;background:var(--card);border-radius:var(--r);padding:28px}
 .smart{margin:0 0 16px;padding-bottom:16px}.smart .brief{margin:6px 0 0;font-size:17px;line-height:1.7}.proj{margin-top:16px;padding-bottom:16px}.proj .sp-row{font-size:14px;padding:6px 0;grid-template-columns:minmax(90px,1fr) 3fr 44px 90px}
+.tiles{display:grid;gap:16px;align-items:start}.tiles.desktop{grid-template-columns:repeat(3,minmax(0,1fr))}.tiles.desktop .wide{grid-column:1/-1}.tiles .card,.tiles .stats{margin:0}.tiles.phone .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
 .foot{color:var(--faint);font-size:12.5px;margin-top:18px;text-align:center}
 [dir=rtl] .now::before{inset-inline-start:-18px}
 @media (max-width:980px){.grid{grid-template-columns:1fr 1fr}.grid .rem{grid-column:1/-1}}
@@ -104,8 +105,18 @@ h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-he
       '<div class="body"><div><span class="chip ' + esc(e.cat || 'meeting') + '">' + esc(T(CAT[e.cat] || 'Meeting')) + '</span></div><div class="ttl" dir="auto">' + esc(e.title || '—') + '</div>' +
       '<div class="meta" dir="auto">' + [e.loc ? esc(e.loc) : '', who.length ? T('with') + ' ' + esc(who.join('، ')) : ''].filter(Boolean).join(' · ') + '</div></div></div>';
   }
+  var KEYS = ['stats', 'brief', 'today', 'next', 'reminders', 'projects'];
+  var DEF = { phone: { order: ['brief', 'stats', 'today', 'reminders', 'next', 'projects'], hide: {}, wide: {} }, desktop: { order: KEYS.slice(), hide: {}, wide: { stats: 1, brief: 1, projects: 1 } } };
+  function layoutFor(mode) {
+    var pv = null; try { pv = JSON.parse(decodeURIComponent((location.hash.match(/pv=([^&]+)/) || [])[1] || 'null')) } catch (e) { }
+    var src = (pv || D.ceoLayout || {})[mode] || {}, d = DEF[mode], old = D.ceoTiles || {};
+    var order = (src.order || d.order).filter(function (k) { return KEYS.indexOf(k) >= 0 }); KEYS.forEach(function (k) { if (order.indexOf(k) < 0) order.push(k) });
+    var hide = src.hide || Object.assign({}, d.hide, old.brief === false ? { brief: 1 } : {}, old.projects === false ? { projects: 1 } : {});
+    return { order: order, hide: hide, wide: src.wide || d.wide };
+  }
+  var _rz; addEventListener('resize', function () { clearTimeout(_rz); _rz = setTimeout(function () { if (D) render() }, 200) });
+  addEventListener('hashchange', function () { if (D) render() });
   function render() {
-    var tiles = D.ceoTiles || { brief: true, projects: true }; if (tiles.projects !== false && window.AideSmart && !AideSmart.projects) AideSmart.onProjects(render);
     LANG = D.lang === 'fa' ? 'fa' : 'en'; document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'fa' ? 'rtl' : 'ltr';
     var today = new Date(); today.setHours(0, 0, 0, 0);
     var nowMin = new Date().getHours() * 60 + new Date().getMinutes();
@@ -114,18 +125,23 @@ h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-he
     var tasks = (D.tasks || []).slice().sort(function (a, b) { return (a.due || '9') < (b.due || '9') ? -1 : 1 });
     var nextEv = todays.filter(function (e) { return !e.allDay && e.start >= nowMin })[0];
     var h = new Date().getHours(), greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    var SEC = {
+      stats: function () { return '<div class="stats">' + '<div class="stat"><small>' + T('Meetings today') + '</small><b>' + n(todays.length) + '</b></div><div class="stat"><small>' + T('This week') + '</small><b>' + n(week + todays.length) + '</b></div>' + '<div class="stat"><small>' + T('Reminders open') + '</small><b>' + n(tasks.length) + '</b></div><div class="stat"><small>' + T('Next') + '</small><b style="font-size:24px">' + (nextEv ? hm(nextEv.start) : '—') + '</b></div></div>' },
+      brief: function () { return window.AideSmart ? '<section class="card smart"><h2>' + T('Smart brief') + '</h2><p class="brief" dir="auto">' + esc(AideSmart.brief({ todays: todays, nowMin: nowMin, due: tasks.filter(function (t) { return t.due && parse(t.due) <= today }).length, overdue: tasks.filter(function (t) { return t.due && parse(t.due) < today }).length }, LANG === 'fa')) + '</p></section>' : '' },
+      today: function () { return '<section class="card"><h2>' + T('Today') + '</h2><p class="hint">' + esc(dayLabel(today)) + '</p>' + (todays.length ? todays.map(function (e) { return evHTML(e, nextEv === e) }).join('') : '<p class="empty">' + T('Nothing scheduled.') + '</p>') + '</section>' },
+      next: function () { return '<section class="card"><h2>' + T('Next days') + '</h2><p class="hint">' + T('Next 14 days') + '</p>' + (upcoming || '<p class="empty">' + T('Nothing scheduled.') + '</p>') + '</section>' },
+      reminders: function () { return '<section class="card rem"><h2>' + T('Reminders') + '</h2><p class="hint"></p>' + (tasks.length ? tasks.map(function (t) { var od = t.due && parse(t.due) < today; return '<div class="task"><span class="dot p-' + esc(t.pri || '') + '"></span><div><div class="ttl" dir="auto">' + esc(t.title) + '</div><div class="meta">' + (t.due ? (od ? T('overdue') : T('due')) + ' · ' + esc(dayLabel(parse(t.due))) : '') + (t.owner ? ' · ' + esc(t.owner) : '') + '</div></div></div>' }).join('') : '<p class="empty">' + T('No open reminders.') + '</p>') + '</section>' },
+      projects: function () { return window.AideSmart ? '<section class="card proj"><h2>' + T('Project control') + '</h2><p class="hint">' + (AideSmart.projects ? T('Actual progress · the tick marks where it should be today') + ' · ' + AideSmart.projects.total + ' ' + T('projects') + ' · ' + AideSmart.projects.late + ' ' + T('behind') : '') + '</p>' + AideSmart.projectRows(99, LANG === 'fa') + '</section>' : '' }
+    };
+    var mode = innerWidth < 700 ? 'phone' : 'desktop', L = layoutFor(mode);
+    if (L.order.indexOf('projects') >= 0 && !L.hide.projects && window.AideSmart && !AideSmart.projects) AideSmart.onProjects(render);
+    function tilesHTML() { return '<div class="tiles ' + mode + '">' + L.order.filter(function (k) { return SEC[k] && !L.hide[k] }).map(function (k) { return '<div class="tile t-' + k + (L.wide[k] ? ' wide' : '') + '">' + SEC[k]() + '</div>' }).join('') + '</div>' }
     app.innerHTML =
       '<header><div class="mark">' + esc((D.name || 'A').trim().charAt(0).toUpperCase()) + '</div><div class="who"><b dir="auto">' + esc(D.name || 'Executive') + '</b><small dir="auto">' + esc(D.title || T('Read-only view prepared by your assistant')) + '</small></div><span class="sp"></span>' +
       '<div class="seg" role="tablist" aria-label="Filter">' + ['all', 'work', 'personal'].map(function (v) { return '<button type="button" data-v="' + v + '" aria-pressed="' + (view === v) + '">' + T(v === 'all' ? 'All' : v === 'work' ? 'Work' : 'Personal') + '</button>' }).join('') + '</div>' +
       '<button class="pill dark" type="button" id="rf">' + T('Refresh') + '</button></header>' +
       '<h1>' + T(greet) + (D.name ? ', ' + esc(D.name.split(' ')[0]) : '') + '</h1><p class="lead">' + esc(dayLabel(today)) + '</p>' +
-      '<div class="stats"><div class="stat"><small>' + T('Meetings today') + '</small><b>' + n(todays.length) + '</b></div><div class="stat"><small>' + T('This week') + '</small><b>' + n(week + todays.length) + '</b></div>' +
-      '<div class="stat"><small>' + T('Reminders open') + '</small><b>' + n(tasks.length) + '</b></div><div class="stat"><small>' + T('Next') + '</small><b style="font-size:24px">' + (nextEv ? hm(nextEv.start) : '—') + '</b></div></div>' +
-      (tiles.brief !== false && window.AideSmart ? '<section class="card smart"><h2>' + T('Smart brief') + '</h2><p class="brief" dir="auto">' + esc(AideSmart.brief({ todays: todays, nowMin: nowMin, due: tasks.filter(function (t) { return t.due && parse(t.due) <= today }).length, overdue: tasks.filter(function (t) { return t.due && parse(t.due) < today }).length }, LANG === 'fa')) + '</p></section>' : '') +
-      '<div class="grid"><section class="card"><h2>' + T('Today') + '</h2><p class="hint">' + esc(dayLabel(today)) + '</p>' + (todays.length ? todays.map(function (e) { return evHTML(e, nextEv === e) }).join('') : '<p class="empty">' + T('Nothing scheduled.') + '</p>') + '</section>' +
-      '<section class="card"><h2>' + T('Next days') + '</h2><p class="hint">' + T('Next 14 days') + '</p>' + (upcoming || '<p class="empty">' + T('Nothing scheduled.') + '</p>') + '</section>' +
-      '<section class="card rem"><h2>' + T('Reminders') + '</h2><p class="hint"></p>' + (tasks.length ? tasks.map(function (t) { var od = t.due && parse(t.due) < today; return '<div class="task"><span class="dot p-' + esc(t.pri || '') + '"></span><div><div class="ttl" dir="auto">' + esc(t.title) + '</div><div class="meta">' + (t.due ? (od ? T('overdue') : T('due')) + ' · ' + esc(dayLabel(parse(t.due))) : '') + (t.owner ? ' · ' + esc(t.owner) : '') + '</div></div></div>' }).join('') : '<p class="empty">' + T('No open reminders.') + '</p>') + '</section></div>' +
-      (tiles.projects !== false && window.AideSmart ? '<section class="card proj"><h2>' + T('Project control') + '</h2><p class="hint">' + (AideSmart.projects ? T('Actual progress · the tick marks where it should be today') + ' · ' + AideSmart.projects.total + ' ' + T('projects') + ' · ' + AideSmart.projects.late + ' ' + T('behind') : '') + '</p>' + AideSmart.projectRows(99, LANG === 'fa') + '</section>' : '') +
+      tilesHTML() +
       '<p class="foot">' + T('Read-only view prepared by your assistant') + ' · ' + T('Updated') + ' ' + hm(nowMin) + '</p>';
     app.querySelectorAll('.seg button').forEach(function (b) { b.onclick = function () { view = b.dataset.v; render() } });
     document.getElementById('rf').onclick = load;
