@@ -23,6 +23,11 @@
         try { await A.api('/api/ceo-link', 'DELETE'); localStorage.removeItem(KEY); A.route() } catch (e) { A.toast && A.toast('Could not turn off the link.') } } }, A.ico('trash'), h('span', null, 'Turn off'));
       box.append(h('b', null, 'Private link for the CEO'), status, url, h('div', { class: 'row wrap', style: { gap: '8px' } }, make, copy, open, revoke));
       root.append(box);
+      const S = A.settings(), ct = S.ceoTiles || (S.ceoTiles = { brief: true, projects: true });
+      const tg = (k, label, hint) => h('label', { class: 'row', style: { gap: '10px', alignItems: 'center', cursor: 'pointer' } }, h('input', { type: 'checkbox', checked: ct[k] !== false, onChange: e => { ct[k] = e.target.checked; A.save('settings'); A.toast && A.toast('Saved. The CEO page shows it on the next refresh.'); } }), h('span', null, h('b', null, label), h('br'), h('small', { class: 'muted' }, hint)));
+      root.append(h('div', { class: 'card', style: { padding: '18px', display: 'grid', gap: '12px', marginBottom: '14px' } }, h('b', null, 'Smart tiles on the CEO page'),
+        tg('brief', 'Smart brief', 'One-line summary of the day: meetings, overlaps, reminders, projects behind plan.'),
+        tg('projects', 'Project control', 'Status of every project from the Project Control dashboard (actual vs planned progress), at the bottom of the page.')));
       if (tok) {
         const f = h('iframe', { src: linkFor(tok), title: 'CEO view preview', style: { width: '100%', height: 'calc(100dvh - 330px)', minHeight: '520px', border: '0', borderRadius: '24px', background: 'transparent' } });
         root.append(f);

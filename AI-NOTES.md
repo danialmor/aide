@@ -72,3 +72,10 @@ the design decisions and anything that speeds up the next session.**
 
 ## 2026-11-22 — Original FlipClock
 - Lock now shows the owner's original FlipClock (flipclock/, from FlipClock-main.zip by imvbh) in a full-screen iframe. Sidebar, external icon fonts and social links removed; ✕ button posts `aide-flip-close` to return. Double-tap = full screen (original behaviour).
+
+## 2026-11-22 — Smart tiles
+- `js/smart-tiles.js` (window.AideSmart), used by index.html and ceo.html:
+  - projects: reads public `VERTEX/msp-bi/data/store/pinfo.json` (Project Control). planned % = elapsed share of start→finish; state late (<-15 pts), watch (<-5), ok, soon (not started), done.
+  - brief: one-line day summary (meetings, next, overlaps, requests, overdue/due tasks, free slot, projects behind).
+- Today board: new cards `brief` and `projects` (in the Widgets picker and manager board). A single tap on any card now opens its page (was double-click only); Projects opens VERTEX Project Control.
+- CEO page: Smart brief at the top and Project control at the bottom; the secretary turns each on/off in the CEO view tab (`settings.ceoTiles`). Worker returns `ceoTiles` (needs worker redeploy).

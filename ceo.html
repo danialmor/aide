@@ -49,6 +49,7 @@ h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-he
 .dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none;background:var(--faint)}.dot.p-now{background:#d6453b}.dot.p-plan{background:var(--ink)}
 .empty{color:var(--soft);padding:18px 0 22px}
 .err{max-width:480px;margin:18vh auto;text-align:center;background:var(--card);border-radius:var(--r);padding:28px}
+.smart{margin:0 0 16px;padding-bottom:16px}.smart .brief{margin:6px 0 0;font-size:17px;line-height:1.7}.proj{margin-top:16px;padding-bottom:16px}.proj .sp-row{font-size:14px;padding:6px 0;grid-template-columns:minmax(90px,1fr) 3fr 44px 90px}
 .foot{color:var(--faint);font-size:12.5px;margin-top:18px;text-align:center}
 [dir=rtl] .now::before{inset-inline-start:-18px}
 @media (max-width:980px){.grid{grid-template-columns:1fr 1fr}.grid .rem{grid-column:1/-1}}
@@ -58,6 +59,7 @@ h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-he
 </head>
 <body>
 <div class="wrap" id="app"><p class="empty">Loading…</p></div>
+<script src="./js/smart-tiles.js?v=1"></script>
 <script>
 (function () {
   'use strict';
@@ -65,7 +67,7 @@ h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-he
   var token = (location.hash.match(/k=([0-9a-f]{48})/) || [])[1] || (new URLSearchParams(location.search).get('k') || '');
   var app = document.getElementById('app'), D = null, view = 'all', LANG = 'en';
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] }) };
-  var FA = { 'Today': 'امروز', 'Next days': 'روزهای آینده', 'Next 14 days': '۱۴ روز آینده', 'Reminders': 'یادآوری‌ها', 'All': 'همه', 'Work': 'کاری', 'Personal': 'شخصی', 'Meetings today': 'جلسه‌های امروز', 'This week': 'این هفته', 'Reminders open': 'یادآوری باز', 'Next': 'بعدی', 'Nothing scheduled.': 'برنامه‌ای ثبت نشده.', 'No open reminders.': 'یادآوری بازی نیست.', 'Read-only view prepared by your assistant': 'نمای فقط‌خواندنی که دستیار شما آماده کرده است', 'all day': 'تمام روز', 'Refresh': 'به‌روزرسانی', 'overdue': 'گذشته', 'due': 'سررسید', 'Good morning': 'صبح بخیر', 'Good afternoon': 'عصر بخیر', 'Good evening': 'شب بخیر', 'Meeting': 'جلسه', 'Visit': 'بازدید', 'Call': 'تماس', 'Travel': 'سفر', 'Focus': 'تمرکز', 'Out of office': 'خارج از دفتر', 'with': 'با', 'Updated': 'به‌روزشده', 'This link is no longer active.': 'این لینک دیگر فعال نیست.', 'Ask your assistant for a new link.': 'از دستیارتان لینک تازه بخواهید.', 'Could not load. Check the connection and try again.': 'بارگیری نشد. اتصال را بررسی کنید و دوباره تلاش کنید.' };
+  var FA = { 'Today': 'امروز', 'Next days': 'روزهای آینده', 'Next 14 days': '۱۴ روز آینده', 'Reminders': 'یادآوری‌ها', 'All': 'همه', 'Work': 'کاری', 'Personal': 'شخصی', 'Meetings today': 'جلسه‌های امروز', 'This week': 'این هفته', 'Reminders open': 'یادآوری باز', 'Next': 'بعدی', 'Nothing scheduled.': 'برنامه‌ای ثبت نشده.', 'No open reminders.': 'یادآوری بازی نیست.', 'Read-only view prepared by your assistant': 'نمای فقط‌خواندنی که دستیار شما آماده کرده است', 'all day': 'تمام روز', 'Refresh': 'به‌روزرسانی', 'overdue': 'گذشته', 'due': 'سررسید', 'Good morning': 'صبح بخیر', 'Good afternoon': 'عصر بخیر', 'Good evening': 'شب بخیر', 'Meeting': 'جلسه', 'Visit': 'بازدید', 'Call': 'تماس', 'Travel': 'سفر', 'Focus': 'تمرکز', 'Out of office': 'خارج از دفتر', 'with': 'با', 'Updated': 'به‌روزشده', 'This link is no longer active.': 'این لینک دیگر فعال نیست.', 'Ask your assistant for a new link.': 'از دستیارتان لینک تازه بخواهید.', 'Could not load. Check the connection and try again.': 'بارگیری نشد. اتصال را بررسی کنید و دوباره تلاش کنید.', 'Smart brief': 'خلاصهٔ هوشمند', 'Project control': 'کنترل پروژه', 'Actual progress · the tick marks where it should be today': 'پیشرفت واقعی · خط کوچک جایی است که امروز باید باشد', 'projects': 'پروژه', 'behind': 'عقب از برنامه' };
   var T = function (s) { return LANG === 'fa' && FA[s] ? FA[s] : s };
   var CAT = { meeting: 'Meeting', visit: 'Visit', call: 'Call', travel: 'Travel', personal: 'Personal', focus: 'Focus', away: 'Out of office' };
   /* dates: local ISO, Shamsi when the desk uses it */
@@ -103,6 +105,7 @@ h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-he
       '<div class="meta" dir="auto">' + [e.loc ? esc(e.loc) : '', who.length ? T('with') + ' ' + esc(who.join('، ')) : ''].filter(Boolean).join(' · ') + '</div></div></div>';
   }
   function render() {
+    var tiles = D.ceoTiles || { brief: true, projects: true }; if (tiles.projects !== false && window.AideSmart && !AideSmart.projects) AideSmart.onProjects(render);
     LANG = D.lang === 'fa' ? 'fa' : 'en'; document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'fa' ? 'rtl' : 'ltr';
     var today = new Date(); today.setHours(0, 0, 0, 0);
     var nowMin = new Date().getHours() * 60 + new Date().getMinutes();
@@ -118,9 +121,11 @@ h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-he
       '<h1>' + T(greet) + (D.name ? ', ' + esc(D.name.split(' ')[0]) : '') + '</h1><p class="lead">' + esc(dayLabel(today)) + '</p>' +
       '<div class="stats"><div class="stat"><small>' + T('Meetings today') + '</small><b>' + n(todays.length) + '</b></div><div class="stat"><small>' + T('This week') + '</small><b>' + n(week + todays.length) + '</b></div>' +
       '<div class="stat"><small>' + T('Reminders open') + '</small><b>' + n(tasks.length) + '</b></div><div class="stat"><small>' + T('Next') + '</small><b style="font-size:24px">' + (nextEv ? hm(nextEv.start) : '—') + '</b></div></div>' +
+      (tiles.brief !== false && window.AideSmart ? '<section class="card smart"><h2>' + T('Smart brief') + '</h2><p class="brief" dir="auto">' + esc(AideSmart.brief({ todays: todays, nowMin: nowMin, due: tasks.filter(function (t) { return t.due && parse(t.due) <= today }).length, overdue: tasks.filter(function (t) { return t.due && parse(t.due) < today }).length }, LANG === 'fa')) + '</p></section>' : '') +
       '<div class="grid"><section class="card"><h2>' + T('Today') + '</h2><p class="hint">' + esc(dayLabel(today)) + '</p>' + (todays.length ? todays.map(function (e) { return evHTML(e, nextEv === e) }).join('') : '<p class="empty">' + T('Nothing scheduled.') + '</p>') + '</section>' +
       '<section class="card"><h2>' + T('Next days') + '</h2><p class="hint">' + T('Next 14 days') + '</p>' + (upcoming || '<p class="empty">' + T('Nothing scheduled.') + '</p>') + '</section>' +
       '<section class="card rem"><h2>' + T('Reminders') + '</h2><p class="hint"></p>' + (tasks.length ? tasks.map(function (t) { var od = t.due && parse(t.due) < today; return '<div class="task"><span class="dot p-' + esc(t.pri || '') + '"></span><div><div class="ttl" dir="auto">' + esc(t.title) + '</div><div class="meta">' + (t.due ? (od ? T('overdue') : T('due')) + ' · ' + esc(dayLabel(parse(t.due))) : '') + (t.owner ? ' · ' + esc(t.owner) : '') + '</div></div></div>' }).join('') : '<p class="empty">' + T('No open reminders.') + '</p>') + '</section></div>' +
+      (tiles.projects !== false && window.AideSmart ? '<section class="card proj"><h2>' + T('Project control') + '</h2><p class="hint">' + (AideSmart.projects ? T('Actual progress · the tick marks where it should be today') + ' · ' + AideSmart.projects.total + ' ' + T('projects') + ' · ' + AideSmart.projects.late + ' ' + T('behind') : '') + '</p>' + AideSmart.projectRows(99, LANG === 'fa') + '</section>' : '') +
       '<p class="foot">' + T('Read-only view prepared by your assistant') + ' · ' + T('Updated') + ' ' + hm(nowMin) + '</p>';
     app.querySelectorAll('.seg button').forEach(function (b) { b.onclick = function () { view = b.dataset.v; render() } });
     document.getElementById('rf').onclick = load;

@@ -138,7 +138,7 @@ async function route(request, env) {
     const events = (d.events || []).map(e => pick(e, ["id", "title", "date", "start", "dur", "allDay", "cat", "loc", "with", "people", "rec", "status", "remind", "until", "notes"]));
     const tasks = (d.tasks || []).filter(t => !t.done).map(t => pick(t, ["id", "title", "due", "pri", "owner"]));
     const s = d.settings || {};
-    return json({ name: s.name || "", title: s.title || "", calSystem: s.calSystem || "jalali", lang: s.lang || "en", events, tasks, updated: Date.now() }, 200, { "cache-control": "no-store" });
+    return json({ name: s.name || "", title: s.title || "", calSystem: s.calSystem || "jalali", lang: s.lang || "en", ceoTiles: s.ceoTiles || { brief: true, projects: true }, events, tasks, updated: Date.now() }, 200, { "cache-control": "no-store" });
   }
 
   if (path === "/api/health" && request.method === "GET") {

@@ -526,6 +526,8 @@ html.ac-arrastrando body, html.ac-redim body { user-select: none; -webkit-user-s
   .ac-lista { gap: 4px; }
   .ac-lista li { padding: 5px 10px; font-size: .8rem; }
   .ac-lista li:nth-child(n+4) { display: none; }
+  .sp-list li:nth-child(n+4) { display: block; }
+.sp-list li { display: block !important; padding: 4px 10px !important; } .sp-list .sp-row { grid-template-columns: minmax(50px,1fr) 1.4fr 34px 62px; }
 }
 /* la ancha en el móvil: apenas 126 px de alto */
 @container ac (min-width: 250px) and (max-height: 150px) {
@@ -1802,6 +1804,18 @@ iframe.aide-tpl { border-radius: 0; }
   html:not([data-nav=side]) .tb-drop .icon { width: 17px; height: 17px; }
   @keyframes tbDrop { from { opacity: 0; transform: translateY(-6px) scaleY(.96); } }
 }
+
+
+/* smart tiles: list fills the card under the title; the number sits top-right */
+.ac-card:is([data-id=projects],[data-id=brief]) .ac-viz.ac-lista { display: grid !important; position: absolute; inset: 62px 14px 14px 14px !important; width: auto !important; height: auto !important; align-content: start; overflow: auto; scrollbar-width: none; }
+.ac-card:is([data-id=projects],[data-id=brief]) .ac-solochica, .ac-card:is([data-id=projects],[data-id=brief]) .ac-extra { display: none !important; }
+.ac-card:is([data-id=projects],[data-id=brief]) .ac-valor { top: 16px !important; bottom: auto !important; left: auto !important; right: 18px !important; text-align: right; }
+.ac-card:is([data-id=projects],[data-id=brief]) .ac-valor strong { font-size: 1.6rem !important; }
+.ac-card:is([data-id=projects],[data-id=brief]) .ac-etq { display: none; }
+.ac-card[data-id=brief] .ac-lista li { display: flex !important; white-space: normal; }
+.ac-card[data-id=brief] .ac-lista li span { white-space: normal; overflow: visible; }
+.ac-card:is([data-id=projects],[data-id=brief]) .ac-lista li:nth-child(n) { display: flex; }
+.ac-card[data-id=projects] .ac-lista li:nth-child(n) { display: block !important; }
 
 /* tabs without a page title (owner's choice) */
 html[data-route="repeats"] .topbar h1, html[data-route="repeats"] .topbar .sub, html[data-route="roadmap"] .topbar h1, html[data-route="roadmap"] .topbar .sub, html[data-route="tpl-lunario"] .topbar h1, html[data-route="tpl-lunario"] .topbar .sub, html[data-route="tpl-epoca"] .topbar h1, html[data-route="tpl-epoca"] .topbar .sub, html[data-route="tpl-turno"] .topbar h1, html[data-route="tpl-turno"] .topbar .sub, html[data-route="tpl-estadia"] .topbar h1, html[data-route="tpl-estadia"] .topbar .sub, html[data-route="tpl-itinerario"] .topbar h1, html[data-route="tpl-itinerario"] .topbar .sub, html[data-route="tpl-recurrencia"] .topbar h1, html[data-route="tpl-recurrencia"] .topbar .sub, html[data-route="tpl-convite"] .topbar h1, html[data-route="tpl-convite"] .topbar .sub { display: none !important; }
@@ -6852,8 +6866,14 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
         note: { id: 'note', color: 'menta', size: '2x1', icon: 'notes', title: 'Notebook', value: String(A.db.data.notes.length), label: pin ? A.esc(pin.title || 'Untitled').slice(0, 36) : 'no notes yet', viz: '<g fill="var(--a)"><rect x="14" y="22" width="92" height="8" rx="4" opacity=".7"/><rect x="14" y="40" width="70" height="8" rx="4" opacity=".5"/><rect x="14" y="58" width="82" height="8" rx="4" opacity=".4"/><rect x="14" y="76" width="44" height="8" rx="4" opacity=".3"/></g>', extra: [li('Pinned', A.db.data.notes.filter(n => n.pinned).length)] },
         timer: { id: 'timer', color: 'coral', size: '1x1', icon: 'timer', title: 'Timer', value: '<span data-timer-val>--:--</span>', label: '<span data-timer-lab>ready</span>', viz: '<circle cx="60" cy="50" r="32" fill="none" stroke="var(--ac-tinta)" stroke-opacity=".12" stroke-width="9"/><circle data-timer-ring cx="60" cy="50" r="32" fill="none" stroke="var(--a)" stroke-width="9" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="0" transform="rotate(-90 60 50)"/>', extra: [go('timer', 'Open')] },
         overlaps: { id: 'overlaps', color: 'limon', size: '1x1', icon: 'bell', title: 'Overlaps', value: String(nBad), label: nBad ? 'double bookings' : 'all clear', viz: '<rect x="22" y="26" width="56" height="30" rx="9" fill="var(--a)" opacity=".55"/><rect x="42" y="44" width="56" height="30" rx="9" fill="var(--a)" opacity=".9"/>', extra: [go('calendar', 'Review')] },
+        brief: (() => { const SM = window.AideSmart; if (!SM) return null; const fa = A.isFa && A.isFa(), txt = SM.brief({ todays: todays.map(o => ({ title: o.title, start: o.start, allDay: o.allDay })), nowMin: now, pending: pend.length, oldest, due: due.length, overdue: over.length, free: win ? A.time(win.from) : null, overlaps: nBad }, fa).replace(/\.$/, '').split(' · '), att = pend.length + over.length + nBad + (SM.projects ? SM.projects.late : 0);
+          return { id: 'brief', color: 'menta', size: '2x2', icon: 'bell', title: 'Smart brief', value: String(att), label: att ? 'need attention' : 'all clear', viz: '<circle cx="60" cy="50" r="30" fill="var(--a)" opacity=".25"/><path d="M60 26l6 16 16 6-16 6-6 16-6-16-16-6 16-6z" fill="var(--a)"/>',
+            list: '<ul class="ac-viz ac-nochica ac-lista">' + txt.map(x => '<li><i></i><span dir="auto">' + A.esc(x) + '</span></li>').join('') + '</ul>', extra: [go('requests', 'Requests'), go('tasks', 'Tasks')] }; })(),
+        projects: (() => { const SM = window.AideSmart; if (!SM) return null; const P = SM.projects, fa = A.isFa && A.isFa(); if (!P) SM.onProjects(() => { if ((location.hash || '#/today').startsWith('#/today')) A.route(); });
+          return { id: 'projects', color: 'cielo', size: '2x2', icon: 'flag', title: 'Projects', value: P ? String(P.late) : '…', label: P ? 'behind plan of ' + P.total + ' · avg ' + P.avg + '%' : 'loading from Project Control', viz: P ? ring(P.total ? (P.total - P.late - P.watch) / P.total : 1, P.ok + P.done + '/' + P.total) : '',
+            list: '<ul class="ac-viz ac-nochica ac-lista sp-list">' + (P ? P.rows.slice(0, 8).map(r => '<li>' + SM.projectRow(r, fa) + '</li>').join('') : '<li><span>Loading…</span></li>') + '</ul>', extra: [li('Behind', P ? P.late : '–'), li('Watch', P ? P.watch : '–')] }; })(),
       };
-      const bk = opt.boardKey || 'board'; Object.keys(cards).forEach(k => { if ((opt.keys && !opt.keys.includes(k)) || (S.hidden || {})[bk + ':' + k]) delete cards[k]; });
+      const bk = opt.boardKey || 'board'; Object.keys(cards).forEach(k => { if (!cards[k] || (opt.keys && !opt.keys.includes(k)) || (S.hidden || {})[bk + ':' + k]) delete cards[k]; });
       const saved = S[bk] || {}, base = (saved.orden || []).filter(k => cards[k]), order = base.concat(Object.keys(cards).filter(k => !base.includes(k)));
       const sz = saved.tamanos || {}; order.forEach(k => { const v = Array.isArray(sz) ? sz[order.indexOf(k)] : sz[k]; if (typeof v === 'number' && SIZE[v]) cards[k].size = SIZE[v]; else if (typeof v === 'string' && /^\dx\d$/.test(v)) cards[k].size = v; });
       const quick = h('input', { type: 'text', dir: 'auto', placeholder: 'Quick add: “Lunch with Sarah tomorrow 1pm 90m”', 'aria-label': 'Quick add event', autocomplete: 'off', class: 'noprint' });
@@ -6862,7 +6882,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
       const board = mkEl('<main class="ac-escena" data-acomodo><header class="ac-cab-pagina"><div class="ac-titulo"><p class="ac-hint"><span class="ac-solo-raton">Drag cards to arrange your day · drag the corner to resize · double-click a card to open it.</span><span class="ac-solo-tactil">Press and hold a card to move it.</span></p></div><div class="ac-acciones"><p class="ac-estado" data-estado="guardado"><span class="ac-estado-ico" aria-hidden="true"><svg class="ac-estado-giro" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="26 18"/></svg><svg class="ac-estado-ok" viewBox="0 0 20 20"><path d="M4.5 10.5l3.4 3.4 7.6-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="ac-estado-tx" data-estado-tx>Saved</span></p><button class="ac-reset is-quieto" type="button" data-restablece aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.5 14a7.5 7.5 0 1 0 2-7.7L4 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Reset</button></div></header><div class="ac-bandeja"><div class="ac-tablero" role="list" aria-label="Board of cards">' + order.map(k => card(cards[k])).join('') + '</div></div><p class="ac-vivo" aria-live="polite" data-vivo></p></main>');
       root.classList.add('mx-wrap');
       root.append(h('div', { class: 'stack', style: { gap: '12px' } }, A.readOnly || opt.noQuick ? null : quick, hol.length ? h('div', { class: 'warn', title: hol[0].fa }, A.ico('flag'), h('span', null, 'Holiday today: ' + hol.map(x => x.name).join(' · '))) : null, away ? h('div', { class: 'warn', style: { background: 'var(--c-travel)', color: 'var(--ink)' } }, A.ico('globe'), h('span', null, 'Executive is away today: ' + away.title)) : null, board));
-      const GO = { month: 'calendar', note: 'notes', timer: 'timer', next: 'calendar', schedule: 'calendar', requests: 'requests', tasks: 'tasks', visitors: 'people', week: 'calendar', free: 'availability', clock: 'timer', overlaps: 'calendar' };
+      const GO = { month: 'calendar', note: 'notes', timer: 'timer', next: 'calendar', schedule: 'calendar', requests: 'requests', tasks: 'tasks', visitors: 'people', week: 'calendar', free: 'availability', clock: 'timer', overlaps: 'calendar', brief: 'today', projects: 'today' };
+      { let px = 0, py = 0, pt = 0; board.addEventListener('pointerdown', e => { px = e.clientX; py = e.clientY; pt = Date.now(); }); board.addEventListener('click', e => { const c = e.target.closest('.ac-card'); if (!c || e.target.closest('button,a,input') || Math.hypot(e.clientX - px, e.clientY - py) > 8 || Date.now() - pt > 450) return; const k = c.dataset.id; if (k === 'projects') { location.href = 'https://danialmor.github.io/VERTEX/msp-bi/'; return; } if (GO[k] && GO[k] !== 'today') location.hash = '#/' + GO[k]; }); }
       board.addEventListener('dblclick', e => { const c = e.target.closest('.ac-card'); if (c && GO[c.dataset.id]) location.hash = '#/' + GO[c.dataset.id]; });
       let first = true;
       const live = () => { if (!board.isConnected) return clearInterval(iv); const n = new Date(), mi = n.getMinutes() + n.getSeconds() / 60, hr = (n.getHours() % 12) + mi / 60, set = (k, deg) => board.querySelectorAll('[data-hand=' + k + ']').forEach(e => e.setAttribute('transform', 'rotate(' + deg.toFixed(1) + ' 60 50)')); set('h', hr * 30); set('m', mi * 6); set('s', n.getSeconds() * 6);
@@ -6989,8 +7010,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   const A = window.Aide, { h, date: D } = A;
 
   /* ── which cards are on a board ───────────────────────────────────── */
-  const CARDS = { next: 'Next up', schedule: 'Today', requests: 'Requests', tasks: 'Tasks', visitors: 'Visitors', week: 'This week', free: 'Free slot', clock: 'Clock', month: 'Month', note: 'Notebook', timer: 'Timer', overlaps: 'Overlaps' };
-  const MGR_KEYS = ['next', 'schedule', 'requests', 'tasks', 'visitors', 'week', 'free', 'overlaps'];
+  const CARDS = { brief: 'Smart brief', projects: 'Projects (Project Control)', next: 'Next up', schedule: 'Today', requests: 'Requests', tasks: 'Tasks', visitors: 'Visitors', week: 'This week', free: 'Free slot', clock: 'Clock', month: 'Month', note: 'Notebook', timer: 'Timer', overlaps: 'Overlaps' };
+  const MGR_KEYS = ['brief', 'projects', 'next', 'schedule', 'requests', 'tasks', 'visitors', 'week', 'free', 'overlaps'];
   A.widgetPicker = function (bk) {
     const S = A.settings(), keys = bk === 'boardMgr' ? MGR_KEYS : Object.keys(CARDS), hid = Object.assign({}, S.hidden);
     const rows = keys.map(k => { const cb = h('input', { type: 'checkbox', checked: !hid[bk + ':' + k] }); cb.addEventListener('change', () => { if (cb.checked) delete hid[bk + ':' + k]; else hid[bk + ':' + k] = true; }); return h('label', { class: 'row item hov' }, cb, h('span', { class: 'grow' }, CARDS[k])); });
@@ -7835,7 +7856,8 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
 
   </script>
   <script src="./template-calendar-tabs.js?v=4"></script>
-  <script src="./js/ceo-view.js?v=1"></script>
+  <script src="./js/smart-tiles.js?v=1"></script>
+  <script src="./js/ceo-view.js?v=2"></script>
   <script src="./js/ai-bridge.js?v=2"></script>
   <script src="./js/team.js?v=1"></script>
   <script src="./js/flipclock.js?v=2"></script>
