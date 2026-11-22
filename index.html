@@ -1756,41 +1756,42 @@ iframe.aide-tpl { border-radius: 0; }
    brand on the left · one rounded pill with all sections (scrolls sideways when they don't fit), active section is a filled pill ·
    search pill, theme/notification/account circles on the right. Touch-sized (44px). Phones keep the bottom tab bar. */
 @media (min-width: 821px) {
-  .app { grid-template-columns: 1fr !important; grid-template-rows: auto 1fr !important; gap: 12px !important; }
-  .side { grid-column: 1 !important; grid-row: 1 !important; width: auto !important; max-width: 100% !important; min-width: 0 !important; position: relative !important; inset: auto !important; transform: none !important;
+  html:not([data-nav=side]) .app { grid-template-columns: 1fr !important; grid-template-rows: auto 1fr !important; gap: 12px !important; }
+  html:not([data-nav=side]) .side { grid-column: 1 !important; grid-row: 1 !important; width: auto !important; max-width: 100% !important; min-width: 0 !important; position: relative !important; inset: auto !important; transform: none !important;
     flex-direction: row !important; align-items: center !important; gap: 14px !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; height: auto !important; min-height: 0 !important; overflow: visible !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-  .side .brand { flex: none; padding: 0 !important; margin: 0 !important; }
-  .side .brand-mark { width: 44px; height: 44px; border-radius: 50%; background: var(--ink) !important; color: var(--canvas, #fff) !important; }
-  .side > .btn { order: 3; flex: 0 1 220px; min-width: 120px; margin: 0 !important; min-height: 46px; border-radius: 999px !important; background: var(--paper) !important; box-shadow: 0 1px 0 var(--rim) inset, 0 6px 18px -12px var(--shadow-soft); }
-  .side .nav { order: 2; flex: 1 1 auto; min-width: 0; display: flex !important; flex-direction: row !important; flex-wrap: nowrap; gap: 2px; padding: 6px !important; margin: 0 !important; border-radius: 999px; background: var(--paper); box-shadow: 0 1px 0 var(--rim) inset, 0 10px 26px -16px var(--shadow-soft); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
-  .side .nav::-webkit-scrollbar { display: none; }
-  .side .nav a { flex: none; white-space: nowrap; min-height: 44px; padding: 0 16px !important; gap: 8px !important; border-radius: 999px !important; scroll-snap-align: start; }
-  .side .nav a[hidden] { display: none !important; }
-  .side .nav a[aria-current=page] { background: var(--ink) !important; color: var(--canvas, #fff) !important; box-shadow: 0 8px 18px -10px var(--shadow) !important; }
-  .side .nav a[aria-current=page] .icon { color: inherit !important; }
-  .side .nav a .badge { position: static !important; margin-inline-start: 2px; }
-  .side .side-foot { order: 4; flex: none; margin: 0 !important; padding: 0 !important; border: 0 !important; display: flex !important; align-items: center; gap: 8px; }
-  .side .side-foot .who .grow { display: none; }
-  .side .side-foot .avatar { width: 44px; height: 44px; border-radius: 50%; }
-  .side .side-foot .btn, .side .side-foot button { min-height: 44px; border-radius: 999px !important; }
-  .side > .btn small, .side > .btn .muted { display: none !important; }
-  .side > .btn { flex-basis: 150px !important; }
-  .side .side-foot .btn span:not(.icon), .side .side-foot button > span { display: none !important; }
-  .side .side-foot .btn, .side .side-foot button { width: 44px; padding: 0 !important; justify-content: center; font-size: 0 !important; gap: 0 !important; }
-  .side .side-foot .btn .icon, .side .side-foot button .icon { width: 18px; height: 18px; }
-  .side .side-foot button:not(:has(.icon)) { font-size: 12px !important; }
+  html:not([data-nav=side]) .side .brand { flex: none; padding: 0 !important; margin: 0 !important; }
+  html:not([data-nav=side]) .side .brand-mark { width: 44px; height: 44px; border-radius: 50%; background: var(--ink) !important; color: var(--canvas, #fff) !important; }
+  html:not([data-nav=side]) .side > .btn { order: 3; flex: 0 1 220px; min-width: 120px; margin: 0 !important; min-height: 46px; border-radius: 999px !important; background: var(--paper) !important; box-shadow: 0 1px 0 var(--rim) inset, 0 6px 18px -12px var(--shadow-soft); }
+  html:not([data-nav=side]) .side .nav { order: 2; flex: 1 1 auto; min-width: 0; display: flex !important; flex-direction: row !important; flex-wrap: nowrap; gap: 2px; padding: 6px !important; margin: 0 !important; border-radius: 999px; background: var(--paper); box-shadow: 0 1px 0 var(--rim) inset, 0 10px 26px -16px var(--shadow-soft); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+  html:not([data-nav=side]) .side .nav::-webkit-scrollbar { display: none; }
+  html:not([data-nav=side]) .side .nav a { flex: none; white-space: nowrap; min-height: 44px; padding: 0 16px !important; gap: 8px !important; border-radius: 999px !important; scroll-snap-align: start; }
+  html:not([data-nav=side]) .side .nav a[hidden] { display: none !important; }
+  html:not([data-nav=side]) .side .nav a[aria-current=page] { background: var(--ink) !important; color: var(--canvas, #fff) !important; box-shadow: 0 8px 18px -10px var(--shadow) !important; }
+  html:not([data-nav=side]) .side .nav a[aria-current=page] .icon { color: inherit !important; }
+  html:not([data-nav=side]) .side .nav a .badge { position: static !important; margin-inline-start: 2px; }
+  html:not([data-nav=side]) .side .side-foot { order: 4; flex: none; margin: 0 !important; padding: 0 !important; border: 0 !important; display: flex !important; align-items: center; gap: 8px; }
+  html:not([data-nav=side]) .side .side-foot .who .grow { display: none; }
+  html:not([data-nav=side]) .side .side-foot .avatar { width: 44px; height: 44px; border-radius: 50%; }
+  html:not([data-nav=side]) .side .side-foot .btn, html:not([data-nav=side]) .side .side-foot button { min-height: 44px; border-radius: 999px !important; }
+  html:not([data-nav=side]) .side > .btn small, html:not([data-nav=side]) .side > .btn .muted { display: none !important; }
+  html:not([data-nav=side]) .side > .btn { flex-basis: 150px !important; }
+  html:not([data-nav=side]) .side .side-foot .btn span:not(.icon), html:not([data-nav=side]) .side .side-foot button > span { display: none !important; }
+  html:not([data-nav=side]) .side .side-foot .btn, html:not([data-nav=side]) .side .side-foot button { width: 44px; padding: 0 !important; justify-content: center; font-size: 0 !important; gap: 0 !important; }
+  html:not([data-nav=side]) .side .side-foot .btn .icon, html:not([data-nav=side]) .side .side-foot button .icon { width: 18px; height: 18px; }
+  html:not([data-nav=side]) .side .side-foot button:not(:has(.icon)) { font-size: 12px !important; }
 
-  .side .tb-extra { order: 4; display: flex; gap: 8px; flex: none; }
-  .side .side-foot { order: 5 !important; }
-  .side .tb-new { order: 6; flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--ink); color: var(--canvas, #fff); font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 10px 22px -12px var(--shadow); }
-  .side .tb-new .icon { width: 18px; height: 18px; }
-  .tb-circle { position: relative; width: 46px; height: 46px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: var(--paper); color: var(--ink); box-shadow: 0 1px 0 var(--rim) inset, 0 6px 16px -12px var(--shadow-soft); }
-  .tb-circle.tb-bell { background: var(--ink); color: var(--canvas, #fff); }
-  .tb-circle .icon { width: 19px; height: 19px; }
-  .tb-count { position: absolute; top: -3px; inset-inline-end: -3px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--paper); color: var(--ink); font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; box-shadow: 0 0 0 2px var(--ink); }
-  .side .side-foot .avatar { background: var(--ink) !important; color: var(--canvas, #fff) !important; font-weight: 600; }
-  .main { background: transparent !important; }
-  .main { grid-column: 1 !important; grid-row: 2 !important; min-height: 0; min-width: 0; }
+  html:not([data-nav=side]) .side .tb-extra { order: 4; display: flex; gap: 8px; flex: none; }
+  html:not([data-nav=side]) .side .side-foot { order: 5 !important; }
+  html:not([data-nav=side]) .side .tb-new { order: 6; flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--ink); color: var(--canvas, #fff); font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 10px 22px -12px var(--shadow); }
+  html:not([data-nav=side]) .side .tb-new .icon { width: 18px; height: 18px; }
+  html:not([data-nav=side]) .tb-circle { position: relative; width: 46px; height: 46px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: var(--paper); color: var(--ink); box-shadow: 0 1px 0 var(--rim) inset, 0 6px 16px -12px var(--shadow-soft); }
+  html:not([data-nav=side]) .tb-circle.tb-bell { background: var(--ink); color: var(--canvas, #fff); }
+  html:not([data-nav=side]) .tb-circle .icon { width: 19px; height: 19px; }
+  html:not([data-nav=side]) .tb-count { position: absolute; top: -3px; inset-inline-end: -3px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--paper); color: var(--ink); font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; box-shadow: 0 0 0 2px var(--ink); }
+  html:not([data-nav=side]) .side .side-foot .avatar { background: var(--ink) !important; color: var(--canvas, #fff) !important; font-weight: 600; }
+  html:not([data-nav=side]) .main { background: transparent !important; }
+  html:not([data-nav=side]) .side .nav a[href="#/settings"], html:not([data-nav=side]) .side .nav a[href="#/themes"], html:not([data-nav=side]) .side .nav a[href="#/users"] { display: none !important; }
+  html:not([data-nav=side]) .main { grid-column: 1 !important; grid-row: 2 !important; min-height: 0; min-width: 0; }
 }
 
 /* tabs without a page title (owner's choice) */
@@ -7855,5 +7856,31 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
 })();
 </script>
 <script>(function(){function s(){document.documentElement.dataset.route=(location.hash.replace(/^#\//,'').split(/[?/]/)[0]||'today')}s();addEventListener('hashchange',s)})()</script>
+<script>
+(function () {
+  function navPref() { try { var A = window.Aide; var v = A && A.db && A.db.data ? A.settings().navLayout : null; document.documentElement.dataset.nav = v === 'side' ? 'side' : 'top' } catch (e) { } }
+  function extras() {
+    var A = window.Aide, box = document.querySelector('.tb-extra'); if (!A || !box || box.querySelector('.tb-settings')) return;
+    var ico = function (d) { return '<svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="' + d + '"/></svg>' };
+    var mk = function (cls, title, d, hash) { var b = document.createElement('button'); b.type = 'button'; b.className = 'tb-circle ' + cls; b.title = title; b.setAttribute('aria-label', title); b.innerHTML = ico(d); b.onclick = function () { location.hash = hash }; return b };
+    box.append(
+      mk('tb-themes', 'Themes', 'M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.6 0-1.3-1-1.6-1-2.6 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4-4-7.2-9-7.2zM7.5 12h.01M9.5 8h.01M14 7.5h.01', '#/themes'),
+      mk('tb-users', 'Users', 'M16 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 20v-1a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8', '#/users'),
+      mk('tb-settings', 'Settings', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z', '#/settings'));
+    if (A.role !== 'admin') box.querySelector('.tb-users').hidden = true;
+  }
+  function layoutChoice() {
+    var A = window.Aide; if (!A || !/themes/.test(location.hash) || document.getElementById('navChoice')) return;
+    var host = document.querySelector('.page'); if (!host) return;
+    var cur = A.settings().navLayout === 'side' ? 'side' : 'top';
+    var d = document.createElement('div'); d.id = 'navChoice'; d.className = 'card'; d.style.cssText = 'padding:16px 18px;margin:0 0 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap';
+    d.innerHTML = '<b style="flex:1;min-width:160px">Menu layout</b><div class="seg" role="tablist" aria-label="Menu layout"><button type="button" data-v="top">Top bar</button><button type="button" data-v="side">Side menu (previous)</button></div>';
+    [].forEach.call(d.querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', b.dataset.v === cur); b.onclick = function () { A.settings().navLayout = b.dataset.v; A.save && A.save('settings'); navPref(); [].forEach.call(d.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b) }) } });
+    host.prepend(d);
+  }
+  setInterval(function () { navPref(); extras(); layoutChoice() }, 500);
+  addEventListener('hashchange', function () { setTimeout(layoutChoice, 300) });
+})();
+</script>
 </body>
 </html>

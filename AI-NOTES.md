@@ -47,3 +47,13 @@ the design decisions and anything that speeds up the next session.**
 ## Release checklist
 - Bump `VERSION` in `sw.js`; bump `?v=` on changed scripts in `index.html` and `fa.js?v=` in template pages.
 - Push to `main`, then run "Sync Aide copy" in danialmor/VERTEX Actions (or wait ~5–20 min).
+
+## 2026-11-22 (later)
+- Talmo theme is the approved default (light `talmo`, dark `talmo-night`); other themes selectable in Themes.
+- Menu layout setting (Themes page → "Menu layout"): `top` (default, Talmo top bar) or `side` (previous side menu);
+  stored as `settings.navLayout`, applied as `html[data-nav]`.
+- Top bar round buttons: theme switch, Requests bell, Themes, Users (admin only), Settings, profile, lock, language, sign-out, New.
+- Templates: only the main accent, neutrals and shadows follow the theme; decorative colours stay. Shamsi conversion in
+  `templates/fa.js` (section 4) when `calSystem === 'jalali'`; day grids of Monthly calendar / Date picker / Book a time
+  still need per-template conversion.
+- Page titles hidden on: repeats, roadmap, tpl-lunario, tpl-epoca, tpl-turno, tpl-estadia, tpl-itinerario, tpl-recurrencia, tpl-convite.
