@@ -29,8 +29,8 @@
     f.src = base + slug + '/index.html'; f.title = title;
     f.setAttribute('allow', 'fullscreen; clipboard-write'); f.setAttribute('allowtransparency', 'true');
     f.className = 'aide-tpl';
-    f.style.cssText = 'width:100%;border:0;display:block;background:transparent;color-scheme:' + (dark() ? 'dark' : 'light');
-    const size = () => { if (!f.isConnected) return removeEventListener('resize', size); const top = f.getBoundingClientRect().top; f.style.height = Math.max(520, innerHeight - Math.max(0, top) - 12) + 'px' };
+    f.style.cssText = 'width:calc(100% + 12px);margin-inline-start:-12px;border:0;display:block;background:transparent;color-scheme:' + (dark() ? 'dark' : 'light');
+    const size = () => { if (!f.isConnected) return removeEventListener('resize', size); const top = f.getBoundingClientRect().top; f.style.height = Math.max(520, innerHeight - Math.max(0, top)) + 'px' };
     addEventListener('resize', size); requestAnimationFrame(size); setTimeout(size, 300);
     f.addEventListener('load', () => { size(); try { f.contentWindow.postMessage({ aideTheme: dark() ? 'dark' : 'light' }, '*') } catch (e) { } });
     return f;

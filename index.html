@@ -1751,6 +1751,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 .main { background: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 .app { gap: 10px !important; }
 iframe.aide-tpl { border-radius: 0; }
+.page.flush:has(> iframe.aide-tpl), .main:has(iframe.aide-tpl) { overflow: visible !important; }
 </style>
 <script>
   // apply the saved theme before first paint (no flash)

@@ -14,15 +14,27 @@
     'body{margin:0!important}' +
     'code,kbd,pre,.mono,[class*=mono]{font-family:ui-monospace,Menlo,monospace!important}' +
     '.aide-wide{max-width:none!important;width:100%!important;margin-left:0!important;margin-right:0!important}' +
-    '.aide-stage{background:transparent!important;padding:0!important;min-height:0!important;height:auto!important}';
+    '.aide-stage::before,.aide-stage::after{background:none!important;opacity:0!important}.aide-stage{background:transparent!important;box-shadow:none!important;padding:0!important;min-height:0!important;height:auto!important}';
   document.head.appendChild(st);
   function fit() {
     var vw = innerWidth;
     // top-level wrappers that paint a full-page backdrop become transparent; centred content boxes get the full width
-    [].forEach.call(document.body.children, function (el) {
-      if (/^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(el.tagName)) return;
-      var cs = getComputedStyle(el); if (cs.position === 'fixed' || cs.position === 'absolute') return;
-      if (el.getBoundingClientRect().width >= vw * .9) el.classList.add('aide-stage');
+    // every page-wide backdrop layer (any depth) becomes transparent, so the AIDE page background shows through;
+    // the template's own cards (narrower than the page) keep their colours
+    var lum = function (str) { var m = /rgba?\(([^)]+)\)/.exec(str || ''); if (!m) return null; var c = m[1].split(/[ ,\/]+/).map(parseFloat); if (c.length > 3 && c[3] < .35) return null; return (.2126 * c[0] + .7152 * c[1] + .0722 * c[2]) / 255 };
+    [].forEach.call(document.querySelectorAll('body *'), function (el) {
+      if (/^(SCRIPT|STYLE|LINK|TEMPLATE|svg|path|CANVAS|IMG|BUTTON|INPUT)$/i.test(el.tagName) || el.closest('svg') || el.closest('.aide-card')) return;
+      var r = el.getBoundingClientRect(), cs = getComputedStyle(el), abs = cs.position === 'fixed' || cs.position === 'absolute';
+      // decorative glows/blobs behind the content
+      if (abs && !el.textContent.trim() && !el.querySelector('button,input,svg,canvas,img') && r.width >= vw * .25 && (cs.backgroundImage !== 'none' || cs.filter !== 'none')) { el.style.setProperty('display', 'none', 'important'); return }
+      if (r.width < vw * .9 || abs) return;
+      var painted = cs.backgroundImage !== 'none' || !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor);
+      if (!painted) return;
+      var rad = parseFloat(cs.borderTopLeftRadius) || 0;
+      if (rad >= 8) { el.classList.add('aide-card'); return }                    // the template's own card: keep it
+      var L = lum(cs.backgroundColor); if (L == null) { var g = /rgba?\([^)]+\)/.exec(cs.backgroundImage); L = g ? lum(g[0]) : 1 }
+      if (L > .5) el.classList.add('aide-stage');                                // light backdrop: let the AIDE background show
+      else { darkStage = true; el.classList.add('aide-card'); el.style.setProperty('border-radius', '22px', 'important'); el.style.setProperty('overflow', 'hidden', 'important') } // dark backdrop is part of the design: keep it as a rounded card
     });
     var q = document.querySelectorAll('body > *, body > * > *, body > * > * > *');
     [].forEach.call(q, function (el) {
@@ -30,8 +42,42 @@
       var mw = parseFloat(getComputedStyle(el).maxWidth);
       if (mw >= 600 && mw <= 1300) el.classList.add('aide-wide');
     });
-    try { parent.postMessage({ aideTpl: 'h', h: document.documentElement.scrollHeight }, '*') } catch (e) { }
+    layout();
   }
+  /* The template's main card fills the tab (width and height); dark cards are shown in negative so they match the light site. */
+  var laidOut = false, darkStage = false;
+  function layout() {
+    if (laidOut) return; laidOut = true;
+    /* One standard for every template (same spacing as the Repeats tab):
+       12px from the menu and from the page edges, the template's own frame and shadow fully visible,
+       and the template centred vertically in the page. */
+    var vw = innerWidth, vh = innerHeight, best = null, bestA = 0;
+    [].forEach.call(document.querySelectorAll('body *'), function (el) {
+      if (el.closest('svg') || /^(SCRIPT|STYLE|BUTTON|INPUT|IMG|CANVAS|LABEL|A)$/.test(el.tagName)) return;
+      var cs = getComputedStyle(el); if (cs.position === 'fixed' || cs.position === 'absolute' || cs.display === 'none') return;
+      var painted = cs.backgroundImage !== 'none' || !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor);
+      var framed = (parseFloat(cs.borderTopLeftRadius) || 0) >= 8 || el.classList.contains('aide-card');
+      if (!painted || !framed) return;
+      var r = el.getBoundingClientRect(), A = r.width * r.height;
+      if (A > bestA && r.width >= vw * .4 && r.height >= vh * .3) { best = el; bestA = A }
+    });
+    /* Roadmap-tab standard: 26px from the menu, about 32px from the right edge, 24px top and bottom;
+       the main card grows to fill the page height; with no card the template is centred. */
+    var css = 'html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important}' +
+      'body{min-height:100vh!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:stretch!important;padding-block:24px!important;padding-inline-start:26px!important;padding-inline-end:14px!important;margin:0!important;box-sizing:border-box!important}';
+    if (best) {
+      for (var p = best.parentElement; p && p !== document.body; p = p.parentElement) p.classList.add('aide-chain');
+      best.classList.add('aide-main');
+      css += '.aide-chain{width:100%!important;max-width:none!important;min-height:0!important;height:auto!important;margin:0!important;padding-left:0!important;padding-right:0!important;padding-top:0!important;padding-bottom:0!important;box-sizing:border-box!important;flex:0 0 auto!important;overflow:visible!important}' +
+        '.aide-main{width:100%!important;max-width:none!important;min-width:0!important;overflow-x:auto!important;margin-left:0!important;margin-right:0!important;box-sizing:border-box!important;flex:0 0 auto!important}';
+      setTimeout(function () { // fill the remaining height with the main card
+        var extra = document.body.scrollHeight - best.getBoundingClientRect().height, h = innerHeight - extra;
+        if (h > best.getBoundingClientRect().height) best.style.setProperty('min-height', Math.floor(h) + 'px', 'important');
+      }, 60);
+    } else css += 'body{justify-content:center!important;align-items:center!important}';
+    var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  }
+
   /* ---------- 2. Persian ---------- */
   var P_FA = {
     // whole strings (UI)
@@ -158,6 +204,24 @@
   });
   function start() { run(); fit(); mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'title', 'alt'] }); setTimeout(fit, 600); addEventListener('resize', fit) }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+
+  /* ---------- 3. Theme bridge: the site's theme colours (--t-*) drive each template's own colour variables ---------- */
+  var MAP = {
+    lunario: { '--lu-noche': '--t-surface', '--lu-panel': '--t-surface2', '--lu-panel-2': '--t-bg2', '--lu-fuera': '--t-line-fine', '--lu-plata': '--t-ink', '--lu-texto-2': '--t-soft', '--lu-tenue': '--t-faint', '--lu-linea': '--t-line', '--lu-linea-2': '--t-line-strong', '--lu-ambar': '--t-accent', '--lu-ambar-tx': '--t-accent-ink', '--lu-ambar-suave': '--t-accent-soft', '--lu-ambar-medio': '--t-accent-mid', '--lu-sobre-ambar': '--t-on-accent', '--lu-o': '--t-accent', '--lu-lavanda': '--t-accent2', '--lu-t': '--t-accent2', '--lu-sobre-barra': '--t-ink', '--lu-luna-luz': '--t-ink' }
+  };
+  function themeBridge() {
+    var slug = location.pathname.split('/').slice(-2)[0], m = MAP[slug]; if (!m) return;
+    var P; try { P = parent.document.documentElement } catch (e) { return }
+    var pcs = getComputedStyle(P), dark = false;
+    try { dark = parent.Aide && parent.Aide.currentTheme && parent.Aide.currentTheme().mode === 'dark' } catch (e) { }
+    if (slug === 'lunario') root.setAttribute('data-tema', dark ? 'oscuro' : 'claro');
+    var css = ':root,:root[data-tema]{';
+    for (var k in m) { var v = pcs.getPropertyValue(m[k]).trim(); if (v) css += k + ':' + v + '!important;' }
+    var bs = document.getElementById('aide-theme') || document.head.appendChild(Object.assign(document.createElement('style'), { id: 'aide-theme' }));
+    bs.textContent = css + '}';
+  }
+  themeBridge();
+  addEventListener('message', function (e) { if ((e.data || {}).aideTheme) themeBridge() });
   // AIDE theme (dark/light) is sent by the parent tab
   addEventListener('message', function (e) { var d = e.data || {}; if (d.aideTheme) root.style.colorScheme = d.aideTheme });
 })();
