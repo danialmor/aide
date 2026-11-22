@@ -62,3 +62,4 @@ the design decisions and anything that speeds up the next session.**
   `ceolink:<sha256(token)>` → workspace owner) and `GET /api/ceo/:token` (events, open tasks, name, calSystem, lang).
   Secretary tab `ceo-view` (`js/ceo-view.js`) creates/copies/revokes the link and previews the page.
   **Needs the updated `cloudflare/worker.js` deployed to the `aide-api` Worker.**
+- AI (step 4): `js/ai-bridge.js` loads the VERTEX assistant (`shared/ai/ai.js`) and sets `window.VX_CTX` with the desk's events, tasks, requests and people.
