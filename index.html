@@ -3044,6 +3044,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     const root = $('#login'); root.hidden = false; $('#app').hidden = true; root.replaceChildren();
     let mode = 'login';
     const user = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', autocorrect: 'off', spellcheck: 'false', inputmode: 'text', required: true, placeholder: 'Username' });
+    try { const vu = new URLSearchParams(location.search).get('u'); if (vu) user.value = vu.slice(0, 60) } catch (e) { }
     const password = h('input', { type: 'password', autocomplete: 'current-password', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', required: true, placeholder: 'Password' });
     const repeat = h('input', { type: 'password', autocomplete: 'new-password', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'Repeat password' });
     const rememberMe = h('input', { type: 'checkbox', checked: true });
@@ -7712,5 +7713,6 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
     Aide.boot();
   </script>
 
+<script>(function(){try{var q=new URLSearchParams(location.search);if(q.get('from')==='vertex')sessionStorage.setItem('aideFromVx','1');if(!sessionStorage.getItem('aideFromVx'))return;var a=document.createElement('a');a.href='https://danialmor.github.io/VERTEX/app/';a.textContent='VERTEX';a.setAttribute('aria-label','بازگشت به VERTEX');a.style.cssText='position:fixed;z-index:99999;left:14px;bottom:14px;min-width:56px;height:56px;padding:0 18px;border-radius:28px;background:#0b1220;color:#fff;display:grid;place-items:center;font:600 14px system-ui;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.25)';document.body.appendChild(a);try{var s=JSON.parse(localStorage.getItem('vxSess')||'{}');if(s.role==='admin')a.href='https://danialmor.github.io/VERTEX/home/'}catch(e){}}catch(e){}})()</script>
 </body>
 </html>
