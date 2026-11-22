@@ -209,14 +209,42 @@
   var MAP = {
     lunario: { '--lu-noche': '--t-surface', '--lu-panel': '--t-surface2', '--lu-panel-2': '--t-bg2', '--lu-fuera': '--t-line-fine', '--lu-plata': '--t-ink', '--lu-texto-2': '--t-soft', '--lu-tenue': '--t-faint', '--lu-linea': '--t-line', '--lu-linea-2': '--t-line-strong', '--lu-ambar': '--t-accent', '--lu-ambar-tx': '--t-accent-ink', '--lu-ambar-suave': '--t-accent-soft', '--lu-ambar-medio': '--t-accent-mid', '--lu-sobre-ambar': '--t-on-accent', '--lu-o': '--t-accent', '--lu-lavanda': '--t-accent2', '--lu-t': '--t-accent2', '--lu-sobre-barra': '--t-ink', '--lu-luna-luz': '--t-ink' }
   };
+  function rgba(str) { var m = /rgba?\(([^)]+)\)/.exec(str || ''); if (m) { var c = m[1].split(/[ ,\/]+/).filter(Boolean).map(parseFloat); return [c[0], c[1], c[2], c.length > 3 ? c[3] : 1] }
+    m = /^#([0-9a-f]{3,8})$/i.exec((str || '').trim()); if (!m) return null; var h = m[1]; if (h.length < 6) h = h.split('').map(function (x) { return x + x }).join('');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length > 6 ? parseInt(h.slice(6, 8), 16) / 255 : 1] }
+  function L(c) { return (.2126 * c[0] + .7152 * c[1] + .0722 * c[2]) / 255 }
+  function S(c) { var mx = Math.max(c[0], c[1], c[2]) / 255, mn = Math.min(c[0], c[1], c[2]) / 255; return mx - mn }
   function themeBridge() {
-    var slug = location.pathname.split('/').slice(-2)[0], m = MAP[slug]; if (!m) return;
-    var P; try { P = parent.document.documentElement } catch (e) { return }
-    var pcs = getComputedStyle(P), dark = false;
-    try { dark = parent.Aide && parent.Aide.currentTheme && parent.Aide.currentTheme().mode === 'dark' } catch (e) { }
+    var slug = location.pathname.split('/').slice(-2)[0], P;
+    try { P = parent.document.documentElement; if (!parent.Aide) return } catch (e) { return }
+    var pcs = getComputedStyle(P), tk = function (n) { return pcs.getPropertyValue(n).trim() }, dark = false;
+    try { dark = parent.Aide.currentTheme().mode === 'dark' } catch (e) { }
     if (slug === 'lunario') root.setAttribute('data-tema', dark ? 'oscuro' : 'claro');
-    var css = ':root,:root[data-tema]{';
-    for (var k in m) { var v = pcs.getPropertyValue(m[k]).trim(); if (v) css += k + ':' + v + '!important;' }
+    var css = ':root,:root[data-tema],html:root{', m = MAP[slug];
+    if (m) for (var k in m) { var v = tk(m[k]); if (v) css += k + ':' + v + '!important;' }
+    else {
+      /* generic: every colour variable of the template is re-mapped by role to the site theme */
+      var names = {}, text = '';
+      [].forEach.call(document.styleSheets, function (sh) { try { [].forEach.call(sh.cssRules, function (r) { text += r.cssText; if (r.selectorText && /:root/.test(r.selectorText)) for (var i = 0; i < r.style.length; i++) if (r.style[i].indexOf('--') === 0) names[r.style[i]] = 1 }) } catch (e) { } });
+      var rcs = getComputedStyle(root), vars = [];
+      Object.keys(names).forEach(function (n) { var c = rgba(rcs.getPropertyValue(n)); if (c) vars.push({ n: n, c: c, uses: text.split('var(' + n + ')').length - 1 }) });
+      var neutral = vars.filter(function (v) { return S(v.c) < .22 && v.c[3] > .6 }).sort(function (a, b) { return b.uses - a.uses });
+      var tdark = neutral.length ? L(neutral.filter(function (v) { return /fondo|noche|papel|crema|marfil|escritorio|blanco|panel|tarjeta|lienzo|sup|ventana/.test(v.n) })[0] ? neutral.filter(function (v) { return /fondo|noche|papel|crema|marfil|escritorio|blanco|panel|tarjeta|lienzo|sup|ventana/.test(v.n) })[0].c : neutral[0].c) < .4 : false;
+      var colored = vars.filter(function (v) { return S(v.c) >= .22 && v.c[3] > .6 }).sort(function (a, b) { return b.uses - a.uses });
+      var accent = colored[0] && colored[0].n;
+      var ink = rgba(tk('--t-ink')), acc = rgba(tk('--t-accent')), onacc = tk('--t-on-accent');
+      var withA = function (c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')' };
+      vars.forEach(function (v) {
+        var c = v.c, l = L(c), sat = S(c), out = null, bgish = tdark ? l < .35 : l > .78, inkish = tdark ? l > .7 : l < .35;
+        if (/sobre|on-|tx-on/.test(v.n)) out = onacc;
+        else if (sat < .22) {
+          if (bgish) out = c[3] < .6 ? withA(ink, (tdark ? 1 - l : l) * 0 + .06) : (l > .97 || l < .08 ? tk('--t-surface2') : tk('--t-surface'));
+          else if (inkish) out = withA(ink, c[3]);
+          else out = withA(ink, Math.max(.35, Math.min(.7, c[3] * .6)));
+        } else if (v.n === accent || (acc && Math.abs(L(c) - L(colored[0].c)) < .02 && S(c) > .3)) out = withA(acc, c[3]);
+        if (out) css += v.n + ':' + out + '!important;';
+      });
+    }
     var bs = document.getElementById('aide-theme') || document.head.appendChild(Object.assign(document.createElement('style'), { id: 'aide-theme' }));
     bs.textContent = css + '}';
   }

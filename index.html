@@ -1744,9 +1744,9 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 @media(max-width:560px){ .aide-jp-weekdays,.aide-jp-grid{gap:2px}.aide-jp-day{min-height:38px;border-radius:8px}.aide-jp-day small{font-size:8px} }
 
 /* Full-bleed pages (owner's request 2026-11-22): no page title, no description, no outer margin on any tab. */
-.topbar h1, .topbar .sub, .topbar > div:has(> h1) { display: none !important; }
-.topbar:not(:has(button, .seg, input, select, a)) { display: none !important; }
-.topbar { padding: 6px 10px 4px !important; min-height: 0 !important; }
+.topbar { padding: 14px 6px 10px !important; min-height: 0 !important; align-items: flex-end !important; }
+.topbar h1 { font-size: clamp(32px, 3.6vw, 48px) !important; font-weight: 600 !important; letter-spacing: -.035em !important; line-height: 1.05 !important; }
+.topbar .sub { font-size: 15px !important; color: var(--soft) !important; margin-top: 8px !important; }
 .page, .page.flush { padding: 0 !important; }
 .main { background: transparent !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 .app { gap: 10px !important; }
@@ -1779,6 +1779,17 @@ iframe.aide-tpl { border-radius: 0; }
   .side .side-foot .btn, .side .side-foot button { width: 44px; padding: 0 !important; justify-content: center; font-size: 0 !important; gap: 0 !important; }
   .side .side-foot .btn .icon, .side .side-foot button .icon { width: 18px; height: 18px; }
   .side .side-foot button:not(:has(.icon)) { font-size: 12px !important; }
+
+  .side .tb-extra { order: 4; display: flex; gap: 8px; flex: none; }
+  .side .side-foot { order: 5 !important; }
+  .side .tb-new { order: 6; flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--ink); color: var(--canvas, #fff); font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 10px 22px -12px var(--shadow); }
+  .side .tb-new .icon { width: 18px; height: 18px; }
+  .tb-circle { position: relative; width: 46px; height: 46px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: var(--paper); color: var(--ink); box-shadow: 0 1px 0 var(--rim) inset, 0 6px 16px -12px var(--shadow-soft); }
+  .tb-circle.tb-bell { background: var(--ink); color: var(--canvas, #fff); }
+  .tb-circle .icon { width: 19px; height: 19px; }
+  .tb-count { position: absolute; top: -3px; inset-inline-end: -3px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--paper); color: var(--ink); font-size: 11px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; box-shadow: 0 0 0 2px var(--ink); }
+  .side .side-foot .avatar { background: var(--ink) !important; color: var(--canvas, #fff) !important; font-weight: 600; }
+  .main { background: transparent !important; }
   .main { grid-column: 1 !important; grid-row: 2 !important; min-height: 0; min-width: 0; }
 }
 </style>
@@ -1948,7 +1959,7 @@ iframe.aide-tpl { border-radius: 0; }
   A.catStyle = c => ({ '--c': 'var(--c-' + (A.CATS[c] ? c : 'meeting') + ')', '--b': 'var(--b-' + (A.CATS[c] ? c : 'meeting') + ')' });
 
   /* ── store (in memory; vault.js encrypts it to disk) ──────────────── */
-  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 5, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 60, clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15, secondary: 'persian', weekend: 'sat-sun', calSystem: 'jalali', holidaysOn: true, holidayIntl: false, holidayBlock: true, hijriOffset: 0, customHolidays: [], faOn: false, faOnline: false, themeMode: 'auto', themeLight: 'ice', themeDark: 'aurora', customThemes: [], fontDisplay: '', fontText: '', fontScale: 100, buffer: 10, remindersOn: true, sound: true, vibrate: true, hidePreview: false });
+  const DEFAULTS = () => ({ name: '', title: '', assistant: '', theme: 'auto', hour12: false, weekStart: 5, dayStart: 7, dayEnd: 21, defDur: 60, lockMin: 60, clocks: ['Asia/Tehran', 'Europe/London', 'America/New_York'], remind: 15, secondary: 'persian', weekend: 'sat-sun', calSystem: 'jalali', holidaysOn: true, holidayIntl: false, holidayBlock: true, hijriOffset: 0, customHolidays: [], faOn: false, faOnline: false, themeMode: 'auto', themeLight: 'talmo', themeDark: 'talmo-night', customThemes: [], fontDisplay: '', fontText: '', fontScale: 100, buffer: 10, remindersOn: true, sound: true, vibrate: true, hidePreview: false });
   A.db = { data: null };
   A.settings = () => (A.db.data && A.db.data.settings) || DEFAULTS();
   A.uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -1962,6 +1973,7 @@ iframe.aide-tpl { border-radius: 0; }
     if (!st.calendarSystemInit) { st.calSystem = 'jalali'; st.weekStart = 5; st.calendarSystemInit = true; setTimeout(() => A.save('settings'), 0); }
     // One-time migration for every account: unify all integrated Moxen views on the
     // Shamsi calendar. The user can still change the single global calendar in Settings.
+    if (!st.talmoDefault) { if ((!st.themeLight || st.themeLight === 'ice') && (!st.themeDark || st.themeDark === 'aurora')) { st.themeLight = 'talmo'; st.themeDark = 'talmo-night'; } st.talmoDefault = true; setTimeout(() => A.save('settings'), 0); }
     if (!st.moxenCalendarUnified) { st.calSystem = 'jalali'; st.weekStart = 5; st.moxenCalendarUnified = true; setTimeout(() => A.save('settings'), 0); }
     if (data.settings && !data.settings.themeMode) st.themeMode = { paper: 'light', dusk: 'dark', auto: 'auto' }[data.settings.theme] || 'auto';   // from the older theme setting
     A.applyTheme();
@@ -2180,6 +2192,8 @@ iframe.aide-tpl { border-radius: 0; }
   const F0 = { display: 'Cabinet Grotesk', text: 'General Sans' };
   const T = (id, name, mode, o) => Object.assign({ id, name, mode, hues: Object.assign({}, HUE_BASE), font: Object.assign({}, F0), builtin: true }, o);
   A.THEMES = [
+    T('talmo', 'Talmo', 'light', { bg: '#e6e7e2', bg2: '#dcddd7', surface: '#f6f6f3', surface2: '#ffffff', ink: '#121212', accent: '#121212', accent2: '#6f706b', mesh: ['#dcddd7', '#ecece8', '#d2d3cd'], font: { display: 'Outfit', text: 'Outfit' } }),
+    T('talmo-night', 'Talmo night', 'dark', { bg: '#111111', bg2: '#181818', surface: '#1b1b1b', surface2: '#232323', ink: '#f2f2ef', accent: '#f2f2ef', accent2: '#9a9a95', mesh: ['#1f1f1f', '#2a2a2a', '#181818'], font: { display: 'Outfit', text: 'Outfit' } }),
     T('ice', 'Ice', 'light', { bg: '#f3f6ff', bg2: '#e4eaff', surface: '#ffffff', surface2: '#f8f9ff', ink: '#1f2347', accent: '#7a4df5', accent2: '#ff5fa8', mesh: ['#ff9fd1', '#a99dff', '#9ad6ff'] }),
     T('candy', 'Candy', 'light', { bg: '#fff3fa', bg2: '#ffe0f1', surface: '#ffffff', surface2: '#fff9fd', ink: '#3b1f4f', accent: '#e03e97', accent2: '#8f5cf5', mesh: ['#ff9ccf', '#c9a5ff', '#ffc9a8'] }),
     T('aurora', 'Aurora', 'dark', { bg: '#0a0f2e', bg2: '#121850', surface: '#161c4a', surface2: '#1d2459', ink: '#eef0ff', accent: '#8f74ff', accent2: '#ff6fb8', mesh: ['#7c5cff', '#3d6dff', '#ff5fb0'] }),
@@ -2209,7 +2223,7 @@ iframe.aide-tpl { border-radius: 0; }
     ['Zodiak', 'serif', FS, 'zodiak@400,700', 3], ['Manrope', 'sans', GF, 'Manrope:wght@400;500;600;700', 2], ['Geist Mono', 'mono', GF, 'Geist+Mono:wght@400;500', 2], ['Space Grotesk', 'sans', GF, 'Space+Grotesk:wght@400;500;600;700', 2],
     ['Figtree', 'sans', GF, 'Figtree:wght@400;500;600;700', 2], ['Fraunces', 'serif', GF, 'Fraunces:wght@400;500;600;700', 2], ['Sentient', 'serif', FS, 'sentient@400,500', 2], ['Hanken Grotesk', 'sans', GF, 'Hanken+Grotesk:wght@400;500;600;700', 2],
     ['Sora', 'sans', GF, 'Sora:wght@400;500;600;700', 1], ['Big Shoulders', 'display', GF, 'Big+Shoulders:wght@500;700;800', 1], ['Onest', 'sans', GF, 'Onest:wght@400;500;600', 1], ['Inter Tight', 'sans', GF, 'Inter+Tight:wght@400;500;600;700', 1],
-    ['Bricolage Grotesque', 'display', GF, 'Bricolage+Grotesque:wght@400;600;700;800', 1], ['Sofia Sans', 'sans', GF, 'Sofia+Sans:wght@400;500;600;700', 1], ['Plus Jakarta Sans', 'sans', GF, 'Plus+Jakarta+Sans:wght@400;500;600;700;800', 1], ['Urbanist', 'sans', GF, 'Urbanist:wght@400;500;600;700', 1], ['DM Sans', 'sans', GF, 'DM+Sans:wght@400;500;600;700', 1],
+    ['Bricolage Grotesque', 'display', GF, 'Bricolage+Grotesque:wght@400;600;700;800', 1], ['Sofia Sans', 'sans', GF, 'Sofia+Sans:wght@400;500;600;700', 1], ['Plus Jakarta Sans', 'sans', GF, 'Plus+Jakarta+Sans:wght@400;500;600;700;800', 1], ['Urbanist', 'sans', GF, 'Urbanist:wght@400;500;600;700', 1], ['Outfit', 'sans', GF, 'Outfit:wght@400;500;600;700', 1], ['DM Sans', 'sans', GF, 'DM+Sans:wght@400;500;600;700', 1],
     ['IBM Plex Mono', 'mono', GF, 'IBM+Plex+Mono:wght@400;500;600', 1], ['Geologica', 'sans', GF, 'Geologica:wght@400;500;700', 1], ['Overpass Mono', 'mono', GF, 'Overpass+Mono:wght@400;600', 1], ['Supreme', 'sans', FS, 'supreme@400,500,700', 1],
     ['Red Hat Display', 'display', FS, 'red-hat-display@500,700,900', 1], ['Clash Grotesk', 'display', FS, 'clash-grotesk@500,600', 1], ['Source Code Pro', 'mono', GF, 'Source+Code+Pro:wght@400;500', 1], ['Roboto Flex', 'sans', GF, 'Roboto+Flex:wght@400;500;600;700', 1],
     ['Chivo Mono', 'mono', GF, 'Chivo+Mono:wght@400;500', 1], ['Space Mono', 'mono', GF, 'Space+Mono:wght@400;700', 1], ['Tabular', 'mono', FS, 'tabular@400,500', 1], ['Vazirmatn', 'persian', GF, 'Vazirmatn:wght@400;500;700', 0],
@@ -2267,7 +2281,7 @@ iframe.aide-tpl { border-radius: 0; }
   A.prefersDark = () => matchMedia('(prefers-color-scheme: dark)').matches;
   A.currentTheme = function () {
     const S = A.settings(), mode = S.themeMode || 'auto', dark = mode === 'dark' || (mode === 'auto' && A.prefersDark());
-    return A.themeById(dark ? S.themeDark : S.themeLight) || A.themeById(dark ? 'aurora' : 'ice');
+    return A.themeById(dark ? S.themeDark : S.themeLight) || A.themeById(dark ? 'talmo-night' : 'talmo');
   };
   A.applyThemeDef = function (d) {
     const st = document.documentElement.style, S = A.settings(), t = A.tokens(d), vars = Object.assign({}, t, appVars(d, t));
@@ -7790,5 +7804,28 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   </script>
 
 <script>(function(){try{var q=new URLSearchParams(location.search);if(q.get('from')==='vertex')sessionStorage.setItem('aideFromVx','1');if(!sessionStorage.getItem('aideFromVx')&&!/\/VERTEX\//.test(location.pathname))return;var a=document.createElement('a');a.href='https://danialmor.github.io/VERTEX/app/';a.textContent='VERTEX';a.setAttribute('aria-label','بازگشت به VERTEX');a.style.cssText='position:fixed;z-index:99999;left:14px;bottom:14px;min-width:56px;height:56px;padding:0 18px;border-radius:28px;background:#0b1220;color:#fff;display:grid;place-items:center;font:600 14px system-ui;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.25)';document.body.appendChild(a);try{var s=JSON.parse(localStorage.getItem('vxSess')||'{}');if(s.role==='admin')a.href='https://danialmor.github.io/VERTEX/home/'}catch(e){}}catch(e){}})()</script>
+<script>
+/* Talmo-style top bar extras: theme switch, notifications, New. Added to the top navigation (desktop). */
+(function () {
+  function build() {
+    var A = window.Aide, side = document.querySelector('.side'); if (!A || !side || side.querySelector('.tb-extra')) return;
+    var foot = side.querySelector('.side-foot'); if (!foot) return;
+    var mk = function (cls, title, svg, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'tb-circle ' + cls; b.title = title; b.setAttribute('aria-label', title); b.innerHTML = svg; b.onclick = fn; return b };
+    var ico = function (d) { return '<svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="' + d + '"/></svg>' };
+    var box = document.createElement('div'); box.className = 'tb-extra';
+    box.append(
+      mk('tb-theme', 'Light or dark', ico('M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z'), function () { var S = A.settings(), dark = A.currentTheme().mode === 'dark'; S.themeMode = dark ? 'light' : 'dark'; A.save && A.save('settings'); A.applyTheme(); A.route && A.route() }),
+      mk('tb-bell', 'Requests', ico('M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0'), function () { location.hash = '#/requests' })
+    );
+    var n = 0; try { n = ((A.db && A.db.data && A.db.data.requests) || []).filter(function (r) { return !r.status || r.status === 'pending' }).length } catch (e) { }
+    if (n) { var c = document.createElement('span'); c.className = 'tb-count'; c.textContent = n; box.lastChild.append(c) }
+    var nw = document.createElement('button'); nw.type = 'button'; nw.className = 'tb-new';
+    nw.innerHTML = ico('M12 5v14M5 12h14') + '<span>New</span>'; nw.onclick = function () { A.ev && A.ev.edit ? A.ev.edit(null, {}) : (location.hash = '#/calendar') };
+    side.insertBefore(box, foot); side.appendChild(nw);
+  }
+  var t = setInterval(function () { build(); if (document.querySelector('.tb-extra')) clearInterval(t) }, 400);
+  new MutationObserver(function () { if (!document.querySelector('.tb-extra')) build() }).observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
 </body>
 </html>
