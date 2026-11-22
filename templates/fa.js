@@ -257,9 +257,8 @@
           else if (inkish) out = withA(ink, c[3]);
           else out = withA(ink, Math.max(.35, Math.min(.7, c[3] * .6)));
         } else if (/sombra|shadow|brillo|glow|halo/.test(v.n)) out = 'rgba(0,0,0,' + Math.min(.18, c[3]) + ')';
-        else if (/(^|-)(c\d|o|t|a|u|tono-\d|cat\d?)(-|$)/.test(v.n.replace(/^--[a-z]{2}-/, ''))) out = null;   // category colours keep their meaning
-        else if (L(c) > .8) out = tk('--t-accent-soft') || withA(acc, .12);
-        else out = withA(acc, c[3]);
+        // only the template's main accent follows the theme; its other colours (stickers, markers, categories) stay as designed
+        else if (v.n === accent || (colored[0] && Math.abs(c[0] - colored[0].c[0]) + Math.abs(c[1] - colored[0].c[1]) + Math.abs(c[2] - colored[0].c[2]) < 24)) out = withA(acc, c[3]);
         if (out) css += v.n + ':' + out + '!important;';
       });
     }
