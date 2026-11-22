@@ -1742,6 +1742,13 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 .aide-jp-day.holiday:not(.selected) { box-shadow:inset 0 -3px 0 var(--danger); }
 .aide-jp-dot { width:4px; height:4px; border-radius:50%; background:var(--b-visit); }
 @media(max-width:560px){ .aide-jp-weekdays,.aide-jp-grid{gap:2px}.aide-jp-day{min-height:38px;border-radius:8px}.aide-jp-day small{font-size:8px} }
+
+/* Full-bleed pages (owner's request 2026-11-22): no page title, no description, no outer margin on any tab. */
+.topbar h1, .topbar .sub, .topbar > div:has(> h1) { display: none !important; }
+.topbar:not(:has(button, .seg, input, select, a)) { display: none !important; }
+.topbar { padding: 6px 10px 4px !important; min-height: 0 !important; }
+.page, .page.flush { padding: 6px 8px 8px !important; }
+iframe.aide-tpl { border-radius: 14px; }
 </style>
 <script>
   // apply the saved theme before first paint (no flash)
@@ -2147,6 +2154,18 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     T('midnight', 'Midnight plum', 'dark', { bg: '#17111f', bg2: '#251a33', surface: '#241a30', surface2: '#2d2139', ink: '#f6eff8', accent: '#b78cff', accent2: '#ff8fb5', mesh: ['#8c5cff', '#ff6fa8', '#4f7cff'] }),
     T('cacao', 'Cacao', 'light', { bg: '#fbf3e8', bg2: '#f3e4cf', surface: '#fffaf2', surface2: '#fffdf8', ink: '#3a2418', accent: '#e8693a', accent2: '#ffb084', mesh: ['#ffa05f', '#ffc496', '#8fbea0'] }),
     T('lagoon', 'Lagoon', 'light', { bg: '#f2f8f6', bg2: '#dcefeb', surface: '#fdfefd', surface2: '#f4f9f8', ink: '#13302d', accent: '#1a7a6e', accent2: '#4cc3b1', mesh: ['#6fd6c6', '#b8e8df', '#ffd6b0'] }),
+    T('convite', 'Convite', 'dark', { bg: '#151314', bg2: '#1d1a1b', surface: '#1d1a1b', surface2: '#2a2527', ink: '#f4ede2', accent: '#c9973a', accent2: '#7a2234', mesh: ['#c9973a', '#7a2234', '#2a2527'], font: { display: 'Fraunces', text: 'Manrope' } }),
+    T('epoca', 'Época', 'light', { bg: '#f1f2f8', bg2: '#e5e8f0', surface: '#ffffff', surface2: '#f3f4f7', ink: '#16181f', accent: '#3b69f0', accent2: '#bcd4ff', mesh: ['#bcd4ff', '#3b69f0', '#e5e8f0'] }),
+    T('esfera', 'Esfera', 'light', { bg: '#eceff4', bg2: '#dde3eb', surface: '#ffffff', surface2: '#f2f5f9', ink: '#111216', accent: '#e5382f', accent2: '#6c7896', mesh: ['#ff6a55', '#e5382f', '#dde3eb'], font: { display: 'Switzer', text: 'Switzer' } }),
+    T('estadia', 'Estadía', 'dark', { bg: '#0a0a0a', bg2: '#121212', surface: '#121212', surface2: '#151515', ink: '#f4f4f4', accent: '#f4f4f4', accent2: '#3ccf6e', mesh: ['#2c2c2c', '#3ccf6e', '#151515'] }),
+    T('franjas', 'Franjas', 'light', { bg: '#f7f5f0', bg2: '#efece5', surface: '#fffdf9', surface2: '#f7f5f0', ink: '#1b2028', accent: '#3e5c8a', accent2: '#e8a23a', mesh: ['#d2dcec', '#3e5c8a', '#e8a23a'] }),
+    T('itinerario', 'Itinerario', 'light', { bg: '#eff0f7', bg2: '#f5f6fb', surface: '#ffffff', surface2: '#f5f6fb', ink: '#1f2340', accent: '#6a49dc', accent2: '#c0306f', mesh: ['#ffc9df', '#dcd0ff', '#ffd5bd'], font: { display: 'Plus Jakarta Sans', text: 'Plus Jakarta Sans' } }),
+    T('lunario', 'Lunario', 'dark', { bg: '#121827', bg2: '#1b2336', surface: '#1b2336', surface2: '#232d45', ink: '#dfe3ec', accent: '#f0a93a', accent2: '#9d8cf0', mesh: ['#f0a93a', '#9d8cf0', '#e5604f'] }),
+    T('parangon', 'Parangón', 'light', { bg: '#eff0f7', bg2: '#f6f7fb', surface: '#fcfcfd', surface2: '#f6f7fb', ink: '#191b22', accent: '#3366ff', accent2: '#9a8fd0', mesh: ['#3366ff', '#9a8fd0', '#e4e6ef'], font: { display: 'Urbanist', text: 'Urbanist' } }),
+    T('puntual', 'Puntual', 'light', { bg: '#fde6ff', bg2: '#c8c2ff', surface: '#ffffff', surface2: '#f3efff', ink: '#22194f', accent: '#8f84ec', accent2: '#ff3b3b', mesh: ['#c8c2ff', '#fde6ff', '#ffb938'] }),
+    T('rueda', 'Rueda', 'dark', { bg: '#0c0c10', bg2: '#111116', surface: '#1a1a21', surface2: '#22222a', ink: '#f3f3f5', accent: '#ffc83d', accent2: '#e0a014', mesh: ['#ffc83d', '#e0a014', '#1a1a21'] }),
+    T('solape', 'Solape', 'light', { bg: '#e9e4d8', bg2: '#f6f3ec', surface: '#fbf9f4', surface2: '#f6f3ec', ink: '#1a1c21', accent: '#3046c8', accent2: '#ec7a2a', mesh: ['#3046c8', '#ec7a2a', '#d8d2c6'] }),
+    T('vencimientos', 'Vencimientos', 'light', { bg: '#eef1f7', bg2: '#e6e9ef', surface: '#ffffff', surface2: '#f3f4f7', ink: '#1a1c22', accent: '#2452b5', accent2: '#ffb48a', mesh: ['#7aa7ff', '#ffb48a', '#7fd6b0'] }),
   ];
   A.HUES = HUES; A.HUE_BASE = HUE_BASE;
 
@@ -2158,7 +2177,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     ['Zodiak', 'serif', FS, 'zodiak@400,700', 3], ['Manrope', 'sans', GF, 'Manrope:wght@400;500;600;700', 2], ['Geist Mono', 'mono', GF, 'Geist+Mono:wght@400;500', 2], ['Space Grotesk', 'sans', GF, 'Space+Grotesk:wght@400;500;600;700', 2],
     ['Figtree', 'sans', GF, 'Figtree:wght@400;500;600;700', 2], ['Fraunces', 'serif', GF, 'Fraunces:wght@400;500;600;700', 2], ['Sentient', 'serif', FS, 'sentient@400,500', 2], ['Hanken Grotesk', 'sans', GF, 'Hanken+Grotesk:wght@400;500;600;700', 2],
     ['Sora', 'sans', GF, 'Sora:wght@400;500;600;700', 1], ['Big Shoulders', 'display', GF, 'Big+Shoulders:wght@500;700;800', 1], ['Onest', 'sans', GF, 'Onest:wght@400;500;600', 1], ['Inter Tight', 'sans', GF, 'Inter+Tight:wght@400;500;600;700', 1],
-    ['Bricolage Grotesque', 'display', GF, 'Bricolage+Grotesque:wght@400;600;700;800', 1], ['Sofia Sans', 'sans', GF, 'Sofia+Sans:wght@400;500;600;700', 1], ['Plus Jakarta Sans', 'sans', GF, 'Plus+Jakarta+Sans:wght@400;500;600;700;800', 1], ['DM Sans', 'sans', GF, 'DM+Sans:wght@400;500;600;700', 1],
+    ['Bricolage Grotesque', 'display', GF, 'Bricolage+Grotesque:wght@400;600;700;800', 1], ['Sofia Sans', 'sans', GF, 'Sofia+Sans:wght@400;500;600;700', 1], ['Plus Jakarta Sans', 'sans', GF, 'Plus+Jakarta+Sans:wght@400;500;600;700;800', 1], ['Urbanist', 'sans', GF, 'Urbanist:wght@400;500;600;700', 1], ['DM Sans', 'sans', GF, 'DM+Sans:wght@400;500;600;700', 1],
     ['IBM Plex Mono', 'mono', GF, 'IBM+Plex+Mono:wght@400;500;600', 1], ['Geologica', 'sans', GF, 'Geologica:wght@400;500;700', 1], ['Overpass Mono', 'mono', GF, 'Overpass+Mono:wght@400;600', 1], ['Supreme', 'sans', FS, 'supreme@400,500,700', 1],
     ['Red Hat Display', 'display', FS, 'red-hat-display@500,700,900', 1], ['Clash Grotesk', 'display', FS, 'clash-grotesk@500,600', 1], ['Source Code Pro', 'mono', GF, 'Source+Code+Pro:wght@400;500', 1], ['Roboto Flex', 'sans', GF, 'Roboto+Flex:wght@400;500;600;700', 1],
     ['Chivo Mono', 'mono', GF, 'Chivo+Mono:wght@400;500', 1], ['Space Mono', 'mono', GF, 'Space+Mono:wght@400;700', 1], ['Tabular', 'mono', FS, 'tabular@400,500', 1], ['Vazirmatn', 'persian', GF, 'Vazirmatn:wght@400;500;700', 0],
