@@ -3086,7 +3086,13 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
           if (pw !== repeat.value) throw new Error('The passwords do not match.');
           await onlineRequest('/api/register', 'POST', { username, password: pw, displayName: username });
         } else {
-          await onlineRequest('/api/login', 'POST', { username, password: pw, rememberMe: rememberMe.checked }); try { localStorage.setItem('aide.lastOnlineUser', username) } catch (e) { }
+          await onlineRequest('/api/login', 'POST', { username, password: pw, rememberMe: rememberMe.checked }); try { localStorage.setItem('aide.lastOnlineUser', username) } catch (e) { } try { const vk = sessionStorage.getItem('vxAideKey'); if (vk && window.crypto && crypto.subtle) { /* VERTEX admin: link this Aide account to the VERTEX sign-in on this device (encrypted with the VERTEX password) */
+          const E = new TextEncoder(), salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+          const base = await crypto.subtle.importKey('raw', E.encode(vk), 'PBKDF2', false, ['deriveKey']);
+          const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+          const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, E.encode(JSON.stringify({ u: username, p: pw }))));
+          const b = a => btoa(String.fromCharCode.apply(null, a));
+          localStorage.setItem('aide.link', JSON.stringify({ s: b(salt), i: b(iv), c: b(ct) })); sessionStorage.removeItem('vxAideKey'); } } catch (e) { }
         }
         const me = await onlineRequest('/api/me');
         if (!me.user) throw new Error('The server did not create a valid session. Check the API configuration.');
