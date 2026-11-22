@@ -30,7 +30,11 @@
       var mw = parseFloat(getComputedStyle(el).maxWidth);
       if (mw >= 600 && mw <= 1300) el.classList.add('aide-wide');
     });
-    try { parent.postMessage({ aideTpl: 'h', h: document.documentElement.scrollHeight }, '*') } catch (e) { }
+    report();
+  }
+  function report() {
+    var h = 0; [].forEach.call(document.body.querySelectorAll('body > *, body > * > *'), function (el) { var r = el.getBoundingClientRect(); if (r.height && getComputedStyle(el).position !== 'fixed') h = Math.max(h, r.bottom + scrollY) });
+    try { parent.postMessage({ aideTpl: 'h', slug: location.pathname.split('/').slice(-2)[0], h: Math.ceil(h) }, '*') } catch (e) { }
   }
   /* ---------- 2. Persian ---------- */
   var P_FA = {
@@ -156,7 +160,7 @@
     if (busy) return; busy = true;
     try { ms.forEach(function (m) { if (m.type === 'characterData') walk(m.target); else if (m.type === 'attributes') walk(m.target); else m.addedNodes.forEach(walk) }) } finally { busy = false }
   });
-  function start() { run(); fit(); mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'title', 'alt'] }); setTimeout(fit, 600); addEventListener('resize', fit) }
+  function start() { run(); fit(); mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'title', 'alt'] }); setTimeout(fit, 600); setTimeout(report, 1500); addEventListener('resize', fit) }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
   // AIDE theme (dark/light) is sent by the parent tab
   addEventListener('message', function (e) { var d = e.data || {}; if (d.aideTheme) root.style.colorScheme = d.aideTheme });
