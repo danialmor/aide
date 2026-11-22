@@ -63,3 +63,4 @@ the design decisions and anything that speeds up the next session.**
   Secretary tab `ceo-view` (`js/ceo-view.js`) creates/copies/revokes the link and previews the page.
   **Needs the updated `cloudflare/worker.js` deployed to the `aide-api` Worker.**
 - AI (step 4): `js/ai-bridge.js` loads the VERTEX assistant (`shared/ai/ai.js`) and sets `window.VX_CTX` with the desk's events, tasks, requests and people.
+- Team (step 5): `js/team.js` tab `team`: members of the VERTEX subscription (hub `GET /team/members`), per-member upcoming events (`event.for`), reminders (`task.forCode`), meetings and notices sent with hub `POST /notify`. VERTEX shows them in a bell on every platform (`shared/notify.js`, loaded by auth.js).

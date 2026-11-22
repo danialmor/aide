@@ -19,6 +19,7 @@
     ['timer', 'زمان‌سنج‌ها', 'Timers'],
     ['people', 'افراد', 'People'],
     ['themes', 'تم‌ها', 'Themes'],
+    ['team', 'تیم', 'Team'],
     ['ceo-view', 'نمای مدیرعامل', 'CEO view'],
     ['tpl-lunario', 'تقویم ماهانه', 'Monthly calendar'],
     ['tpl-semana', 'برنامه هفتگی', 'Weekly planner'],
