@@ -111,6 +111,36 @@ async function route(request, env) {
     return json({ error: "Origin not allowed." }, 403);
   }
 
+  /* CEO view: a private read-only link (no username or password). The secretary creates or revokes it. */
+  if (path === "/api/ceo-link" && (request.method === "POST" || request.method === "DELETE" || request.method === "GET")) {
+    const user = await currentUser(request, env);
+    if (!user) return json({ error: "Authentication required." }, 401);
+    const owner = user.role === "user" || user.role === "ceo" ? (user.ownerId || user.id) : user.id;
+    const mapKey = "ceolink-owner:" + owner;
+    const old = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind(mapKey).first();
+    if (request.method === "GET") return json({ active: !!old });
+    if (old) { await env.DB.prepare("DELETE FROM system_settings WHERE key=?").bind("ceolink:" + old.value).run(); await env.DB.prepare("DELETE FROM system_settings WHERE key=?").bind(mapKey).run(); }
+    if (request.method === "DELETE") { await audit(env, user.id, "ceo_link.revoked", owner); return json({ ok: true }); }
+    const token = randomHex(24), h = await sha256(token);
+    await env.DB.prepare("INSERT OR REPLACE INTO system_settings (key, value) VALUES (?, ?)").bind("ceolink:" + h, String(owner)).run();
+    await env.DB.prepare("INSERT OR REPLACE INTO system_settings (key, value) VALUES (?, ?)").bind(mapKey, h).run();
+    await audit(env, user.id, "ceo_link.created", owner);
+    return json({ token });
+  }
+  if (path.startsWith("/api/ceo/") && request.method === "GET") {
+    const token = path.slice(9);
+    if (!/^[0-9a-f]{48}$/.test(token)) return json({ error: "Not found." }, 404);
+    const map = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind("ceolink:" + await sha256(token)).first();
+    if (!map) return json({ error: "This link is no longer active." }, 404);
+    const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key=?").bind("workspace:" + map.value).first();
+    let d = {}; try { d = row ? JSON.parse(row.value) : {}; } catch { d = {}; }
+    const pick = (o, k) => k.reduce((r, x) => (o[x] !== undefined && (r[x] = o[x]), r), {});
+    const events = (d.events || []).map(e => pick(e, ["id", "title", "date", "start", "dur", "allDay", "cat", "loc", "with", "people", "rec", "status", "remind", "until", "notes"]));
+    const tasks = (d.tasks || []).filter(t => !t.done).map(t => pick(t, ["id", "title", "due", "pri", "owner"]));
+    const s = d.settings || {};
+    return json({ name: s.name || "", title: s.title || "", calSystem: s.calSystem || "jalali", lang: s.lang || "en", events, tasks, updated: Date.now() }, 200, { "cache-control": "no-store" });
+  }
+
   if (path === "/api/health" && request.method === "GET") {
     return json({ ok: true, service: "AIDE API", version: 1 });
   }

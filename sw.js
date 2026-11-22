@@ -1,6 +1,6 @@
 /* AIDE online-only service worker.
    Do not cache application pages or API responses; workspace data is server-backed. */
-const VERSION = 'aide-mobile-fa-v31';
+const VERSION = 'aide-mobile-fa-v32';
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
 });

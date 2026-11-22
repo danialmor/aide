@@ -57,3 +57,8 @@ the design decisions and anything that speeds up the next session.**
   `templates/fa.js` (section 4) when `calSystem === 'jalali'`; day grids of Monthly calendar / Date picker / Book a time
   still need per-template conversion.
 - Page titles hidden on: repeats, roadmap, tpl-lunario, tpl-epoca, tpl-turno, tpl-estadia, tpl-itinerario, tpl-recurrencia, tpl-convite.
+- CEO view (step 3): `ceo.html` = read-only page for the CEO, opened by a private link `ceo.html#k=<48-hex token>` (no login).
+  Worker endpoints: `POST/DELETE/GET /api/ceo-link` (secretary creates/revokes; stored in `system_settings` as
+  `ceolink:<sha256(token)>` → workspace owner) and `GET /api/ceo/:token` (events, open tasks, name, calSystem, lang).
+  Secretary tab `ceo-view` (`js/ceo-view.js`) creates/copies/revokes the link and previews the page.
+  **Needs the updated `cloudflare/worker.js` deployed to the `aide-api` Worker.**

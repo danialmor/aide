@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#e6e7e2">
+<title>CEO View · Aide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap">
+<style>
+/* CEO View — read-only page reached by a private link. Talmo look: soft grey ground, white cards, black accents.
+   Phone: one column, today first. Desktop: three columns (Today · Next days · Reminders). */
+:root{--bg:#e6e7e2;--card:#f6f6f3;--card2:#fff;--ink:#121212;--soft:rgba(18,18,18,.62);--faint:rgba(18,18,18,.42);--line:rgba(18,18,18,.09);
+  --work:#121212;--personal:#c8643c;--travel:#3b6fd8;--call:#2f9e6e;--focus:#7a5cd6;--away:#9a9a95;
+  --r:24px;--f:Outfit,Vazirmatn,system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#111;--card:#1b1b1b;--card2:#232323;--ink:#f2f2ef;--soft:rgba(242,242,239,.66);--faint:rgba(242,242,239,.42);--line:rgba(242,242,239,.1);--work:#f2f2ef;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#111;--card:#1b1b1b;--card2:#232323;--ink:#f2f2ef;--soft:rgba(242,242,239,.66);--faint:rgba(242,242,239,.42);--line:rgba(242,242,239,.1);--work:#f2f2ef;color-scheme:dark}
+*{box-sizing:border-box}html{-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f);min-height:100vh}
+.wrap{max-width:1400px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) 32px max(18px,env(safe-area-inset-left,0px))}
+header{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.mark{width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:700;font-size:18px;flex:none}
+.who b{display:block;font-size:17px;font-weight:600}.who small{color:var(--soft)}
+.sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;background:var(--card2);border:0;color:var(--ink);font:inherit;font-weight:500;box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 6px 16px -12px rgba(0,0,0,.4);cursor:pointer;touch-action:manipulation}
+.pill.dark{background:var(--ink);color:var(--bg)}
+.seg{display:inline-flex;padding:5px;border-radius:999px;background:var(--card2);gap:2px}
+.seg button{border:0;background:none;color:var(--soft);font:inherit;font-weight:500;min-height:38px;padding:0 16px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+h1{font-size:clamp(34px,5vw,54px);font-weight:600;letter-spacing:-.035em;line-height:1.05;margin:4px 0 6px;text-wrap:balance}
+.lead{color:var(--soft);margin:0 0 20px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border-radius:20px;padding:16px 18px}.stat small{color:var(--soft);display:block}.stat b{font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.grid{display:grid;grid-template-columns:1.25fr 1fr .9fr;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--r);padding:18px 18px 10px;min-width:0}
+.card h2{margin:0 0 4px;font-size:19px;font-weight:600}.card .hint{color:var(--soft);font-size:13px;margin:0 0 12px}
+.ev{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.ev:first-of-type{border-top:0}
+.t{font-variant-numeric:tabular-nums;font-weight:600}.t small{display:block;color:var(--faint);font-weight:400}
+.ev .body{min-width:0}.ev .ttl{font-weight:600;overflow-wrap:anywhere}.ev .meta{color:var(--soft);font-size:13px}
+.chip{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;margin-inline-end:6px;color:#fff;background:var(--work)}
+.chip.personal{background:var(--personal)}.chip.travel{background:var(--travel)}.chip.call{background:var(--call)}.chip.focus{background:var(--focus)}.chip.away{background:var(--away)}
+.chip.meeting,.chip.visit{background:var(--work);color:var(--bg)}
+.ev.now{position:relative}.ev.now::before{content:"";position:absolute;inset-inline-start:-18px;top:16px;width:5px;height:22px;border-radius:3px;background:var(--ink)}
+.day{margin:14px 0 2px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.task{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line)}.task:first-of-type{border-top:0}
+.dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none;background:var(--faint)}.dot.p-now{background:#d6453b}.dot.p-plan{background:var(--ink)}
+.empty{color:var(--soft);padding:18px 0 22px}
+.err{max-width:480px;margin:18vh auto;text-align:center;background:var(--card);border-radius:var(--r);padding:28px}
+.foot{color:var(--faint);font-size:12.5px;margin-top:18px;text-align:center}
+[dir=rtl] .now::before{inset-inline-start:-18px}
+@media (max-width:980px){.grid{grid-template-columns:1fr 1fr}.grid .rem{grid-column:1/-1}}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}h1{font-size:34px}.who small{display:none}.card{border-radius:20px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><p class="empty">Loading…</p></div>
+<script>
+(function () {
+  'use strict';
+  var API = 'https://aide-api.0tddq47ko7zqg6gdmwllyzi.workers.dev';
+  var token = (location.hash.match(/k=([0-9a-f]{48})/) || [])[1] || (new URLSearchParams(location.search).get('k') || '');
+  var app = document.getElementById('app'), D = null, view = 'all', LANG = 'en';
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] }) };
+  var FA = { 'Today': 'امروز', 'Next days': 'روزهای آینده', 'Next 14 days': '۱۴ روز آینده', 'Reminders': 'یادآوری‌ها', 'All': 'همه', 'Work': 'کاری', 'Personal': 'شخصی', 'Meetings today': 'جلسه‌های امروز', 'This week': 'این هفته', 'Reminders open': 'یادآوری باز', 'Next': 'بعدی', 'Nothing scheduled.': 'برنامه‌ای ثبت نشده.', 'No open reminders.': 'یادآوری بازی نیست.', 'Read-only view prepared by your assistant': 'نمای فقط‌خواندنی که دستیار شما آماده کرده است', 'all day': 'تمام روز', 'Refresh': 'به‌روزرسانی', 'overdue': 'گذشته', 'due': 'سررسید', 'Good morning': 'صبح بخیر', 'Good afternoon': 'عصر بخیر', 'Good evening': 'شب بخیر', 'Meeting': 'جلسه', 'Visit': 'بازدید', 'Call': 'تماس', 'Travel': 'سفر', 'Focus': 'تمرکز', 'Out of office': 'خارج از دفتر', 'with': 'با', 'Updated': 'به‌روزشده', 'This link is no longer active.': 'این لینک دیگر فعال نیست.', 'Ask your assistant for a new link.': 'از دستیارتان لینک تازه بخواهید.', 'Could not load. Check the connection and try again.': 'بارگیری نشد. اتصال را بررسی کنید و دوباره تلاش کنید.' };
+  var T = function (s) { return LANG === 'fa' && FA[s] ? FA[s] : s };
+  var CAT = { meeting: 'Meeting', visit: 'Visit', call: 'Call', travel: 'Travel', personal: 'Personal', focus: 'Focus', away: 'Out of office' };
+  /* dates: local ISO, Shamsi when the desk uses it */
+  var iso = function (d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') };
+  var parse = function (s) { var p = String(s || '').split('-'); return new Date(+p[0], +p[1] - 1, +p[2]) };
+  var add = function (d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x };
+  function dayLabel(d) {
+    var loc = (LANG === 'fa' ? 'fa-IR' : 'en-GB') + (D && D.calSystem === 'gregorian' ? '-u-ca-gregory' : '-u-ca-persian');
+    try { return new Intl.DateTimeFormat(loc, { weekday: 'long', day: 'numeric', month: 'long' }).format(d) } catch (e) { return d.toDateString() }
+  }
+  var hm = function (m) { m = +m || 0; var s = String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); return LANG === 'fa' ? s.replace(/\d/g, function (x) { return '۰۱۲۳۴۵۶۷۸۹'[x] }) : s };
+  var n = function (x) { return LANG === 'fa' ? String(x).replace(/\d/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[d] }) : String(x) };
+  /* simple recurrence: daily / weekly / monthly / yearly with optional interval and end date */
+  function occurs(e, day) {
+    var s = parse(e.date); if (day < s) return false;
+    var r = e.rec; if (!r || r === 'none') return iso(s) === iso(day);
+    var f = typeof r === 'string' ? r : (r.freq || r.f || r.type || ''), every = (r && r.every) || (r && r.interval) || 1;
+    var until = (r && (r.until || r.end)) || e.until; if (until && day > parse(until)) return false;
+    var diff = Math.round((day - s) / 864e5);
+    if (/day/.test(f)) return diff % every === 0;
+    if (/week/.test(f)) { var days = r && r.days; if (days && days.length) return days.indexOf(day.getDay()) >= 0 && Math.floor(diff / 7) % every === 0; return diff % (7 * every) === 0 }
+    if (/month/.test(f)) return day.getDate() === s.getDate();
+    if (/year/.test(f)) return day.getDate() === s.getDate() && day.getMonth() === s.getMonth();
+    return iso(s) === iso(day);
+  }
+  var isPersonal = function (e) { return e.cat === 'personal' };
+  function eventsOn(day) {
+    return (D.events || []).filter(function (e) { return e.status !== 'cancelled' && occurs(e, day) && (view === 'all' || (view === 'personal') === isPersonal(e)) })
+      .sort(function (a, b) { return (a.allDay ? -1 : a.start) - (b.allDay ? -1 : b.start) });
+  }
+  function evHTML(e, isNow) {
+    var who = [].concat(e.with || [], e.people || []).filter(Boolean).map(function (p) { return typeof p === 'string' ? p : (p.name || '') }).filter(Boolean);
+    return '<div class="ev' + (isNow ? ' now' : '') + '"><div class="t">' + (e.allDay ? '<small>' + T('all day') + '</small>' : hm(e.start) + '<small>' + hm((+e.start || 0) + (+e.dur || 60)) + '</small>') + '</div>' +
+      '<div class="body"><div><span class="chip ' + esc(e.cat || 'meeting') + '">' + esc(T(CAT[e.cat] || 'Meeting')) + '</span></div><div class="ttl" dir="auto">' + esc(e.title || '—') + '</div>' +
+      '<div class="meta" dir="auto">' + [e.loc ? esc(e.loc) : '', who.length ? T('with') + ' ' + esc(who.join('، ')) : ''].filter(Boolean).join(' · ') + '</div></div></div>';
+  }
+  function render() {
+    LANG = D.lang === 'fa' ? 'fa' : 'en'; document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'fa' ? 'rtl' : 'ltr';
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    var todays = eventsOn(today), week = 0, upcoming = '';
+    for (var i = 1; i <= 14; i++) { var d = add(today, i), list = eventsOn(d); if (i <= 7) week += list.length; if (list.length) upcoming += '<div class="day">' + esc(dayLabel(d)) + '</div>' + list.map(function (e) { return evHTML(e) }).join('') }
+    var tasks = (D.tasks || []).slice().sort(function (a, b) { return (a.due || '9') < (b.due || '9') ? -1 : 1 });
+    var nextEv = todays.filter(function (e) { return !e.allDay && e.start >= nowMin })[0];
+    var h = new Date().getHours(), greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    app.innerHTML =
+      '<header><div class="mark">' + esc((D.name || 'A').trim().charAt(0).toUpperCase()) + '</div><div class="who"><b dir="auto">' + esc(D.name || 'Executive') + '</b><small dir="auto">' + esc(D.title || T('Read-only view prepared by your assistant')) + '</small></div><span class="sp"></span>' +
+      '<div class="seg" role="tablist" aria-label="Filter">' + ['all', 'work', 'personal'].map(function (v) { return '<button type="button" data-v="' + v + '" aria-pressed="' + (view === v) + '">' + T(v === 'all' ? 'All' : v === 'work' ? 'Work' : 'Personal') + '</button>' }).join('') + '</div>' +
+      '<button class="pill dark" type="button" id="rf">' + T('Refresh') + '</button></header>' +
+      '<h1>' + T(greet) + (D.name ? ', ' + esc(D.name.split(' ')[0]) : '') + '</h1><p class="lead">' + esc(dayLabel(today)) + '</p>' +
+      '<div class="stats"><div class="stat"><small>' + T('Meetings today') + '</small><b>' + n(todays.length) + '</b></div><div class="stat"><small>' + T('This week') + '</small><b>' + n(week + todays.length) + '</b></div>' +
+      '<div class="stat"><small>' + T('Reminders open') + '</small><b>' + n(tasks.length) + '</b></div><div class="stat"><small>' + T('Next') + '</small><b style="font-size:24px">' + (nextEv ? hm(nextEv.start) : '—') + '</b></div></div>' +
+      '<div class="grid"><section class="card"><h2>' + T('Today') + '</h2><p class="hint">' + esc(dayLabel(today)) + '</p>' + (todays.length ? todays.map(function (e) { return evHTML(e, nextEv === e) }).join('') : '<p class="empty">' + T('Nothing scheduled.') + '</p>') + '</section>' +
+      '<section class="card"><h2>' + T('Next days') + '</h2><p class="hint">' + T('Next 14 days') + '</p>' + (upcoming || '<p class="empty">' + T('Nothing scheduled.') + '</p>') + '</section>' +
+      '<section class="card rem"><h2>' + T('Reminders') + '</h2><p class="hint"></p>' + (tasks.length ? tasks.map(function (t) { var od = t.due && parse(t.due) < today; return '<div class="task"><span class="dot p-' + esc(t.pri || '') + '"></span><div><div class="ttl" dir="auto">' + esc(t.title) + '</div><div class="meta">' + (t.due ? (od ? T('overdue') : T('due')) + ' · ' + esc(dayLabel(parse(t.due))) : '') + (t.owner ? ' · ' + esc(t.owner) : '') + '</div></div></div>' }).join('') : '<p class="empty">' + T('No open reminders.') + '</p>') + '</section></div>' +
+      '<p class="foot">' + T('Read-only view prepared by your assistant') + ' · ' + T('Updated') + ' ' + hm(nowMin) + '</p>';
+    app.querySelectorAll('.seg button').forEach(function (b) { b.onclick = function () { view = b.dataset.v; render() } });
+    document.getElementById('rf').onclick = load;
+  }
+  function fail(msg, sub) { app.innerHTML = '<div class="err"><h2>' + esc(T(msg)) + '</h2><p class="lead">' + esc(T(sub || '')) + '</p></div>' }
+  function load() {
+    if (!token) return fail('This link is no longer active.', 'Ask your assistant for a new link.');
+    fetch(API + '/api/ceo/' + token, { cache: 'no-store' }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw j; return j }) })
+      .then(function (j) { D = j; render() }).catch(function (e) { if (e && e.error) fail('This link is no longer active.', 'Ask your assistant for a new link.'); else fail('Could not load. Check the connection and try again.') });
+  }
+  load(); setInterval(function () { if (!document.hidden) load() }, 120000);
+})();
+</script>
+</body>
+</html>

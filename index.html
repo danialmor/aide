@@ -2636,6 +2636,7 @@ select { background-color: var(--paper); color: var(--ink); }
     const a = document.createElement('a'); a.href = url; a.download = 'aide-legacy-encrypted-backup-' + new Date().toISOString().slice(0, 10) + '.json';
     document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
+  A.api = (path, method, body) => onlineRequest(path, method, body);
   async function onlineRequest(path, method = 'GET', body) {
     const headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -3971,7 +3972,7 @@ select { background-color: var(--paper); color: var(--ink); }
 (function () {
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
-  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['tpl-lunario', 'Monthly calendar', 'tmonth'], ['tpl-semana', 'Weekly planner', 'tweek'], ['tpl-epoca', 'Year to day', 'tzoom'], ['tpl-parangon', 'Compare periods', 'tcompare'], ['tpl-turno', 'Book a time', 'tbook'], ['tpl-vencimientos', 'Due dates', 'tdue'], ['tpl-solape', 'Calendar clashes', 'tclash'], ['tpl-estadia', 'Date range', 'trange'], ['tpl-franjas', 'Office hours', 'thours'], ['tpl-itinerario', 'Quarter plan', 'troad'], ['tpl-recurrencia', 'Repeat rule', 'trepeat'], ['tpl-rueda', 'Date picker', 'twheel'], ['tpl-esfera', 'Time dial', 'tdial'], ['tpl-puntual', 'Countdown', 'tcount'], ['tpl-convite', 'Meeting invite', 'tinvite'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
+  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['ceo-view', 'CEO view', 'user'], ['tpl-lunario', 'Monthly calendar', 'tmonth'], ['tpl-semana', 'Weekly planner', 'tweek'], ['tpl-epoca', 'Year to day', 'tzoom'], ['tpl-parangon', 'Compare periods', 'tcompare'], ['tpl-turno', 'Book a time', 'tbook'], ['tpl-vencimientos', 'Due dates', 'tdue'], ['tpl-solape', 'Calendar clashes', 'tclash'], ['tpl-estadia', 'Date range', 'trange'], ['tpl-franjas', 'Office hours', 'thours'], ['tpl-itinerario', 'Quarter plan', 'troad'], ['tpl-recurrencia', 'Repeat rule', 'trepeat'], ['tpl-rueda', 'Date picker', 'twheel'], ['tpl-esfera', 'Time dial', 'tdial'], ['tpl-puntual', 'Countdown', 'tcount'], ['tpl-convite', 'Meeting invite', 'tinvite'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
   const hiddenSections = () => Array.isArray(A.settings().hiddenSections) ? A.settings().hiddenSections : [];
   const roleAllowsSection = id => A.role === 'manager'
     ? ['manager', 'themes', 'layouts', 'settings', 'moxen-anaquel', 'moxen-convite', 'moxen-epoca', 'moxen-lunario', 'moxen-parangon', 'moxen-semana', 'moxen-solape', 'moxen-tregua', 'moxen-turno', 'moxen-vencimientos'].includes(id)
@@ -7429,7 +7430,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
   'use strict';
   const A = window.Aide;
   const U = {
-    /* template tabs */ 'Monthly calendar': 'تقویم ماهانه', 'Weekly planner': 'برنامه هفتگی', 'Year to day': 'نمای سال تا روز', 'Compare periods': 'مقایسه بازه‌ها', 'Book a time': 'رزرو وقت', 'Due dates': 'سررسیدها', 'Calendar clashes': 'تداخل تقویم‌ها', 'Date range': 'انتخاب بازه', 'Office hours': 'ساعات حضور', 'Quarter plan': 'برنامه فصلی', 'Repeat rule': 'تکرار رویداد', 'Date picker': 'انتخاب تاریخ', 'Time dial': 'تنظیم زمان', 'Countdown': 'شمارش معکوس', 'Meeting invite': 'دعوت‌نامه جلسه',
+    /* template tabs */ 'CEO view': 'نمای مدیرعامل', 'Monthly calendar': 'تقویم ماهانه', 'Weekly planner': 'برنامه هفتگی', 'Year to day': 'نمای سال تا روز', 'Compare periods': 'مقایسه بازه‌ها', 'Book a time': 'رزرو وقت', 'Due dates': 'سررسیدها', 'Calendar clashes': 'تداخل تقویم‌ها', 'Date range': 'انتخاب بازه', 'Office hours': 'ساعات حضور', 'Quarter plan': 'برنامه فصلی', 'Repeat rule': 'تکرار رویداد', 'Date picker': 'انتخاب تاریخ', 'Time dial': 'تنظیم زمان', 'Countdown': 'شمارش معکوس', 'Meeting invite': 'دعوت‌نامه جلسه',
     /* sign-in */
     'Aide': 'آید', 'Executive Desk': 'میز مدیریت', 'Aide · Executive Desk': 'آید · میز مدیریت',
     'Every meeting, visit and promise — in one calm place.': 'همهٔ جلسه‌ها، ملاقات‌ها و قول‌ها — در یک جای آرام.',
@@ -7825,6 +7826,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
 
   </script>
   <script src="./template-calendar-tabs.js?v=4"></script>
+  <script src="./js/ceo-view.js?v=1"></script>
   <script src="./js/template-frames.js?v=5"></script>
   <script src="./js/customizable-tabs.js?v=6"></script>
   <script>
