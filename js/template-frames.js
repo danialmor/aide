@@ -26,12 +26,16 @@
   const dark = () => document.documentElement.dataset.theme === 'dusk';
   function frame(slug, title) {
     const f = document.createElement('iframe');
-    f.src = base + slug + '/index.html'; f.title = title; f.loading = 'lazy';
-    f.setAttribute('allow', 'fullscreen; clipboard-write');
-    f.style.cssText = 'width:100%;height:calc(100dvh - 150px);min-height:560px;border:0;border-radius:18px;display:block;background:#fff;color-scheme:' + (dark() ? 'dark' : 'light');
+    f.src = base + slug + '/index.html'; f.title = title;
+    f.setAttribute('allow', 'fullscreen; clipboard-write'); f.setAttribute('allowtransparency', 'true');
+    f.className = 'aide-tpl';
+    f.style.cssText = 'width:100%;border:0;display:block;background:transparent;color-scheme:' + (dark() ? 'dark' : 'light');
+    const size = () => { if (!f.isConnected) return removeEventListener('resize', size); const top = f.getBoundingClientRect().top; f.style.height = Math.max(520, innerHeight - Math.max(0, top) - 12) + 'px' };
+    addEventListener('resize', size); requestAnimationFrame(size); setTimeout(size, 300);
+    f.addEventListener('load', () => { size(); try { f.contentWindow.postMessage({ aideTheme: dark() ? 'dark' : 'light' }, '*') } catch (e) { } });
     return f;
   }
   LIST.forEach(([slug, name, sub]) => {
-    A.views['tpl-' + slug] = { title: name, sub: sub, flush: false, render(root) { root.append(frame(slug, name)) } };
+    A.views['tpl-' + slug] = { title: name, sub: sub, flush: true, render(root) { root.append(frame(slug, name)) } };
   });
 })();

@@ -1823,6 +1823,21 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
     palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H17a4 4 0 0 0 4-4c0-4.4-4-8.2-9-8.2zM7.5 11.5h.01M10 7.5h.01M14.5 7.5h.01M17 11.5h.01',
     arrow: 'M5 12h14M13 6l6 6-6 6', list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', more: 'M5 12h.01M12 12h.01M19 12h.01',
     logout: 'M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9', cmd: 'M9 9V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z',
+    tmonth: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01',
+    tweek: 'M4 5h16v15H4zM4 9h16M9 9v11M14 9v11M6.5 12v3M16.5 13v4',
+    tzoom: 'M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM15.5 15.5 20 20M8 10.5h5M10.5 8v5',
+    tcompare: 'M3 6h10v10H3zM11 8h10v10H11z',
+    tbook: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4',
+    tdue: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.4 0-2.5.8-2.5 2s1.1 1.6 2.5 2 2.5.8 2.5 2-1.1 2-2.5 2c-1 0-2-.5-2.5-1.5M12 6.5v1.5M12 16v1.5',
+    tclash: 'M9 5a6 6 0 1 1 0 12A6 6 0 0 1 9 5zM15 7a6 6 0 1 1 0 12 6 6 0 0 1 0-12z',
+    trange: 'M4 12h16M7 9l-3 3 3 3M17 9l3 3-3 3M4 5v14M20 5v14',
+    thours: 'M4 4h16v16H4zM4 9h16M4 14h16M8 5.5h5M10 10.5h7M7 15.5h6',
+    troad: 'M4 6h8M8 12h10M6 18h8M4 3v18',
+    trepeat: 'M17 2l3 3-3 3M20 5H8a4 4 0 0 0-4 4v1M7 22l-3-3 3-3M4 19h12a4 4 0 0 0 4-4v-1',
+    twheel: 'M6 4h12M4 9h16M3 14h18M4 19h16M8 12l-2 2 2 2M16 12l2 2-2 2',
+    tdial: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 12V3M12 12l6.4 6.4',
+    tcount: 'M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9',
+    tinvite: 'M3 6h18v12H3zM3 7l9 6 9-6M12 16.5l.9 1.8',
   };
   A.iconPath = n => IC[n] || IC.more;
   A.ico = (name, cls) => {
@@ -3855,7 +3870,7 @@ html[dir="rtl"] .tabbar .badge { right: auto; left: 22%; }
 (function () {
   'use strict';
   const A = window.Aide, { h, date: D, ev: E, $ } = A;
-  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['tpl-lunario', 'تقویم ماهانه', 'calendar'], ['tpl-semana', 'برنامه هفتگی', 'calendar'], ['tpl-epoca', 'نمای سال تا روز', 'calendar'], ['tpl-parangon', 'مقایسه بازه‌ها', 'calendar'], ['tpl-turno', 'رزرو وقت', 'calendar'], ['tpl-vencimientos', 'سررسیدها', 'calendar'], ['tpl-solape', 'تداخل تقویم‌ها', 'calendar'], ['tpl-estadia', 'انتخاب بازه', 'calendar'], ['tpl-franjas', 'ساعات حضور', 'calendar'], ['tpl-itinerario', 'برنامه فصلی', 'calendar'], ['tpl-recurrencia', 'تکرار رویداد', 'calendar'], ['tpl-rueda', 'انتخاب تاریخ', 'calendar'], ['tpl-esfera', 'تنظیم زمان', 'calendar'], ['tpl-puntual', 'شمارش معکوس', 'calendar'], ['tpl-convite', 'دعوت‌نامه جلسه', 'calendar'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
+  const NAV = [['today', 'Today', 'home'], ['calendar', 'Calendar', 'calendar'], ['repeats', 'Repeats', 'reset'], ['roadmap', 'Roadmap', 'flag'], ['requests', 'Requests', 'inbox'], ['availability', 'Availability', 'clock'], ['tasks', 'Tasks', 'tasks'], ['notes', 'Notebook', 'notes'], ['timer', 'Timers', 'timer'], ['people', 'People', 'people'], ['themes', 'Themes', 'palette'], ['tpl-lunario', 'تقویم ماهانه', 'tmonth'], ['tpl-semana', 'برنامه هفتگی', 'tweek'], ['tpl-epoca', 'نمای سال تا روز', 'tzoom'], ['tpl-parangon', 'مقایسه بازه‌ها', 'tcompare'], ['tpl-turno', 'رزرو وقت', 'tbook'], ['tpl-vencimientos', 'سررسیدها', 'tdue'], ['tpl-solape', 'تداخل تقویم‌ها', 'tclash'], ['tpl-estadia', 'انتخاب بازه', 'trange'], ['tpl-franjas', 'ساعات حضور', 'thours'], ['tpl-itinerario', 'برنامه فصلی', 'troad'], ['tpl-recurrencia', 'تکرار رویداد', 'trepeat'], ['tpl-rueda', 'انتخاب تاریخ', 'twheel'], ['tpl-esfera', 'تنظیم زمان', 'tdial'], ['tpl-puntual', 'شمارش معکوس', 'tcount'], ['tpl-convite', 'دعوت‌نامه جلسه', 'tinvite'], ['manager', 'Manager', 'user'], ['users', 'Users', 'people'], ['settings', 'Settings', 'settings']];
   const hiddenSections = () => Array.isArray(A.settings().hiddenSections) ? A.settings().hiddenSections : [];
   const roleAllowsSection = id => A.role === 'manager'
     ? ['manager', 'themes', 'layouts', 'settings', 'moxen-anaquel', 'moxen-convite', 'moxen-epoca', 'moxen-lunario', 'moxen-parangon', 'moxen-semana', 'moxen-solape', 'moxen-tregua', 'moxen-turno', 'moxen-vencimientos'].includes(id)
@@ -7708,7 +7723,7 @@ window.AidePalettes = [{"id":"acomodo","name":"Acomodo","light":{"ac-crema":"#fa
 
   </script>
   <script src="./template-calendar-tabs.js?v=4"></script>
-  <script src="./js/template-frames.js?v=1"></script>
+  <script src="./js/template-frames.js?v=2"></script>
   <script src="./js/customizable-tabs.js?v=3"></script>
   <script>
     Aide.boot();
